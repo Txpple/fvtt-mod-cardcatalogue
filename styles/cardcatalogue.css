@@ -1641,11 +1641,14 @@
   cursor: default;
 }
 
-/* The journal's folder headings are buttons now: a click collapses their journals. */
+/* The journal's folder headings are buttons now: a click collapses their journals. Laid from the left
+   (Foundry centres a button's content), the folder's icon in line with its journals' names. */
 button.cc-folder {
+  justify-content: flex-start;
   width: 100%;
   height: auto;
   margin: 0;
+  padding-left: 0;
   background: transparent;
   border: 0;
   box-shadow: none;
@@ -1656,4 +1659,9 @@ button.cc-folder {
 
 button.cc-folder:hover {
   color: var(--cc-ink);
+}
+
+button.cc-folder > .cc-caret {
+  width: 1rem;
+  height: auto;
 }

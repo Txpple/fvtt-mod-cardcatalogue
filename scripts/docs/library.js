@@ -12,8 +12,9 @@ import { log, MODULE_ID, t as rootT } from "../common.js";
 import { collapseTree, folderTree } from "../scenes/decide.js";
 import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
 import { acts, markPicked } from "../shell/cards.js";
+import { exportInView } from "../shell/export.js";
 import { folderMenu, newFolder } from "../shell/folders.js";
-import { byType, inView, matchWhy, searchFields, typeCounts } from "./decide.js";
+import { byType, docEntry, inView, matchWhy, searchFields, typeCounts } from "./decide.js";
 import { createRecord } from "./memory.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -128,6 +129,16 @@ export function makeCaseWindow(spec) {
           event.stopPropagation();
           record.toggleCollapsed(target.dataset.folder);
           this.render();
+        },
+        /** The cards in view, as the search leaves them, saved as a JSON file. */
+        export() {
+          const cards = new Map(casesCards(spec).map(c => [c.key, c]));
+          exportInView(this.element, {
+            caseId: spec.id,
+            heading: this.#heading(this.view),
+            search: this.query,
+            entryOf: key => (cards.has(key) ? docEntry(cards.get(key), spec.fields) : null)
+          });
         },
         /** A new folder, inside the one in view when it can be; the rail then shows it, to drop cards on. */
         async newFolder() {
@@ -279,7 +290,8 @@ export function makeCaseWindow(spec) {
       context.labels = {
         menu: t("menu.label"),
         classic: rootT("docs.classic"),
-        classicHint: t("classic.hint")
+        classicHint: t("classic.hint"),
+        exportHint: rootT("export.hint")
       };
       return context;
     }

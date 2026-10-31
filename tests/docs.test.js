@@ -1,6 +1,7 @@
 import {
   byType,
   crLabel,
+  docEntry,
   isSummonCopy,
   inView,
   matchWhy,
@@ -140,5 +141,41 @@ describe("the recent list", () => {
     let list = [];
     for (const key of ["a", "b", "a"]) list = remember(list, { key });
     expect(list.map(r => r.key)).toEqual(["a", "b"]);
+  });
+});
+
+describe("the export", () => {
+  it("names the card, its place, its line and its picture, then the case's fields it has", () => {
+    const card = {
+      key: "Actor.abc",
+      name: "Cecil",
+      type: "character",
+      sub: "Player Character · Level 2",
+      folder: "",
+      picture: "art/cecil.webp",
+      kind: "Player Character",
+      details: "Bard Human",
+      owners: "",
+      text: "A bard."
+    };
+    expect(docEntry(card, ORDER)).toEqual({
+      name: "Cecil",
+      uuid: "Actor.abc",
+      type: "character",
+      line: "Player Character · Level 2",
+      folder: null,
+      img: "art/cecil.webp",
+      kind: "Player Character",
+      details: "Bard Human",
+      text: "A bard."
+    });
+  });
+
+  it("never lets a field overwrite who the card is", () => {
+    const entry = docEntry(
+      { key: "Item.x", name: "Rope", type: "loot", folder: "Gear", picture: null },
+      ["name", "folder"]
+    );
+    expect(entry).toMatchObject({ name: "Rope", folder: "Gear", img: null, line: "" });
   });
 });

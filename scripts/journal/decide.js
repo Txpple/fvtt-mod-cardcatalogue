@@ -292,8 +292,11 @@ export function withoutImages(html) {
     .replace(/<figure\b[^>]*>\s*(?:<figcaption\b[^>]*>\s*<\/figcaption>\s*)?<\/figure>/gi, "");
 }
 
-/** What an export file is called: `scrollcase-<what is in view>-<date>.json`. */
-export function exportName(heading, at) {
+/**
+ * What an export file is called: `<prefix>-<what is in view>-<date>.json`; the journal's prefix is
+ * Scroll Case's, the other cases' `cardcatalogue-<case>`.
+ */
+export function exportName(heading, at, prefix = "scrollcase") {
   const slug = String(heading ?? "")
     .toLowerCase()
     .normalize("NFKD")
@@ -301,18 +304,19 @@ export function exportName(heading, at) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "")
     .slice(0, 60);
-  return `scrollcase-${slug || "entries"}-${String(at).slice(0, 10)}.json`;
+  return `${prefix}-${slug || "entries"}-${String(at).slice(0, 10)}.json`;
 }
 
 /**
  * The export of the cards in view, in their order: each card's words and where it lives, no
  * picture data (an image, video or PDF page names its file). `entries` come already read for the
- * exporting user (a player's without the GM's secrets).
- * @param {{ world: string, view: string, type: string, search: string, at: string, entries: object[] }} what
+ * exporting user (a player's without the GM's secrets). The other cases name their own format and
+ * have no type.
+ * @param {{ world: string, view: string, type?: string, search: string, at: string, entries: object[], format?: string }} what
  */
-export function exportOf({ world, view, type, search, at, entries }) {
+export function exportOf({ world, view, type, search, at, entries, format = "fvtt-mod-scrollcase/entries" }) {
   return {
-    format: "fvtt-mod-scrollcase/entries",
+    format,
     version: 1,
     world,
     view,

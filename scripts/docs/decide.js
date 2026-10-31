@@ -99,6 +99,27 @@ export function crLabel(cr) {
 }
 
 /**
+ * A card in an export: who it is and where it lives, its card line, its picture's file, then each of
+ * the case's search fields it has (read for the exporting user, so a player's carries no owners and
+ * no text they cannot read).
+ * @param {{ key: string, name: string, type: string, sub?: string, folder?: string, picture?: string | null } & Record<string, unknown>} card
+ * @param {readonly string[]} fields
+ */
+export function docEntry(card, fields) {
+  /** @type {Record<string, unknown>} */
+  const entry = {
+    name: card.name,
+    uuid: card.key,
+    type: card.type,
+    line: card.sub || "",
+    folder: card.folder || null,
+    img: card.picture || null
+  };
+  for (const f of fields) if (!(f in entry) && card[f]) entry[f] = card[f];
+  return entry;
+}
+
+/**
  * The recent list: newest first, one per key, at most `max`.
  * @param {{ key: string }[] | null | undefined} list
  * @param {{ key: string }} row

@@ -6,6 +6,7 @@ import {
   inView,
   matchWhy,
   remember,
+  sceneEntry,
   searchFields,
   UNDO_FOR,
   undoCheck
@@ -200,5 +201,32 @@ describe("the record's recent list", () => {
     for (const key of ["a", "b", "a", "c"]) list = remember(list, { key });
     expect(list.map(r => r.key)).toEqual(["c", "a", "b"]);
     expect(remember(list, { key: "d" }, 2).map(r => r.key)).toEqual(["d", "c"]);
+  });
+});
+
+describe("the export", () => {
+  it("names the scene, its place, its state, its background, notes and playlist", () => {
+    const entry = sceneEntry({
+      key: "Scene.s1",
+      name: "Farmhouse",
+      navName: "",
+      folder: "02 › Village",
+      active: true,
+      nav: false,
+      background: "maps/farm.webp",
+      notes: "Map Keys › Farm",
+      playlist: ""
+    });
+    expect(entry).toEqual({
+      name: "Farmhouse",
+      uuid: "Scene.s1",
+      navName: null,
+      folder: "02 › Village",
+      active: true,
+      navigation: false,
+      background: "maps/farm.webp",
+      notes: "Map Keys › Farm",
+      playlist: null
+    });
   });
 });

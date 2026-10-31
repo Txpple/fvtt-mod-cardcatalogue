@@ -7,11 +7,12 @@
  */
 
 import { log, MODULE_ID, t } from "./common.js";
-import { activateAs, collapseTree, folderTree, inView, matchWhy, searchFields, VIEWS } from "./decide.js";
+import { activateAs, collapseTree, folderTree, inView, matchWhy, sceneEntry, searchFields, VIEWS } from "./decide.js";
 import * as memory from "./memory.js";
 import * as scenes from "./scenes.js";
 import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
 import { acts, markPicked } from "../shell/cards.js";
+import { exportInView } from "../shell/export.js";
 import { folderMenu, newFolder } from "../shell/folders.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -93,7 +94,8 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       classic: ScenesWindow.#onClassic,
       case: ScenesWindow.#onCase,
       newFolder: ScenesWindow.#onNewFolder,
-      toggleFolder: ScenesWindow.#onToggleFolder
+      toggleFolder: ScenesWindow.#onToggleFolder,
+      export: ScenesWindow.#onExport
     }
   };
 
@@ -614,6 +616,17 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     this.#sticky = null;
     memory.setPrefs({ view: this.#view });
     this.render();
+  }
+
+  /** The scenes in view, as the search leaves them, saved as a JSON file. */
+  static #onExport() {
+    const cards = new Map(sceneCards().map(c => [c.key, c]));
+    exportInView(this.element, {
+      caseId: "scenes",
+      heading: this.#heading(this.#view),
+      search: this.#query,
+      entryOf: key => (cards.has(key) ? sceneEntry(cards.get(key)) : null)
+    });
   }
 
   /** The case this window is, for the strip. */

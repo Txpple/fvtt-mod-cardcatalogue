@@ -290,6 +290,9 @@ describe("the export", () => {
       "scrollcase-cafe-notes-2026-10-30.json"
     );
     expect(exportName("", "2026-10-30T00:00:00Z")).toBe("scrollcase-entries-2026-10-30.json");
+    expect(exportName("Player Characters", "2026-10-31", "cardcatalogue-actors")).toBe(
+      "cardcatalogue-actors-player-characters-2026-10-31.json"
+    );
   });
 
   it("wraps the entries with what was in view", () => {
@@ -311,6 +314,16 @@ describe("the export", () => {
     expect(
       exportOf({ world: "W", view: "v", type: "text", search: "map", at: "x", entries: [] }).search
     ).toBe("map");
+    const other = exportOf({
+      world: "W",
+      view: "v",
+      search: "",
+      at: "x",
+      entries: [],
+      format: "fvtt-mod-cardcatalogue/items"
+    });
+    expect(other.format).toBe("fvtt-mod-cardcatalogue/items");
+    expect(JSON.parse(JSON.stringify(other))).not.toHaveProperty("type");
   });
 });
 

@@ -38,6 +38,25 @@ export function searchFields({ name, navName, folder, notes, playlist, file }) {
   return { name: low(name), navName: low(navName), folder: low(folder), notes: low(notes), playlist: low(playlist), file: low(file) };
 }
 
+/**
+ * A scene in an export: who it is, where it lives, whether it is active and in the navigation bar,
+ * its background's file, its notes and its playlist.
+ * @param {{ key: string, name: string, navName?: string, folder?: string, active?: boolean, nav?: boolean, background?: string | null, notes?: string, playlist?: string }} card
+ */
+export function sceneEntry(card) {
+  return {
+    name: card.name,
+    uuid: card.key,
+    navName: card.navName || null,
+    folder: card.folder || null,
+    active: !!card.active,
+    navigation: !!card.nav,
+    background: card.background || null,
+    notes: card.notes || null,
+    playlist: card.playlist || null
+  };
+}
+
 /** The rail's views, in order. */
 export const VIEWS = Object.freeze(["all", "here", "nav", "off"]);
 

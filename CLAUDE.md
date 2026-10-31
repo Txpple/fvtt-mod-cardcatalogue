@@ -7,8 +7,8 @@ sidebar showing only the tabs the table uses (the two rules carried over from Ho
 Foundry's own directories. Part of Open Roll 5e (the suite repo is `..`, its CLAUDE.md has the family's conventions;
 the plan is `../docs/plans/cardcatalogue.md`). Plain ES modules, no build step, no libWrapper, no socketlib, MIT.
 
-**State (2026-10-31).** 1.0.4 (a folder's caret is its own button beside the row: inside it, a real click picked
-the folder; walked with the real mouse) released and on prod; 1.0.3 (a click selects a card, a double click or Enter does its one thing; the rail's
+**State (2026-10-31).** 1.0.5 (Export of the cards in view in the scenes, actors and items cases, as the journal's, `shell/export.js`; the journal's folder headings laid from the left) released and on prod; 1.0.4 (a folder's caret is its own button beside the row: inside it, a real click picked
+the folder; walked with the real mouse) released and on prod before it; 1.0.3 (a click selects a card, a double click or Enter does its one thing; the rail's
 folders collapse by a caret, the journal's folder headings collapse their journals, each browser remembering)
 released, never on prod; 1.0.2 (the top level is *Unfiled*; *+ Create New Folder* a gold pill as Clue Board's New
 Thread; a right-click on a folder's row removes it, Foundry's own Remove Folder) released, never on prod. 1.0.1 (the journal's bar on one line; a page's Copy link and Copy @ reference in its
@@ -20,8 +20,8 @@ Scroll Case disabled, uninstalled and its repo archived. Before it, 0.1.0, the w
 Scroll Case retires; the name is free (the setup screen's `getPackages`, 7,087 modules, has no "Card Catalogue",
 no `cardcatalog` and no "catalogue" at all). On the sandbox (`deploy --local`, registered by a
 restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 deployed `--local` beside it).
-`npm run verify` green (129 tests); the three walks GREEN on the sandbox: `tools/journal-check.mjs --walk` 43
-(Scroll Case's, ported), `tools/scenes-check.mjs --walk` 27 (Map Case's), `tools/docs-check.mjs` 25.
+`npm run verify` green (138 tests); the three walks GREEN on the sandbox: `tools/journal-check.mjs --walk` 43
+(Scroll Case's, ported), `tools/scenes-check.mjs --walk` 28 (Map Case's), `tools/docs-check.mjs` 33.
 
 ## The rules this module keeps
 

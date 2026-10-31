@@ -589,6 +589,12 @@
       "create": "Create",
       "collapse": "Collapse",
       "expand": "Expand"
+    },
+    "export": {
+      "hint": "Export the cards in view as a JSON file (their words, no pictures)",
+      "done": "{name} saved: {n} entries.",
+      "doneOne": "{name} saved: 1 entry.",
+      "none": "No cards in view to export."
     }
   }
 }

@@ -67,6 +67,7 @@
       <div class="cc-head">
         <h2>{{heading}}</h2>
         <span class="cc-count" data-base="{{countBase}}" aria-live="polite"></span>
+        <button type="button" class="cc-export" data-action="export" data-tooltip="{{labels.exportHint}}" aria-label="{{labels.exportHint}}"><i class="fa-solid fa-file-export" inert></i></button>
       </div>
       <div class="cc-cards cc-size-{{size}}">
         {{#each cards}}

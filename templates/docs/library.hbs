@@ -1,0 +1,150 @@
+<div class="cc-root {{#if isGM}}cc-gm{{else}}cc-player{{/if}}">
+  <div class="cc-bar">
+    {{#if cases.length}}
+    <div class="cc-cases" role="group" aria-label="{{localize 'fvtt-mod-cardcatalogue.cases.label'}}">
+      {{#each cases}}
+      <button type="button" class="cc-case {{#if on}}on{{/if}}" data-action="case" data-case="{{id}}" aria-pressed="{{#if on}}true{{else}}false{{/if}}"><i class="fa-solid {{icon}}" inert></i><span class="cc-case-text">{{label}}</span></button>
+      {{/each}}
+    </div>
+    {{/if}}
+    <label class="cc-search">
+      <i class="fa-solid fa-magnifying-glass" inert></i>
+      <input type="search" name="search" value="{{query}}" autocomplete="off" placeholder="{{placeholder}}" aria-label="{{placeholder}}">
+    </label>
+    <div class="cc-pills" role="group" aria-label="{{localize 'fvtt-mod-cardcatalogue.size.label'}}">
+      {{#each sizes}}
+      <button type="button" class="cc-pill {{#if on}}on{{/if}}" data-action="size" data-size="{{id}}" aria-label="{{aria}}" aria-pressed="{{#if on}}true{{else}}false{{/if}}">{{label}}</button>
+      {{/each}}
+    </div>
+    <button type="button" class="cc-classic" data-action="classic" data-tooltip="{{labels.classicHint}}">
+      <i class="fa-solid fa-list" inert></i> <span class="cc-classic-text">{{labels.classic}}</span>
+    </button>
+  </div>
+
+  <div class="cc-body">
+    <nav class="cc-rail" aria-label="{{railLabel}}">
+      <div class="cc-key">{{railKey}}</div>
+      {{#each views}}
+      <button type="button" class="cc-row {{#if on}}on{{/if}}" data-action="rail" data-view="{{id}}" aria-current="{{#if on}}true{{else}}false{{/if}}">
+        <span class="n">{{label}}</span><small>{{n}}</small>
+      </button>
+      {{/each}}
+      {{#if types.length}}
+      <div class="cc-key">{{localize "fvtt-mod-cardcatalogue.docs.types"}}</div>
+      {{#each types}}
+      <button type="button" class="cc-row {{#if on}}on{{/if}}" data-action="rail" data-view="{{id}}" aria-current="{{#if on}}true{{else}}false{{/if}}">
+        <span class="n">{{label}}</span><small>{{n}}</small>
+      </button>
+      {{/each}}
+      {{/if}}
+      {{#if folders.length}}
+      <div class="cc-key">{{localize "fvtt-mod-cardcatalogue.docs.folders"}}</div>
+      {{/if}}
+      {{#each folders}}
+      <button type="button" class="cc-row cc-folderrow {{#if on}}on{{/if}}" style="--depth: {{indent}}" data-action="rail" data-view="f:{{id}}" data-drop="folder" data-folder="{{id}}" aria-current="{{#if on}}true{{else}}false{{/if}}">
+        <i class="fa-solid fa-folder cc-ficon" inert></i><span class="n">{{name}}</span><small>{{n}}</small>
+      </button>
+      {{/each}}
+      {{#if loose}}
+      <button type="button" class="cc-row cc-folderrow {{#if loose.on}}on{{/if}}" style="--depth: 0" data-action="rail" data-view="f:" data-drop="folder" data-folder="" aria-current="{{#if loose.on}}true{{else}}false{{/if}}">
+        <i class="fa-regular fa-folder-open cc-ficon" inert></i><span class="n">{{loose.label}}</span><small>{{loose.n}}</small>
+      </button>
+      {{/if}}
+    </nav>
+
+    <section class="cc-main">
+      <div class="cc-head">
+        <h2>{{heading}}</h2>
+        <span class="cc-count" data-base="{{countBase}}" aria-live="polite"></span>
+      </div>
+      <div class="cc-cards cc-size-{{size}}">
+        {{#each cards}}
+        <article class="cc-card {{#if selected}}on{{/if}}" data-key="{{key}}" data-folder="{{folderId}}" draggable="true">
+          <button type="button" class="cc-pick" data-action="pick" aria-label="{{name}}" aria-pressed="{{#if selected}}true{{else}}false{{/if}}">
+            <span class="cc-thumb">
+              {{#if picture}}<img {{#if ../iconCards}}class="cc-iconimg"{{/if}} src="{{picture}}" alt="" loading="lazy" draggable="false">
+              {{else}}<span class="cc-nothumb"><i class="fa-solid {{../goIcon}}" inert></i></span>{{/if}}
+              {{#if badge}}<span class="cc-badge {{badgeCls}}" data-tooltip="{{badge}}"><span class="cc-badge-text">{{badge}}</span></span>{{/if}}
+              {{#if icons.length}}<span class="cc-icons">{{#each icons}}<i class="fa-solid {{icon}}" data-tooltip="{{tip}}" aria-label="{{tip}}"></i>{{/each}}</span>{{/if}}
+            </span>
+            <span class="cc-cb">
+              <span class="cc-nm">{{#if pinned}}<i class="fa-solid fa-thumbtack" inert></i>{{/if}}<span dir="auto">{{name}}</span></span>
+              <span class="cc-sub"><span class="cc-where">{{sub}}</span><span class="cc-why"></span></span>
+            </span>
+          </button>
+          <span class="cc-acts">
+            <button type="button" class="go" data-action="go"><i class="fa-solid {{../goIcon}}" inert></i> {{../goLabel}}</button>
+            {{#if ../hasMenu}}<button type="button" class="more" data-action="openMenu" aria-label="{{../labels.menu}}" data-tooltip="{{../labels.menu}}"><i class="fa-solid fa-chevron-down" inert></i></button>{{/if}}
+          </span>
+          <button type="button" class="cc-pin" data-action="pin" aria-label="{{#if pinned}}{{../labels.unpin}}{{else}}{{../labels.pin}}{{/if}}" data-tooltip="{{#if pinned}}{{../labels.unpin}}{{else}}{{../labels.pin}}{{/if}}" aria-pressed="{{#if pinned}}true{{else}}false{{/if}}"><i class="fa-solid fa-thumbtack" inert></i></button>
+        </article>
+        {{/each}}
+        <div class="cc-empty" data-view="{{emptyText}}" {{#if cards.length}}hidden{{/if}}>{{emptyText}}</div>
+        <button type="button" class="cc-more" data-action="searchAll" hidden></button>
+      </div>
+    </section>
+
+    {{#if detail}}
+    <aside class="cc-detail" data-key="{{detail.key}}" aria-label="{{detail.name}}">
+      <button type="button" class="cc-x cc-detail-x" data-action="unpick" aria-label="{{localize 'fvtt-mod-cardcatalogue.docs.closePanel'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.docs.closePanel'}}"><i class="fa-solid fa-xmark" inert></i></button>
+      <div class="cc-big">
+        {{#if detail.picture}}<img src="{{detail.picture}}" alt="{{detail.name}}">
+        {{else}}<p><i class="fa-solid {{goIcon}}" inert></i> {{labels.noPicture}}</p>{{/if}}
+      </div>
+      <div>
+        <h3 dir="auto">{{detail.name}}</h3>
+        {{#if detail.kindLine}}<div class="cc-kindline">{{detail.kindLine}}</div>{{/if}}
+        {{#each detail.lines}}<div class="cc-kindline">{{this}}</div>{{/each}}
+      </div>
+      <div class="cc-btns">
+        <button type="button" class="cc-btn pri" data-action="go"><i class="fa-solid {{goIcon}}" inert></i> {{goLabel}}</button>
+        {{#if hasMenu}}<button type="button" class="cc-btn" data-action="openMenu" aria-label="{{labels.menu}}" data-tooltip="{{labels.menu}}"><i class="fa-solid fa-chevron-down" inert></i></button>{{/if}}
+      </div>
+      <div class="cc-btns">
+        {{#each detail.quick}}
+        <button type="button" class="cc-btn" data-action="act" data-act="{{act}}" {{#if disabled}}disabled{{/if}}><i class="fa-solid {{icon}}" inert></i> {{label}}</button>
+        {{/each}}
+        <button type="button" class="cc-btn {{#if detail.pinned}}on{{/if}}" data-action="pin" aria-pressed="{{#if detail.pinned}}true{{else}}false{{/if}}" data-tooltip="{{labels.pinHint}}"><i class="fa-solid fa-thumbtack" inert></i> {{#if detail.pinned}}{{labels.pinned}}{{else}}{{labels.pin}}{{/if}}</button>
+        <button type="button" class="cc-btn" data-action="copyRef" aria-label="{{labels.copyRef}}" data-tooltip="{{labels.copyRef}}"><i class="fa-solid fa-at" inert></i></button>
+      </div>
+      <div class="cc-field">
+        <span class="cc-key">{{labels.where}}</span>
+        <span>{{detail.where}}</span>
+      </div>
+      {{#if detail.last}}
+      <div class="cc-field"><span class="cc-note">{{detail.last}}</span></div>
+      {{/if}}
+    </aside>
+    {{/if}}
+  </div>
+
+  {{#if menu}}
+  <div class="cc-veil">
+    <div class="cc-opts" role="dialog" aria-modal="true" aria-label="{{labels.menu}}">
+      <div class="cc-opts-head">
+        {{#if menu.picture}}<img src="{{menu.picture}}" alt="">{{/if}}
+        <div><div class="cc-key">{{labels.menu}}</div><strong>{{menu.name}}</strong></div>
+        <button type="button" class="cc-x" data-action="closeMenu" aria-label="{{localize 'Close'}}"><i class="fa-solid fa-xmark" inert></i></button>
+      </div>
+      <div class="cc-menu">
+        {{#each menu.rows}}
+        {{#if choices}}
+        <div class="cc-choices">
+          <div class="cc-choices-head"><i class="fa-solid {{icon}} cc-micon" inert></i> <span class="cc-choice-text"><strong>{{label}}</strong> <small class="cc-choice-hint">{{hint}}</small></span></div>
+          <div class="cc-togs">
+            {{#each choices}}
+            <button type="button" class="cc-tog" data-action="act" data-act="{{act}}" data-arg="{{arg}}">{{label}}</button>
+            {{else}}
+            <span class="cc-note">{{empty}}</span>
+            {{/each}}
+          </div>
+        </div>
+        {{else}}
+        <button type="button" class="cc-btn" data-action="act" data-act="{{act}}" {{#if disabled}}disabled{{/if}}><i class="fa-solid {{icon}} cc-micon" inert></i> <span><strong>{{label}}</strong> <small>{{hint}}</small></span></button>
+        {{/if}}
+        {{/each}}
+      </div>
+    </div>
+  </div>
+  {{/if}}
+</div>

@@ -1,0 +1,34 @@
+{
+  "id": "fvtt-mod-cardcatalogue",
+  "title": "Open Roll 5e: Card Catalogue",
+  "description": "Every directory the table uses as a case of cards: the journal (find a handout in a keystroke, show it in one click), the scenes (activate in one click, with an Undo), the actors and the items, each found by any word. The sidebar shows only the tabs the table uses. A skin over Foundry's own directories; Classic Mode is a click away for each.",
+  "version": "0.1.0",
+  "authors": [
+    {
+      "name": "Matthew Sippel"
+    }
+  ],
+  "esmodules": [
+    "scripts/cardcatalogue.js"
+  ],
+  "styles": [
+    "styles/cardcatalogue.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14"
+  },
+  "url": "https://github.com/Txpple/fvtt-mod-cardcatalogue",
+  "manifest": "https://github.com/Txpple/fvtt-mod-cardcatalogue/releases/latest/download/module.json",
+  "download": "https://github.com/Txpple/fvtt-mod-cardcatalogue/releases/download/v0.1.0/fvtt-mod-cardcatalogue.zip",
+  "readme": "https://github.com/Txpple/fvtt-mod-cardcatalogue#readme",
+  "license": "MIT",
+  "socket": true
+}

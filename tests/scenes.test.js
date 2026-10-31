@@ -1,0 +1,180 @@
+import {
+  activateAs,
+  darknessOf,
+  fileName,
+  folderTree,
+  inView,
+  matchWhy,
+  remember,
+  searchFields,
+  squares,
+  UNDO_FOR,
+  undoCheck
+} from "../scripts/scenes/decide.js";
+
+describe("the search", () => {
+  const fields = searchFields({
+    name: "Deep Caves (C)",
+    navName: "The Under-Dark",
+    folder: "Blight › Caves",
+    notes: "Map Keys › Cave C",
+    playlist: "Dripping Dark",
+    file: "worlds/halruaa/assets/maps/cave-c.webp"
+  });
+
+  it("matches the name first and says nothing for it", () => {
+    expect(matchWhy(fields, "caves")).toBe("");
+    expect(matchWhy(fields, "")).toBe("");
+  });
+
+  it("says where else a word matched", () => {
+    expect(matchWhy(fields, "under")).toBe("navName");
+    expect(matchWhy(fields, "dripping")).toBe("playlist");
+    expect(matchWhy(fields, "keys")).toBe("notes");
+    expect(matchWhy(fields, "cave-c.webp")).toBe("file");
+  });
+
+  it("needs every word somewhere", () => {
+    expect(matchWhy(fields, "caves dripping")).toBe("playlist");
+    expect(matchWhy(fields, "caves forest")).toBeNull();
+  });
+
+  it("is not fooled by case or missing fields", () => {
+    expect(matchWhy(searchFields({ name: "Town Hall" }), "HALL")).toBe("");
+    expect(matchWhy(searchFields({ name: "Town Hall" }), "notes")).toBeNull();
+  });
+});
+
+describe("the views", () => {
+  const card = (over = {}) => ({ active: false, viewed: false, nav: false, folders: [], ...over });
+
+  it("All holds everything", () => {
+    expect(inView(card(), "all")).toBe(true);
+  });
+
+  it("Active and viewed holds the active scene and the one this client looks at", () => {
+    expect(inView(card({ active: true }), "here")).toBe(true);
+    expect(inView(card({ viewed: true }), "here")).toBe(true);
+    expect(inView(card(), "here")).toBe(false);
+  });
+
+  it("the active scene is on the bar, as Foundry draws it", () => {
+    expect(inView(card({ active: true }), "nav")).toBe(true);
+    expect(inView(card({ active: true }), "off")).toBe(false);
+    expect(inView(card({ nav: true }), "nav")).toBe(true);
+    expect(inView(card(), "off")).toBe(true);
+  });
+
+  it("a folder holds its subfolders' scenes; f: holds the loose ones", () => {
+    const deep = card({ folders: ["caves", "blight"] });
+    expect(inView(deep, "f:blight")).toBe(true);
+    expect(inView(deep, "f:caves")).toBe(true);
+    expect(inView(deep, "f:town")).toBe(false);
+    expect(inView(deep, "f:")).toBe(false);
+    expect(inView(card(), "f:")).toBe(true);
+  });
+
+  it("an unknown view holds nothing", () => {
+    expect(inView(card(), "pinned")).toBe(false);
+  });
+});
+
+describe("the folder tree", () => {
+  const folders = [
+    { id: "b", name: "Blight", parent: null, sort: 200 },
+    { id: "c", name: "Caves", parent: "b", sort: 0 },
+    { id: "t", name: "Town", parent: null, sort: 100 },
+    { id: "e", name: "Empty", parent: null, sort: 0 }
+  ];
+  const cards = [
+    { folders: ["c", "b"] },
+    { folders: ["c", "b"] },
+    { folders: ["b"] },
+    { folders: ["t"] },
+    { folders: [] }
+  ];
+
+  it("flattens in the directory's order with depths and counts under each", () => {
+    expect(folderTree(folders, cards)).toEqual([
+      { id: "t", name: "Town", depth: 0, n: 1 },
+      { id: "b", name: "Blight", depth: 0, n: 3 },
+      { id: "c", name: "Caves", depth: 1, n: 2 }
+    ]);
+  });
+
+  it("leaves out a folder with no scene", () => {
+    expect(folderTree(folders, cards).some(f => f.id === "e")).toBe(false);
+  });
+
+  it("orders by name when the sorts tie", () => {
+    const tied = [
+      { id: "z", name: "Zed", parent: null },
+      { id: "a", name: "Alpha", parent: null }
+    ];
+    expect(folderTree(tied, [{ folders: ["z"] }, { folders: ["a"] }]).map(f => f.id)).toEqual([
+      "a",
+      "z"
+    ]);
+  });
+});
+
+describe("a card's lines", () => {
+  it("counts squares", () => {
+    expect(squares(4760, 3780, 140)).toBe("34 × 27");
+    expect(squares(0, 3780, 140)).toBe("");
+    expect(squares(4760, 3780, 0)).toBe("");
+  });
+
+  it("names the button", () => {
+    expect(activateAs({ active: false })).toBe("activate");
+    expect(activateAs({ active: true })).toBe("pull");
+  });
+
+  it("reads darkness", () => {
+    expect(darknessOf(0)).toBe("day");
+    expect(darknessOf(1)).toBe("night");
+    expect(darknessOf(0.55)).toBe(55);
+    expect(darknessOf(undefined)).toBe("day");
+  });
+
+  it("takes a file's name", () => {
+    expect(fileName("worlds/w/assets/maps/cave.webp")).toBe("cave.webp");
+    expect(fileName(null)).toBe("");
+  });
+});
+
+describe("Undo's check", () => {
+  const record = { sceneId: "new", previousId: "old", at: 1000 };
+  const world = (over = {}) => ({ activeId: "new", exists: () => true, now: 2000, ...over });
+
+  it("allows going back while nothing has moved", () => {
+    expect(undoCheck(record, world())).toBe("ok");
+  });
+
+  it("refuses with nothing to go back to", () => {
+    expect(undoCheck(null, world())).toBe("none");
+    expect(undoCheck({ ...record, previousId: null }, world())).toBe("none");
+  });
+
+  it("refuses once another scene is active", () => {
+    expect(undoCheck(record, world({ activeId: "other" }))).toBe("changed");
+    expect(undoCheck(record, world({ activeId: null }))).toBe("changed");
+  });
+
+  it("refuses when the old scene is gone", () => {
+    expect(undoCheck(record, world({ exists: () => false }))).toBe("gone");
+  });
+
+  it("expires", () => {
+    expect(undoCheck(record, world({ now: 1000 + UNDO_FOR + 1 }))).toBe("expired");
+  });
+});
+
+describe("the record's recent list", () => {
+  it("puts the newest first, once, and keeps a few", () => {
+    let list = [];
+    for (const key of ["a", "b", "a", "c"]) list = remember(list, { key });
+    expect(list.map(r => r.key)).toEqual(["c", "a", "b"]);
+    expect(remember(list, { key: "d" }, 2).map(r => r.key)).toEqual(["d", "c"]);
+  });
+});

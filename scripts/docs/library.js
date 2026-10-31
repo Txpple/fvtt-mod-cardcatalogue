@@ -1,0 +1,574 @@
+/**
+ * The window the actors and items cases share: a collection's documents as cards, in the journal
+ * case's look and with its habits. A rail (the case's views, its types, its folders), the cards
+ * (each with the case's one button and a chevron of the rest), a detail panel, a search that
+ * filters the drawn cards and never redraws. Each case gives a spec (actors.js, items.js): its
+ * collection, its fields, how a document becomes a card, its one action and its chevron. The
+ * window writes nothing itself: every write is a spec's action, each one the stock directory or
+ * sheet makes. What only it needs (pins, opened lately, the view, the size) lives in the browser.
+ */
+
+import { log, MODULE_ID, t as rootT } from "../common.js";
+import { folderTree } from "../scenes/decide.js";
+import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
+import { byType, inView, matchWhy, searchFields, typeCounts } from "./decide.js";
+import { createRecord } from "./memory.js";
+
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
+const SIZES = ["s", "m", "l"];
+
+const byName = (a, b) => a.localeCompare(b, game.i18n.lang, { sensitivity: "base", numeric: true });
+
+/** A folder's chain, nearest first. */
+function chainOf(folder) {
+  const list = [];
+  for (let f = folder; f; f = f.folder) list.push(f);
+  return list;
+}
+
+/**
+ * The cards of a case: one per document the user can see, in the directory's shape (by folder
+ * path, then by name), or by type, then name, for a case whose spec says `order: "type"`. A spec's
+ * `card(doc)` adds the case's own fields.
+ */
+export function casesCards(spec, user = game.user) {
+  return spec
+    .collection()
+    .contents.filter(doc => (user.isGM || doc.testUserPermission(user, "LIMITED")) && !spec.hidden?.(doc, user))
+    .map(doc => {
+      const chain = chainOf(doc.folder);
+      // A player is not told the name of a folder the stock directory hides from them.
+      const folders = user.isGM ? chain : chain.filter(f => f.visible !== false);
+      return {
+        key: doc.uuid,
+        doc,
+        name: doc.name,
+        picture: doc.img || null,
+        folder: folders
+          .map(f => f.name)
+          .reverse()
+          .join(" › "),
+        folders: folders.map(f => f.id),
+        ...spec.card(doc, user)
+      };
+    })
+    .sort(spec.order === "type" ? byType(spec.typeOrder, byName) : (a, b) => byName(a.folder, b.folder) || byName(a.name, b.name));
+}
+
+/** Copy a content link, or show it to copy by hand where the browser refuses. */
+async function copyText(text) {
+  try {
+    await game.clipboard.copyPlainText(text);
+    ui.notifications.info(rootT("docs.copied"));
+  } catch {
+    ui.notifications.info(text);
+  }
+}
+
+/** Build a case's window class from its spec. */
+export function makeCaseWindow(spec) {
+  const record = createRecord(spec.id);
+  const { t } = spec;
+  const counted = (n, base) => t(n === 1 ? `${base}One` : base, { n });
+
+  class CaseWindow extends HandlebarsApplicationMixin(ApplicationV2) {
+    static DEFAULT_OPTIONS = {
+      id: `cardcatalogue-${spec.id}-library`,
+      classes: ["cardcatalogue", "cardcatalogue-docs", `cardcatalogue-${spec.id}-library`],
+      window: { title: `${MODULE_ID}.cases.${spec.id}`, icon: `fa-solid ${spec.icon}`, resizable: true },
+      position: { width: 1180, height: 800 },
+      actions: {
+        size(_ev, target) {
+          this.size = target.dataset.size;
+          record.setPrefs({ size: this.size });
+          this.render();
+        },
+        rail(_ev, target) {
+          this.view = target.dataset.view;
+          this.sticky = null;
+          record.setPrefs({ view: this.view });
+          this.render();
+        },
+        searchAll() {
+          this.view = "all";
+          this.sticky = null;
+          record.setPrefs({ view: "all" });
+          this.render();
+        },
+        pick(event, target) {
+          const key = target.closest("[data-key]")?.dataset.key;
+          if (!key) return;
+          // A click picks; a second click, a double click, or Enter on the picked card does the case's one thing.
+          if (this.selected === key && (event.detail >= 2 || event.detail === 0)) return this.go(key);
+          this.selected = key;
+          if (this.sticky !== key) this.sticky = null;
+          this.render();
+        },
+        unpick() {
+          this.selected = null;
+          this.sticky = null;
+          this.render();
+        },
+        go(event, target) {
+          event.stopPropagation();
+          if (event.detail > 1) return;
+          const key = target.closest("[data-key]")?.dataset.key ?? this.selected;
+          if (key) return this.go(key);
+        },
+        openMenu(event, target) {
+          event.stopPropagation();
+          const key = target.closest("[data-key]")?.dataset.key ?? this.selected;
+          if (!key) return;
+          this.menu = key;
+          this.menuFresh = true;
+          this.render();
+        },
+        closeMenu() {
+          this.closeMenu();
+        },
+        act(_ev, target) {
+          return this.act(target.dataset.act, target.dataset.arg ?? null, target);
+        },
+        pin(_ev, target) {
+          const key = target.closest("[data-key]")?.dataset.key ?? this.selected;
+          if (!key) return;
+          record.togglePin(key);
+          this.render();
+        },
+        copyRef() {
+          const doc = fromUuidSync(this.selected);
+          if (doc) return copyText(`@UUID[${doc.uuid}]{${doc.name}}`);
+        },
+        classic() {
+          return this.close().then(() => setClassic(spec.id, true));
+        },
+        case(_ev, target) {
+          return switchCase(this, target.dataset.case);
+        }
+      }
+    };
+
+    static PARTS = {
+      main: { template: `modules/${MODULE_ID}/templates/docs/library.hbs`, scrollable: [".cc-cards", ".cc-rail", ".cc-detail"] }
+    };
+
+    static current = null;
+
+    /** Open the window, or bring it forward; `key` picks a card, `menu` opens its chevron. */
+    static open({ key = null, menu = false, position = null } = {}) {
+      CaseWindow.current ??= new CaseWindow();
+      const app = CaseWindow.current;
+      if (key) {
+        app.selected = key;
+        app.sticky = key;
+        app.query = "";
+        if (menu) {
+          app.menu = key;
+          app.menuFresh = true;
+        }
+      }
+      if (app.rendered) {
+        app.bringToFront();
+        if (position) app.setPosition(position);
+        if (key) app.render();
+        return app;
+      }
+      app.render({ force: true, ...(position ? { position } : {}) }).catch(err => {
+        log.error(`the ${spec.id} case failed to open; Foundry's directory opens instead`, err);
+        openClassic(spec.id);
+      });
+      return app;
+    }
+
+    static #timer = null;
+
+    /** Redraw when open, once per burst of changes. */
+    static refresh() {
+      clearTimeout(CaseWindow.#timer);
+      CaseWindow.#timer = setTimeout(() => {
+        const app = CaseWindow.current;
+        if (app?.rendered && !app.minimized) app.render();
+      }, 200);
+    }
+
+    static #dragging = null;
+
+    view = "all";
+    size = "m";
+    query = "";
+    selected = null;
+    menu = null;
+    menuFresh = false;
+    sticky = null;
+    #fields = new Map();
+    #inView = new Set();
+    #focus = null;
+    #returnTo = null;
+    #busy = new Set();
+
+    constructor(options) {
+      super(options);
+      const prefs = record.load();
+      this.size = SIZES.includes(prefs.size) ? prefs.size : "m";
+      this.view = prefs.view ?? "all";
+    }
+
+    /** The case this window is, for the strip. */
+    get caseId() {
+      return spec.id;
+    }
+
+    /** The case's views for this user: its fixed ones, then its types, then the folders. */
+    #validView(view, fixed, types) {
+      if (fixed.includes(view)) return true;
+      if (view.startsWith("t:")) return types.includes(view.slice(2));
+      if (view === "f:") return true;
+      if (view.startsWith("f:")) return game.folders.get(view.slice(2))?.type === spec.documentName;
+      return false;
+    }
+
+    #heading(view) {
+      if (view === "f:") return t("rail.noFolder");
+      if (view.startsWith("f:")) return game.folders.get(view.slice(2))?.name ?? "";
+      if (view.startsWith("t:")) return spec.typeLabel(view.slice(2), true);
+      return t(`view.${view}`);
+    }
+
+    /** @override */
+    async _prepareContext(options) {
+      const context = await super._prepareContext(options);
+      const gm = game.user.isGM;
+      const all = casesCards(spec);
+      const fixed = ["all", ...spec.views(game.user)];
+      const types = typeCounts(all, spec.typeOrder);
+      if (!this.#validView(this.view, fixed, types.map(x => x.type))) this.view = "all";
+      const view = this.view;
+      const list = all.filter(c => c.key === this.sticky || inView(c, view));
+      this.#fields = new Map(all.map(c => [c.key, searchFields(c, spec.fields)]));
+      this.#inView = new Set(list.map(c => c.key));
+
+      const folders = game.folders
+        .filter(f => f.type === spec.documentName && (gm || f.visible !== false))
+        .map(f => ({ id: f.id, name: f.name, parent: f.folder?.id ?? null, sort: f.sort }));
+      const tree = folderTree(folders, all, byName);
+      const loose = all.filter(c => !c.folders.length).length;
+
+      context.cases = stripContext(spec.id);
+      context.isGM = gm;
+      context.iconCards = !!spec.iconCards;
+      context.size = this.size;
+      context.query = this.query;
+      context.placeholder = t("search.placeholder");
+      context.railLabel = t("rail.label");
+      context.railKey = t("rail.key");
+      context.sizes = SIZES.map(id => ({ id, label: rootT(`size.${id}`), aria: rootT(`size.${id}Aria`), on: this.size === id }));
+      context.views = fixed.map(id => ({ id, label: t(`view.${id}`), n: all.filter(c => inView(c, id)).length, on: view === id }));
+      context.types = types.length > 1 ? types.map(x => ({ id: `t:${x.type}`, label: spec.typeLabel(x.type, true), n: x.n, on: view === `t:${x.type}` })) : [];
+      context.folders = tree.map(f => ({ ...f, on: view === `f:${f.id}`, indent: f.depth }));
+      context.loose = tree.length && loose ? { n: loose, on: view === "f:", label: t("rail.noFolder") } : null;
+      context.heading = this.#heading(view);
+      context.cards = list.map(c => this.#cardContext(c));
+      context.countBase = counted(list.filter(c => inView(c, view)).length, "count.cards");
+      context.emptyText = t(`empty.${view.startsWith("f:") ? "folder" : view.startsWith("t:") ? "type" : view}`);
+      context.detail = this.#detailContext(all, list);
+      context.menu = this.menu ? this.#menuContext(all) : null;
+      context.goIcon = spec.primary.icon;
+      context.goLabel = t(spec.primary.label);
+      context.hasMenu = gm || spec.playerMenu;
+      context.labels = {
+        menu: t("menu.label"),
+        pin: rootT("docs.pin"),
+        unpin: rootT("docs.unpin"),
+        pinned: rootT("docs.pinned"),
+        pinHint: rootT("docs.pinHint"),
+        copyRef: rootT("docs.copyRef"),
+        classic: rootT("docs.classic"),
+        classicHint: t("classic.hint"),
+        where: rootT("docs.where"),
+        noPicture: rootT("docs.noPicture")
+      };
+      return context;
+    }
+
+    #cardContext(card) {
+      return {
+        key: card.key,
+        name: card.name,
+        picture: card.picture,
+        sub: card.sub || card.folder,
+        badge: card.badge ?? null,
+        badgeCls: card.badgeCls ?? "",
+        icons: card.icons ?? [],
+        pinned: record.isPinned(card.key),
+        selected: this.selected === card.key,
+        folderId: card.folders[0] ?? ""
+      };
+    }
+
+    #detailContext(all, list) {
+      if (!list.some(c => c.key === this.selected)) return null;
+      const card = all.find(c => c.key === this.selected);
+      if (!card) return null;
+      const last = record.load().recent.find(r => r.key === card.key);
+      return {
+        key: card.key,
+        name: card.name,
+        picture: card.picture,
+        kindLine: card.kindLine ?? "",
+        lines: spec.detailLines(card.doc, game.user).filter(Boolean),
+        where: card.folder || t("rail.noFolder"),
+        pinned: record.isPinned(card.key),
+        last: last ? rootT("docs.lastOpened", { when: new Date(last.at).toLocaleString(game.i18n.lang, { weekday: "short", hour: "2-digit", minute: "2-digit" }) }) : null,
+        quick: spec.quick ? spec.quick(card.doc, game.user).map(r => ({ ...r, label: t(r.label) })) : []
+      };
+    }
+
+    #menuContext(all) {
+      const card = all.find(c => c.key === this.menu);
+      if (!card) {
+        this.menu = null;
+        return null;
+      }
+      return {
+        name: card.name,
+        picture: card.picture,
+        rows: spec.menu(card.doc, game.user).map(r => ({
+          ...r,
+          label: t(r.label),
+          hint: r.hint ? t(r.hint) : "",
+          empty: r.empty ? t(r.empty) : "",
+          choices: r.choices?.map(c => ({ ...c, act: r.act })) ?? null
+        }))
+      };
+    }
+
+    /** The case's one thing: the spec's primary action, noted as opened lately. */
+    async go(key) {
+      if (this.#busy.has(key)) return;
+      const doc = fromUuidSync(key);
+      if (!doc) return;
+      this.#busy.add(key);
+      try {
+        await spec.primary.run(doc);
+        record.noteOpened(key);
+      } catch (err) {
+        log.error(`the ${spec.id} case's action failed`, err);
+        ui.notifications.error(rootT("docs.failed"));
+      } finally {
+        this.#busy.delete(key);
+      }
+    }
+
+    /** A chevron or panel action by name: the chevron closes first, focus goes back to its card. */
+    async act(name, arg, target) {
+      const key = target?.closest?.("[data-key]")?.dataset.key ?? this.menu ?? this.selected;
+      const doc = key ? fromUuidSync(key) : null;
+      if (this.menu) {
+        this.#returnTo = this.menu;
+        this.menu = null;
+      }
+      const row = doc ? spec.menu(doc, game.user).find(r => r.act === name) ?? spec.quick?.(doc, game.user).find(r => r.act === name) : null;
+      if (row && !row.disabled) {
+        try {
+          await row.run(doc, arg);
+        } catch (err) {
+          log.error(`the ${spec.id} case's ${name} failed`, err);
+          ui.notifications.error(err?.message || rootT("docs.failed"));
+        }
+      }
+      this.render();
+    }
+
+    closeMenu() {
+      if (!this.menu) return;
+      this.#returnTo = this.menu;
+      this.menu = null;
+      this.render();
+    }
+
+    /** @override */
+    async _preRender(context, options) {
+      await super._preRender(context, options);
+      const active = this.element?.contains(document.activeElement) ? document.activeElement : null;
+      this.#focus = active
+        ? {
+            name: active.name || null,
+            action: active.dataset?.action ?? null,
+            key: active.closest("[data-key]")?.dataset.key ?? null,
+            view: active.dataset?.view ?? null,
+            start: active.selectionStart ?? null
+          }
+        : null;
+    }
+
+    /** @override */
+    _onFirstRender(context, options) {
+      super._onFirstRender(context, options);
+      this.element.addEventListener("keydown", ev => {
+        if (this.menu && ev.key === "Escape") {
+          ev.preventDefault();
+          ev.stopPropagation();
+          return this.closeMenu();
+        }
+        const typing = ev.target.closest?.("input, textarea, select, [contenteditable]");
+        // Escape closes the panel first, the window after.
+        if (ev.key === "Escape" && this.selected && !typing) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          this.selected = null;
+          this.sticky = null;
+          return this.render();
+        }
+        if (ev.key === "/" && !typing && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
+          ev.preventDefault();
+          this.element.querySelector("input[name=search]")?.focus();
+        }
+      });
+    }
+
+    /** @override */
+    _onRender(context, options) {
+      super._onRender(context, options);
+      const root = this.element;
+      const input = root.querySelector("input[name=search]");
+      input?.addEventListener("input", ev => {
+        this.query = ev.currentTarget.value;
+        this.#filter();
+      });
+      input?.addEventListener("keydown", ev => {
+        if (ev.key === "Escape" && this.query) {
+          ev.preventDefault();
+          ev.stopPropagation();
+          ev.currentTarget.value = "";
+          this.query = "";
+          this.#filter();
+        }
+      });
+      root.querySelector(".cc-veil")?.addEventListener("click", ev => {
+        if (ev.target === ev.currentTarget) this.closeMenu();
+      });
+      this.#wireDrag(root);
+      this.#filter();
+      this.#restoreFocus(options, context);
+    }
+
+    #restoreFocus(options, context) {
+      const root = this.element;
+      if (context.menu && this.menuFresh) {
+        this.menuFresh = false;
+        return root.querySelector(".cc-opts .cc-menu button:not([disabled])")?.focus();
+      }
+      const back = this.#returnTo;
+      this.#returnTo = null;
+      if (back) {
+        const el = root.querySelector(`.cc-card[data-key="${CSS.escape(back)}"] [data-action="openMenu"]`) ?? root.querySelector('.cc-detail [data-action="openMenu"]');
+        if (el && !el.closest("[hidden]")) return el.focus({ preventScroll: true });
+      }
+      const f = this.#focus;
+      this.#focus = null;
+      if (!f) {
+        if (options.isFirstRender) root.querySelector("input[name=search]")?.focus();
+        return;
+      }
+      let el = null;
+      if (f.name) el = root.querySelector(`[name="${CSS.escape(f.name)}"]`);
+      else if (f.action) {
+        const scope = f.key ? root.querySelector(`[data-key="${CSS.escape(f.key)}"]`) : root;
+        el = scope?.querySelector(`[data-action="${CSS.escape(f.action)}"]${f.view ? `[data-view="${CSS.escape(f.view)}"]` : ""}`);
+      }
+      if (!el || el.closest("[hidden]")) el = root.querySelector("input[name=search]");
+      el?.focus({ preventScroll: true });
+      if (f.start !== null && typeof el?.setSelectionRange === "function") {
+        try {
+          el.setSelectionRange(f.start, f.start);
+        } catch {
+          // Not a text field.
+        }
+      }
+    }
+
+    /** The search, applied to the drawn cards: no redraw, so the caret and the scroll stay. */
+    #filter() {
+      const root = this.element;
+      if (!root) return;
+      const q = this.query.trim();
+      let shown = 0;
+      for (const card of root.querySelectorAll(".cc-card[data-key]")) {
+        const why = matchWhy(this.#fields.get(card.dataset.key) ?? {}, q, spec.fields);
+        card.hidden = why === null;
+        if (why !== null) shown++;
+        const label = card.querySelector(".cc-why");
+        if (label) label.textContent = why ? t(`why.${why}`) : "";
+      }
+      const count = root.querySelector(".cc-count");
+      if (count) count.textContent = q ? rootT("docs.matching", { n: shown, q }) : (count.dataset.base ?? "");
+      let elsewhere = 0;
+      if (q) for (const [key, fl] of this.#fields) if (!this.#inView.has(key) && matchWhy(fl, q, spec.fields) !== null) elsewhere++;
+      const more = root.querySelector(".cc-more");
+      if (more) {
+        more.hidden = !elsewhere;
+        more.textContent = elsewhere ? rootT("docs.more", { n: elsewhere }) : "";
+      }
+      const empty = root.querySelector(".cc-empty");
+      if (empty) {
+        empty.hidden = shown > 0;
+        empty.textContent = !q ? (empty.dataset.view ?? "") : elsewhere ? rootT("docs.searchHere", { q }) : t("empty.search");
+      }
+      const detail = root.querySelector(".cc-detail[data-key]");
+      if (detail) {
+        const card = root.querySelector(`.cc-card[data-key="${CSS.escape(detail.dataset.key)}"]`);
+        detail.hidden = !card || card.hidden;
+      }
+    }
+
+    #wireDrag(root) {
+      for (const card of root.querySelectorAll(".cc-card[data-key]")) {
+        card.addEventListener("dragstart", ev => {
+          CaseWindow.#dragging = { key: card.dataset.key, folder: card.dataset.folder || "" };
+          card.classList.add("dragging");
+          ev.dataTransfer.effectAllowed = "copyMove";
+          // Foundry's own drag: an actor dropped on the canvas makes a token, an item on a sheet a copy.
+          ev.dataTransfer.setData("text/plain", JSON.stringify({ type: spec.documentName, uuid: card.dataset.key }));
+        });
+        card.addEventListener("dragend", () => {
+          CaseWindow.#dragging = null;
+          card.classList.remove("dragging");
+          for (const el of root.querySelectorAll(".drop-ok")) el.classList.remove("drop-ok");
+        });
+      }
+      if (!game.user.isGM) return;
+      for (const row of root.querySelectorAll("[data-drop]")) {
+        row.addEventListener("dragover", ev => {
+          const d = CaseWindow.#dragging;
+          if (!d || d.folder === row.dataset.folder) return;
+          ev.preventDefault();
+          ev.stopPropagation();
+          row.classList.add("drop-ok");
+        });
+        row.addEventListener("dragleave", () => row.classList.remove("drop-ok"));
+        row.addEventListener("drop", ev => {
+          const d = CaseWindow.#dragging;
+          if (!d || d.folder === row.dataset.folder) return;
+          ev.preventDefault();
+          ev.stopPropagation();
+          row.classList.remove("drop-ok");
+          const doc = fromUuidSync(d.key);
+          // The stock directory's own drop: the document's folder.
+          if (doc) void doc.update({ folder: row.dataset.folder || null }).catch(err => log.error("filing failed", err));
+        });
+      }
+    }
+
+    /** @override */
+    _onClose(options) {
+      super._onClose(options);
+      this.menu = null;
+      this.sticky = null;
+      this.#focus = null;
+      this.#returnTo = null;
+    }
+  }
+
+  return { CaseWindow, record };
+}

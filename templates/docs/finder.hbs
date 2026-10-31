@@ -1,0 +1,15 @@
+<div class="cc-finder">
+  <label class="cc-search cc-finder-box">
+    <i class="fa-solid fa-magnifying-glass" inert></i>
+    <input type="search" name="find" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="cardcatalogue-{{id}}-finder-results" aria-autocomplete="list"
+      placeholder="{{placeholder}}" aria-label="{{title}}">
+    <kbd>Esc</kbd>
+  </label>
+  <ul class="cc-results" id="cardcatalogue-{{id}}-finder-results" role="listbox"></ul>
+  <div class="cc-finder-foot">
+    <span><kbd>↑</kbd> <kbd>↓</kbd> {{move}}</span>
+    <span><kbd>Enter</kbd> {{enter}}</span>
+    <span><kbd>Shift</kbd> <kbd>Enter</kbd> {{more}}</span>
+    {{#if ctrlEnter}}<span><kbd>Ctrl</kbd> <kbd>Enter</kbd> {{ctrlEnter}}</span>{{/if}}
+  </div>
+</div>

@@ -1,0 +1,20 @@
+<div class="cc-finder">
+  <label class="cc-search cc-finder-box">
+    <i class="fa-solid fa-magnifying-glass" inert></i>
+    <input type="search" name="find" autocomplete="off" role="combobox" aria-expanded="true" aria-controls="cardcatalogue-journal-finder-results" aria-autocomplete="list"
+      placeholder="{{#if isGM}}{{localize 'fvtt-mod-cardcatalogue.journal.finder.placeholder'}}{{else}}{{localize 'fvtt-mod-cardcatalogue.journal.finder.placeholderPlayer'}}{{/if}}"
+      aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.finder.title'}}">
+    <kbd>Esc</kbd>
+  </label>
+  <ul class="cc-results" id="cardcatalogue-journal-finder-results" role="listbox"></ul>
+  <div class="cc-finder-foot">
+    <span><kbd>↑</kbd> <kbd>↓</kbd> {{localize "fvtt-mod-cardcatalogue.journal.finder.move"}}</span>
+    {{#if isGM}}
+    <span><kbd>Enter</kbd> {{localize "fvtt-mod-cardcatalogue.journal.finder.enterShow"}}</span>
+    <span><kbd>Shift</kbd> <kbd>Enter</kbd> {{localize "fvtt-mod-cardcatalogue.journal.finder.shiftEnter"}}</span>
+    {{else}}
+    <span><kbd>Enter</kbd> {{localize "fvtt-mod-cardcatalogue.journal.finder.enterOpen"}}</span>
+    {{/if}}
+    <span><kbd>Ctrl</kbd> <kbd>Enter</kbd> {{localize "fvtt-mod-cardcatalogue.journal.finder.ctrlEnter"}}</span>
+  </div>
+</div>

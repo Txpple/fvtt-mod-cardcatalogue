@@ -1,0 +1,214 @@
+<div class="cc-root {{#if isGM}}cc-gm{{else}}cc-player{{/if}}">
+  <div class="cc-bar">
+    {{#if cases.length}}
+    <div class="cc-cases" role="group" aria-label="{{localize 'fvtt-mod-cardcatalogue.cases.label'}}">
+      {{#each cases}}
+      <button type="button" class="cc-case {{#if on}}on{{/if}}" data-action="case" data-case="{{id}}" aria-pressed="{{#if on}}true{{else}}false{{/if}}"><i class="fa-solid {{icon}}" inert></i><span class="cc-case-text">{{label}}</span></button>
+      {{/each}}
+    </div>
+    {{/if}}
+    <label class="cc-search">
+      <i class="fa-solid fa-magnifying-glass" inert></i>
+      <input type="search" name="search" value="{{query}}" autocomplete="off"
+        placeholder="{{localize 'fvtt-mod-cardcatalogue.journal.search.placeholder'}}"
+        aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.search.label'}}">
+    </label>
+    <div class="cc-pills" role="group" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.type.label'}}">
+      {{#each types}}
+      <button type="button" class="cc-pill {{#if on}}on{{/if}}" data-action="type" data-type="{{id}}" aria-pressed="{{#if on}}true{{else}}false{{/if}}">{{label}} <small>{{n}}</small></button>
+      {{/each}}
+    </div>
+    <div class="cc-pills" role="group" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.size.label'}}">
+      {{#each sizes}}
+      <button type="button" class="cc-pill {{#if on}}on{{/if}}" data-action="size" data-size="{{id}}" aria-label="{{aria}}" aria-pressed="{{#if on}}true{{else}}false{{/if}}">{{label}}</button>
+      {{/each}}
+    </div>
+    <button type="button" class="cc-classic" data-action="classic" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.classic.hint'}}">
+      <i class="fa-solid fa-book-open" inert></i> <span class="cc-classic-text">{{localize "fvtt-mod-cardcatalogue.journal.classic.button"}}</span>
+    </button>
+  </div>
+
+  <div class="cc-body">
+    <nav class="cc-rail" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.rail.label'}}">
+      <div class="cc-key">{{localize "fvtt-mod-cardcatalogue.journal.rail.handouts"}}</div>
+      {{#each views}}
+      <button type="button" class="cc-row {{#if on}}on{{/if}}" data-action="view" data-view="{{id}}" aria-current="{{#if on}}true{{else}}false{{/if}}">
+        <span class="n">{{label}}</span><small>{{n}}</small>
+      </button>
+      {{/each}}
+      {{#if folders.length}}
+      <div class="cc-key">{{localize "fvtt-mod-cardcatalogue.journal.rail.journals"}}</div>
+      {{/if}}
+      {{#each folders}}
+      {{#if name}}<div class="cc-folder"><i class="fa-solid fa-folder" inert></i> <span>{{name}}</span></div>{{/if}}
+      {{#each journals}}
+      <button type="button" class="cc-row cc-journal {{#if on}}on{{/if}}" data-action="view" data-view="j:{{id}}" data-drop="journal" data-entry="{{id}}" aria-current="{{#if on}}true{{else}}false{{/if}}">
+        <span class="n">{{name}}</span>{{#if nNew}}<span class="cc-newcount" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.badge.new'}}">{{nNew}}</span>{{/if}}<small>{{n}}</small>
+      </button>
+      {{#each cats}}
+      <button type="button" class="cc-row cc-cat {{#if on}}on{{/if}}" data-action="view" data-view="c:{{../id}}.{{id}}" data-drop="cat" data-entry="{{../id}}" data-cat="{{id}}" aria-current="{{#if on}}true{{else}}false{{/if}}">
+        <span class="n">{{name}}</span><small>{{n}}</small>
+      </button>
+      {{/each}}
+      {{/each}}
+      {{/each}}
+    </nav>
+
+    <section class="cc-main">
+      <div class="cc-head">
+        <h2>{{heading}}</h2>
+        <span class="cc-count" data-base="{{countBase}}" aria-live="polite"></span>
+        {{#if loading}}<span class="cc-loading"><i class="fa-solid fa-spinner fa-spin" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.files.loading"}}</span>{{/if}}
+        {{#if markAll}}<button type="button" class="cc-btn cc-markall" data-action="markSeen"><i class="fa-solid fa-check-double" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.badge.markAll"}}</button>{{/if}}
+        <button type="button" class="cc-export" data-action="export" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.export.hint'}}" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.export.hint'}}"><i class="fa-solid fa-file-export" inert></i></button>
+        {{#if isGM}}<button type="button" class="cc-rescan" data-action="rescan" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.files.rescan'}}" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.files.rescan'}}"><i class="fa-solid fa-arrows-rotate" inert></i></button>{{/if}}
+      </div>
+      {{#if reveal}}
+      <div class="cc-reveal" role="status">
+        <i class="fa-solid fa-eye" inert></i>
+        <span>{{reveal.text}}</span>
+        <button type="button" class="cc-btn cc-undo" data-action="undo" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.show.undoHint'}}"><i class="fa-solid fa-rotate-left" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.show.undo"}}</button>
+        <button type="button" class="cc-x" data-action="dismissReveal" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.show.dismiss'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.show.dismiss'}}"><i class="fa-solid fa-xmark" inert></i></button>
+      </div>
+      {{/if}}
+      <div class="cc-cards cc-size-{{size}}">
+        {{#each cards}}
+        <article class="cc-card {{#if selected}}on{{/if}} {{#if dim}}dim{{/if}} {{#if unseen}}unseen{{/if}}" data-key="{{key}}" draggable="true"
+          {{#if loose}}data-loose="1"{{/if}} {{#if searchOnly}}data-search-only="1" hidden{{/if}} data-entry="{{entryId}}" data-category="{{category}}">
+          <button type="button" class="cc-pick" data-action="pick" aria-label="{{name}}" aria-pressed="{{#if selected}}true{{else}}false{{/if}}">
+            <span class="cc-thumb">
+              {{#if picture}}<img src="{{picture}}" alt="" loading="lazy" draggable="false">
+              {{else}}<span class="cc-excerpt"><i class="fa-solid {{icon}}" inert></i><span>{{excerpt}}</span></span>{{/if}}
+              {{#if badge}}<span class="cc-badge {{badgeCls}}" data-tooltip="{{badge}}"><i class="fa-solid {{badgeIcon}}" inert></i><span class="cc-badge-text"> {{badge}}</span></span>{{/if}}
+              {{#if unseen}}<span class="cc-new">{{localize "fvtt-mod-cardcatalogue.journal.badge.new"}}</span>{{/if}}
+            </span>
+            <span class="cc-cb">
+              <span class="cc-nm">{{#if pinned}}<i class="fa-solid fa-thumbtack" inert></i>{{/if}}<span dir="auto">{{name}}</span></span>
+              <span class="cc-sub"><span class="cc-where">{{sub}}</span><span class="cc-why"></span></span>
+            </span>
+          </button>
+          {{#if ../isGM}}
+          <span class="cc-acts">
+            <button type="button" class="go" data-action="quickShow" data-tooltip="{{showHint}}"><i class="fa-solid fa-paper-plane" inert></i> {{showLabel}}</button>
+            <button type="button" class="more" data-action="openOpts" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.show.options'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.show.options'}}"><i class="fa-solid fa-chevron-down" inert></i></button>
+          </span>
+            <button type="button" class="cc-pin" data-action="pin" aria-label="{{#if pinned}}{{localize 'fvtt-mod-cardcatalogue.journal.pin.unpin'}}{{else}}{{localize 'fvtt-mod-cardcatalogue.journal.pin.off'}}{{/if}}" data-tooltip="{{#if pinned}}{{localize 'fvtt-mod-cardcatalogue.journal.pin.unpin'}}{{else}}{{localize 'fvtt-mod-cardcatalogue.journal.pin.off'}}{{/if}}" aria-pressed="{{#if pinned}}true{{else}}false{{/if}}"><i class="fa-solid fa-thumbtack" inert></i></button>
+          {{/if}}
+        </article>
+        {{/each}}
+        <div class="cc-empty" data-view="{{emptyText}}" {{#if cards.length}}hidden{{/if}}>{{emptyText}}</div>
+        <button type="button" class="cc-more" data-action="searchAll" hidden></button>
+      </div>
+    </section>
+
+    {{#if detail}}
+    <aside class="cc-detail" data-key="{{detail.key}}" aria-label="{{detail.name}}">
+      <button type="button" class="cc-x cc-detail-x" data-action="unpick" aria-label="{{localize 'fvtt-mod-cardcatalogue.docs.closePanel'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.docs.closePanel'}}"><i class="fa-solid fa-xmark" inert></i></button>
+      <div class="cc-big">
+        {{#if detail.picture}}<img src="{{detail.picture}}" alt="{{detail.name}}">
+        {{else}}<p><i class="fa-solid {{detail.icon}}" inert></i> {{detail.excerpt}}</p>{{/if}}
+      </div>
+      <div>
+        <h3 dir="auto">{{detail.name}}</h3>
+        <div class="cc-kindline">{{detail.kindLine}}</div>
+      </div>
+      <div class="cc-btns">
+        <button type="button" class="cc-btn pri" data-action="quickShow"><i class="fa-solid fa-paper-plane" inert></i> {{detail.showLabel}}</button>
+        <button type="button" class="cc-btn" data-action="openOpts" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.show.options'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.show.options'}}"><i class="fa-solid fa-chevron-down" inert></i></button>
+        {{#if detail.textPicture}}
+        <button type="button" class="cc-btn" data-action="showPicture" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.show.pictureHint'}}"><i class="fa-solid fa-image" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.show.picture"}}</button>
+        {{/if}}
+        {{#if detail.again}}
+        <button type="button" class="cc-btn" data-action="showAgain"><i class="fa-solid fa-repeat" inert></i> {{detail.again}}</button>
+        {{/if}}
+      </div>
+      <div class="cc-btns">
+        <button type="button" class="cc-btn {{#if detail.pinned}}on{{/if}}" data-action="pin" aria-pressed="{{#if detail.pinned}}true{{else}}false{{/if}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.pin.hint'}}"><i class="fa-solid fa-thumbtack" inert></i> {{#if detail.pinned}}{{localize "fvtt-mod-cardcatalogue.journal.pin.on"}}{{else}}{{localize "fvtt-mod-cardcatalogue.journal.pin.off"}}{{/if}}</button>
+        {{#if detail.loose}}
+        <button type="button" class="cc-btn" data-action="keep" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.keep.hint'}}"><i class="fa-solid fa-plus" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.keep.button"}}</button>
+        <button type="button" class="cc-btn" data-action="openJournal" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.detail.look'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.detail.look'}}"><i class="fa-solid fa-expand" inert></i></button>
+        {{else}}
+        <button type="button" class="cc-btn" data-action="openJournal"><i class="fa-solid fa-book-open" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.detail.openJournal"}}</button>
+        <button type="button" class="cc-btn" data-action="copyLink" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.detail.copyLink'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.detail.copyLink'}}"><i class="fa-solid fa-link" inert></i></button>
+        <button type="button" class="cc-btn" data-action="copyRef" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.detail.copyRef'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.detail.copyRef'}}"><i class="fa-solid fa-at" inert></i></button>
+        {{/if}}
+      </div>
+      <div class="cc-field">
+        <span class="cc-key">{{localize "fvtt-mod-cardcatalogue.journal.detail.where"}}</span>
+        <span>{{detail.where}}</span>
+        {{#if detail.file}}<span class="cc-file">{{detail.file}}</span>{{/if}}
+      </div>
+      {{#if detail.sections}}
+      <label class="cc-field">
+        <span class="cc-key">{{localize "fvtt-mod-cardcatalogue.journal.detail.section"}}</span>
+        <select name="section">
+          {{#each detail.sections}}<option value="{{id}}" {{#if on}}selected{{/if}}>{{name}}</option>{{/each}}
+        </select>
+      </label>
+      {{/if}}
+      <div class="cc-field">
+        <span class="cc-key">{{localize "fvtt-mod-cardcatalogue.journal.detail.canSee"}}</span>
+        {{#if detail.loose}}
+        <span class="cc-note">{{localize "fvtt-mod-cardcatalogue.journal.detail.fileNote"}}</span>
+        {{else if detail.noPlayers}}
+        <span class="cc-note">{{localize "fvtt-mod-cardcatalogue.journal.detail.noPlayers"}}</span>
+        {{else}}
+        <div class="cc-togs" role="group" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.detail.canSee'}}">
+          <button type="button" class="cc-tog {{#if detail.everyone}}on{{/if}}" data-action="seeAll" aria-pressed="{{#if detail.everyone}}true{{else}}false{{/if}}">{{localize "fvtt-mod-cardcatalogue.journal.detail.everyone"}}</button>
+          {{#each detail.players}}
+          <button type="button" class="cc-tog {{#if on}}on{{/if}} {{#if ../detail.everyone}}implied{{/if}}" data-action="seeUser" data-user="{{id}}" aria-pressed="{{#if on}}true{{else}}false{{/if}}" {{#if character}}data-tooltip="{{character}}"{{/if}}>
+            <span class="cc-dot {{#if online}}online{{/if}}" inert></span>{{name}}
+          </button>
+          {{/each}}
+        </div>
+        <span class="cc-note">{{localize "fvtt-mod-cardcatalogue.journal.detail.canSeeNote"}}</span>
+        {{/if}}
+      </div>
+      <div class="cc-field">
+        <span class="cc-key">{{localize "fvtt-mod-cardcatalogue.journal.detail.lastShown"}}</span>
+        <span>{{detail.shown}}</span>
+      </div>
+    </aside>
+    {{/if}}
+  </div>
+
+  {{#if opts}}
+  <div class="cc-veil">
+    <div class="cc-opts" role="dialog" aria-modal="true" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.show.options'}}">
+      <div class="cc-opts-head">
+        {{#if opts.picture}}<img src="{{opts.picture}}" alt="">{{/if}}
+        <div><div class="cc-key">{{localize "fvtt-mod-cardcatalogue.journal.show.button"}}</div><strong>{{opts.name}}</strong></div>
+        <button type="button" class="cc-x" data-action="optCancel" aria-label="{{localize 'Close'}}"><i class="fa-solid fa-xmark" inert></i></button>
+      </div>
+      <div class="cc-field">
+        <span class="cc-key">{{localize "fvtt-mod-cardcatalogue.journal.opts.to"}}</span>
+        <div class="cc-togs">
+          <button type="button" class="cc-tog {{#if opts.everyone}}on{{/if}}" data-action="optAll" aria-pressed="{{#if opts.everyone}}true{{else}}false{{/if}}">{{opts.everyoneLabel}}</button>
+          {{#each opts.players}}
+          <button type="button" class="cc-tog {{#if on}}on{{/if}}" data-action="optUser" data-user="{{id}}" aria-pressed="{{#if on}}true{{else}}false{{/if}}"><span class="cc-dot {{#if online}}online{{/if}}" inert></span>{{name}}</button>
+          {{/each}}
+        </div>
+      </div>
+      <div class="cc-field">
+        <button type="button" class="cc-tog cc-switch {{#if opts.keep}}on{{/if}}" data-action="optKeep" role="switch" aria-checked="{{#if opts.keep}}true{{else}}false{{/if}}"><i class="fa-regular {{#if opts.keep}}fa-square-check{{else}}fa-square{{/if}}" inert></i> {{opts.keepLabel}}</button>
+        <span class="cc-note">{{opts.keepHelp}}</span>
+      </div>
+      {{#if opts.textPicture}}
+      <div class="cc-field">
+        <button type="button" class="cc-tog cc-switch {{#if opts.pictureOnly}}on{{/if}}" data-action="optPicture" role="switch" aria-checked="{{#if opts.pictureOnly}}true{{else}}false{{/if}}"><i class="fa-regular {{#if opts.pictureOnly}}fa-square-check{{else}}fa-square{{/if}}" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.opts.pictureOnly"}}</button>
+      </div>
+      {{/if}}
+      {{#if opts.isImage}}
+      <div class="cc-togs">
+        <button type="button" class="cc-tog cc-switch {{#if opts.title}}on{{/if}}" data-action="optTitle" role="switch" aria-checked="{{#if opts.title}}true{{else}}false{{/if}}"><i class="fa-regular {{#if opts.title}}fa-square-check{{else}}fa-square{{/if}}" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.opts.title"}}</button>
+        {{#unless opts.loose}}<button type="button" class="cc-tog cc-switch {{#if opts.caption}}on{{/if}}" data-action="optCaption" role="switch" aria-checked="{{#if opts.caption}}true{{else}}false{{/if}}"><i class="fa-regular {{#if opts.caption}}fa-square-check{{else}}fa-square{{/if}}" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.opts.caption"}}</button>{{/unless}}
+      </div>
+      {{/if}}
+      <div class="cc-opts-foot">
+        <button type="button" class="cc-btn" data-action="optCancel">{{localize "Cancel"}}</button>
+        <button type="button" class="cc-btn pri" data-action="optGo"><i class="fa-solid fa-paper-plane" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.show.button"}}</button>
+      </div>
+    </div>
+  </div>
+  {{/if}}
+</div>

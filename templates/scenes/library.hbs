@@ -1,0 +1,172 @@
+<div class="cc-root">
+  <div class="cc-bar">
+    {{#if cases.length}}
+    <div class="cc-cases" role="group" aria-label="{{localize 'fvtt-mod-cardcatalogue.cases.label'}}">
+      {{#each cases}}
+      <button type="button" class="cc-case {{#if on}}on{{/if}}" data-action="case" data-case="{{id}}" aria-pressed="{{#if on}}true{{else}}false{{/if}}"><i class="fa-solid {{icon}}" inert></i><span class="cc-case-text">{{label}}</span></button>
+      {{/each}}
+    </div>
+    {{/if}}
+    <label class="cc-search">
+      <i class="fa-solid fa-magnifying-glass" inert></i>
+      <input type="search" name="search" value="{{query}}" autocomplete="off"
+        placeholder="{{localize 'fvtt-mod-cardcatalogue.scenes.search.placeholder'}}"
+        aria-label="{{localize 'fvtt-mod-cardcatalogue.scenes.search.label'}}">
+    </label>
+    <div class="cc-pills" role="group" aria-label="{{localize 'fvtt-mod-cardcatalogue.scenes.size.label'}}">
+      {{#each sizes}}
+      <button type="button" class="cc-pill {{#if on}}on{{/if}}" data-action="size" data-size="{{id}}" aria-label="{{aria}}" aria-pressed="{{#if on}}true{{else}}false{{/if}}">{{label}}</button>
+      {{/each}}
+    </div>
+    <button type="button" class="cc-classic" data-action="classic" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.classic.hint'}}">
+      <i class="fa-solid fa-list" inert></i> <span class="cc-classic-text">{{localize "fvtt-mod-cardcatalogue.scenes.classic.button"}}</span>
+    </button>
+  </div>
+
+  <div class="cc-body">
+    <nav class="cc-rail" aria-label="{{localize 'fvtt-mod-cardcatalogue.scenes.rail.label'}}">
+      <div class="cc-key">{{localize "fvtt-mod-cardcatalogue.scenes.rail.scenes"}}</div>
+      {{#each views}}
+      <button type="button" class="cc-row {{#if on}}on{{/if}}" data-action="rail" data-view="{{id}}" aria-current="{{#if on}}true{{else}}false{{/if}}">
+        <span class="n">{{label}}</span><small>{{n}}</small>
+      </button>
+      {{/each}}
+      {{#if folders.length}}
+      <div class="cc-key">{{localize "fvtt-mod-cardcatalogue.scenes.rail.folders"}}</div>
+      {{/if}}
+      {{#each folders}}
+      <button type="button" class="cc-row cc-folderrow {{#if on}}on{{/if}}" style="--depth: {{indent}}" data-action="rail" data-view="f:{{id}}" data-drop="folder" data-folder="{{id}}" aria-current="{{#if on}}true{{else}}false{{/if}}">
+        <i class="fa-solid fa-folder cc-ficon" inert></i><span class="n">{{name}}</span><small>{{n}}</small>
+      </button>
+      {{/each}}
+      {{#if loose}}
+      <button type="button" class="cc-row cc-folderrow {{#if loose.on}}on{{/if}}" style="--depth: 0" data-action="rail" data-view="f:" data-drop="folder" data-folder="" aria-current="{{#if loose.on}}true{{else}}false{{/if}}">
+        <i class="fa-regular fa-folder-open cc-ficon" inert></i><span class="n">{{localize "fvtt-mod-cardcatalogue.scenes.rail.noFolder"}}</span><small>{{loose.n}}</small>
+      </button>
+      {{/if}}
+    </nav>
+
+    <section class="cc-main">
+      <div class="cc-head">
+        <h2>{{heading}}</h2>
+        <span class="cc-count" data-base="{{countBase}}" aria-live="polite"></span>
+      </div>
+      {{#if undo}}
+      <div class="cc-reveal" role="status">
+        <i class="fa-solid fa-bullseye" inert></i>
+        <span>{{undo.text}}</span>
+        <button type="button" class="cc-btn" data-action="undo" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.activate.undoHint'}}"><i class="fa-solid fa-rotate-left" inert></i> {{undo.back}}</button>
+        <button type="button" class="cc-x" data-action="dismissUndo" aria-label="{{localize 'fvtt-mod-cardcatalogue.scenes.activate.dismiss'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.activate.dismiss'}}"><i class="fa-solid fa-xmark" inert></i></button>
+      </div>
+      {{/if}}
+      <div class="cc-cards cc-size-{{size}}">
+        {{#each cards}}
+        <article class="cc-card {{#if selected}}on{{/if}} {{#if active}}active{{/if}}" data-key="{{key}}" data-folder="{{folderId}}" draggable="true">
+          <button type="button" class="cc-pick" data-action="pick" aria-label="{{name}}" aria-pressed="{{#if selected}}true{{else}}false{{/if}}">
+            <span class="cc-thumb">
+              {{#if thumb}}<img src="{{thumb}}" alt="" loading="lazy" draggable="false">
+              {{else}}<span class="cc-nothumb"><i class="fa-solid fa-map" inert></i></span>{{/if}}
+              <span class="cc-badges">
+                {{#if active}}<span class="cc-badge active"><i class="fa-solid fa-bullseye" inert></i> {{localize "fvtt-mod-cardcatalogue.scenes.badge.active"}}</span>{{/if}}
+                {{#if viewed}}<span class="cc-badge here" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.badge.hereHint'}}"><i class="fa-solid fa-eye" inert></i><span class="cc-badge-text"> {{localize "fvtt-mod-cardcatalogue.scenes.badge.here"}}</span></span>{{/if}}
+              </span>
+              <span class="cc-icons">
+                {{#if nav}}<i class="fa-solid fa-compass" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.badge.nav'}}" aria-label="{{localize 'fvtt-mod-cardcatalogue.scenes.badge.nav'}}"></i>{{/if}}
+                {{#if playlist}}<i class="fa-solid fa-music" data-tooltip="{{playlist}}" aria-label="{{playlist}}"></i>{{/if}}
+                {{#if notes}}<i class="fa-solid fa-scroll" data-tooltip="{{notes}}" aria-label="{{notes}}"></i>{{/if}}
+              </span>
+            </span>
+            <span class="cc-cb">
+              <span class="cc-nm">{{#if pinned}}<i class="fa-solid fa-thumbtack" inert></i>{{/if}}<span dir="auto">{{name}}</span></span>
+              <span class="cc-sub"><span class="cc-where">{{sub}}</span><span class="cc-why"></span></span>
+            </span>
+          </button>
+          <span class="cc-acts">
+            <button type="button" class="go" data-action="look" data-tooltip="{{goHint}}" {{#if viewed}}disabled{{/if}}><i class="fa-solid fa-eye" inert></i> {{goLabel}}</button>
+            <button type="button" class="more" data-action="openMenu" aria-label="{{localize 'fvtt-mod-cardcatalogue.scenes.menu.label'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.menu.label'}}"><i class="fa-solid fa-chevron-down" inert></i></button>
+          </span>
+          <button type="button" class="cc-pin" data-action="pin" aria-label="{{#if pinned}}{{localize 'fvtt-mod-cardcatalogue.scenes.pin.unpin'}}{{else}}{{localize 'fvtt-mod-cardcatalogue.scenes.pin.off'}}{{/if}}" data-tooltip="{{#if pinned}}{{localize 'fvtt-mod-cardcatalogue.scenes.pin.unpin'}}{{else}}{{localize 'fvtt-mod-cardcatalogue.scenes.pin.off'}}{{/if}}" aria-pressed="{{#if pinned}}true{{else}}false{{/if}}"><i class="fa-solid fa-thumbtack" inert></i></button>
+        </article>
+        {{/each}}
+        <div class="cc-empty" data-view="{{emptyText}}" {{#if cards.length}}hidden{{/if}}>{{emptyText}}</div>
+        <button type="button" class="cc-more" data-action="searchAll" hidden></button>
+      </div>
+    </section>
+
+    {{#if detail}}
+    <aside class="cc-detail" data-key="{{detail.key}}" aria-label="{{detail.name}}">
+      <button type="button" class="cc-x cc-detail-x" data-action="unpick" aria-label="{{localize 'fvtt-mod-cardcatalogue.docs.closePanel'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.docs.closePanel'}}"><i class="fa-solid fa-xmark" inert></i></button>
+      <div class="cc-big">
+        {{#if detail.picture}}<img src="{{detail.picture}}" alt="{{detail.name}}">
+        {{else}}<p><i class="fa-solid fa-map" inert></i> {{localize "fvtt-mod-cardcatalogue.scenes.detail.noPicture"}}</p>{{/if}}
+      </div>
+      <div>
+        <h3 dir="auto">{{detail.name}}</h3>
+        {{#if detail.navName}}<div class="cc-kindline">{{localize "fvtt-mod-cardcatalogue.scenes.detail.navName" name=detail.navName}}</div>{{/if}}
+        <div class="cc-kindline">{{detail.line}}</div>
+        {{#if detail.counts}}<div class="cc-kindline">{{detail.counts}}</div>{{/if}}
+      </div>
+      <div class="cc-btns">
+        <button type="button" class="cc-btn pri" data-action="look" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.menu.lookHint'}}" {{#if detail.viewed}}disabled{{/if}}><i class="fa-solid fa-eye" inert></i> {{detail.viewLabel}}</button>
+        <button type="button" class="cc-btn" data-action="openMenu" aria-label="{{localize 'fvtt-mod-cardcatalogue.scenes.menu.label'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.menu.label'}}"><i class="fa-solid fa-chevron-down" inert></i></button>
+      </div>
+      <div class="cc-btns">
+        <button type="button" class="cc-btn" data-action="activate"><i class="fa-solid {{detail.actIcon}}" inert></i> {{detail.actLabel}}</button>
+        <button type="button" class="cc-btn" data-action="edit" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.menu.editHint'}}"><i class="fa-solid fa-gear" inert></i> {{localize "fvtt-mod-cardcatalogue.scenes.menu.edit"}}</button>
+        <button type="button" class="cc-btn {{#if detail.pinned}}on{{/if}}" data-action="pin" aria-pressed="{{#if detail.pinned}}true{{else}}false{{/if}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.pin.hint'}}"><i class="fa-solid fa-thumbtack" inert></i> {{#if detail.pinned}}{{localize "fvtt-mod-cardcatalogue.scenes.pin.on"}}{{else}}{{localize "fvtt-mod-cardcatalogue.scenes.pin.off"}}{{/if}}</button>
+        <button type="button" class="cc-btn" data-action="copyRef" aria-label="{{localize 'fvtt-mod-cardcatalogue.scenes.detail.copyRef'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.detail.copyRef'}}"><i class="fa-solid fa-at" inert></i></button>
+      </div>
+      {{#if detail.noThumb}}
+      <div class="cc-field">
+        <button type="button" class="cc-btn" data-action="makeThumb"><i class="fa-solid fa-image" inert></i> {{localize "fvtt-mod-cardcatalogue.scenes.menu.thumb"}}</button>
+        <span class="cc-note">{{localize "fvtt-mod-cardcatalogue.scenes.detail.noThumbNote"}}</span>
+      </div>
+      {{/if}}
+      <div class="cc-field">
+        <button type="button" class="cc-tog cc-switch {{#if detail.nav}}on{{/if}}" data-action="toggleNav" role="switch" aria-checked="{{#if detail.nav}}true{{else}}false{{/if}}" {{#if detail.navLocked}}disabled data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.menu.navLocked'}}"{{/if}}><i class="fa-regular {{#if detail.nav}}fa-square-check{{else}}fa-square{{/if}}" inert></i> {{localize "fvtt-mod-cardcatalogue.scenes.menu.nav"}}</button>
+      </div>
+      <div class="cc-field">
+        <span class="cc-key">{{localize "fvtt-mod-cardcatalogue.scenes.detail.where"}}</span>
+        <span>{{detail.where}}</span>
+        {{#if detail.file}}<span class="cc-file">{{detail.file}}</span>{{/if}}
+      </div>
+      {{#if detail.playlist}}
+      <div class="cc-field">
+        <span class="cc-key">{{localize "fvtt-mod-cardcatalogue.scenes.detail.playlist"}}</span>
+        <span>{{detail.playlist}}</span>
+      </div>
+      {{/if}}
+      {{#if detail.notes}}
+      <div class="cc-field">
+        <span class="cc-key">{{localize "fvtt-mod-cardcatalogue.scenes.detail.notes"}}</span>
+        <button type="button" class="cc-link" data-action="notes"><i class="fa-solid fa-scroll" inert></i> {{detail.notes}}</button>
+      </div>
+      {{/if}}
+      <div class="cc-field">
+        <span class="cc-key">{{localize "fvtt-mod-cardcatalogue.scenes.detail.lastKey"}}</span>
+        <span>{{detail.last}}</span>
+      </div>
+    </aside>
+    {{/if}}
+  </div>
+
+  {{#if menu}}
+  <div class="cc-veil">
+    <div class="cc-opts" role="dialog" aria-modal="true" aria-label="{{localize 'fvtt-mod-cardcatalogue.scenes.menu.label'}}">
+      <div class="cc-opts-head">
+        {{#if menu.thumb}}<img class="cc-opts-strip" src="{{menu.thumb}}" alt="">{{/if}}
+        <div><div class="cc-key">{{localize "fvtt-mod-cardcatalogue.scenes.menu.label"}}</div><strong>{{menu.name}}</strong></div>
+        <button type="button" class="cc-x" data-action="closeMenu" aria-label="{{localize 'Close'}}"><i class="fa-solid fa-xmark" inert></i></button>
+      </div>
+      <div class="cc-menu">
+        <button type="button" class="cc-btn" data-action="activate"><i class="fa-solid {{menu.actIcon}} cc-micon" inert></i> <span><strong>{{menu.actLabel}}</strong> <small>{{menu.actHint}}</small></span></button>
+        <button type="button" class="cc-btn" data-action="edit"><i class="fa-solid fa-gear cc-micon" inert></i> <span><strong>{{localize "fvtt-mod-cardcatalogue.scenes.menu.edit"}}</strong> <small>{{localize "fvtt-mod-cardcatalogue.scenes.menu.editHint"}}</small></span></button>
+        {{#if menu.notes}}<button type="button" class="cc-btn" data-action="notes"><i class="fa-solid fa-scroll cc-micon" inert></i> <span><strong>{{localize "fvtt-mod-cardcatalogue.scenes.menu.notes"}}</strong> <small>{{localize "fvtt-mod-cardcatalogue.scenes.menu.notesHint"}}</small></span></button>{{/if}}
+        <button type="button" class="cc-btn" data-action="preload"><i class="fa-solid fa-download cc-micon" inert></i> <span><strong>{{localize "fvtt-mod-cardcatalogue.scenes.menu.preload"}}</strong> <small>{{localize "fvtt-mod-cardcatalogue.scenes.menu.preloadHint"}}</small></span></button>
+        <button type="button" class="cc-btn" data-action="toggleNav" {{#if menu.navLocked}}disabled{{/if}}><i class="fa-solid fa-compass cc-micon" inert></i> <span><strong>{{#if menu.nav}}{{localize "fvtt-mod-cardcatalogue.scenes.menu.navOff"}}{{else}}{{localize "fvtt-mod-cardcatalogue.scenes.menu.navOn"}}{{/if}}</strong> <small>{{#if menu.navLocked}}{{localize "fvtt-mod-cardcatalogue.scenes.menu.navLocked"}}{{else}}{{localize "fvtt-mod-cardcatalogue.scenes.menu.navHint"}}{{/if}}</small></span></button>
+        {{#if menu.thumbable}}<button type="button" class="cc-btn" data-action="makeThumb"><i class="fa-solid fa-image cc-micon" inert></i> <span><strong>{{#if menu.hasThumb}}{{localize "fvtt-mod-cardcatalogue.scenes.menu.thumbAgain"}}{{else}}{{localize "fvtt-mod-cardcatalogue.scenes.menu.thumb"}}{{/if}}</strong> <small>{{localize "fvtt-mod-cardcatalogue.scenes.menu.thumbHint"}}</small></span></button>{{/if}}
+      </div>
+    </div>
+  </div>
+  {{/if}}
+</div>

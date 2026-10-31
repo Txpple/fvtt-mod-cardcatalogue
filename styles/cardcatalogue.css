@@ -1,0 +1,1614 @@
+/*
+ * Card Catalogue: every case's window, the finders, the Reader, the directories' way back. Scoped
+ * to the module's own classes; nothing here reaches a stock sheet, a directory or the sidebar. The
+ * base is Scroll Case's look, the family's (Clue Board copies it from here); each case's own rules
+ * follow it, scoped to that case's window.
+ */
+
+/* The `ready` hook appends one of these and reads its flex-direction: the honest question of
+   whether this sheet reached the cascade (v14 bundles module CSS). */
+.cardcatalogue-css-probe {
+  display: none;
+  flex-direction: column;
+}
+
+.cardcatalogue {
+  --cc-ground: #1e1b18;
+  --cc-panel: #26221e;
+  --cc-card: #2b2723;
+  --cc-line: #3d3a35;
+  --cc-ink: #ece6d8;
+  --cc-ink-2: #c9c3b6;
+  --cc-ink-3: #a39d90;
+  --cc-gold: #c9a24a;
+  --cc-gold-ink: #1b1813;
+  --cc-green: #62ad72;
+  --cc-red: #e7a89c;
+  --cc-blue: #9cc7e8;
+}
+
+.cardcatalogue .window-content {
+  padding: 0;
+  background: var(--cc-ground);
+  color: var(--cc-ink);
+  overflow: hidden;
+}
+
+.cc-root {
+  container: cardcatalogue / inline-size;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  font-size: var(--font-size-13, 0.8125rem);
+}
+
+/* -------------------------------------------------- */
+/*  The bar: search, type, size, Classic Mode          */
+/* -------------------------------------------------- */
+
+.cc-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--cc-line);
+  flex: none;
+}
+
+.cc-search {
+  flex: 1 1 18rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2.1rem;
+  padding: 0 0.6rem;
+  background: var(--cc-panel);
+  border: 1px solid var(--cc-line);
+  border-radius: 4px;
+  color: var(--cc-ink-3);
+}
+
+.cc-search:focus-within {
+  border-color: var(--cc-gold);
+}
+
+.cc-search input {
+  flex: 1;
+  min-width: 0;
+  text-overflow: ellipsis;
+  height: auto;
+  padding: 0.4rem 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  outline: none;
+  color: var(--cc-ink);
+  font-size: var(--font-size-13, 0.8125rem);
+}
+
+.cc-search input::placeholder {
+  color: var(--cc-ink-3);
+}
+
+.cc-pills {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.cc-pill,
+.cc-classic,
+.cc-export,
+.cc-rescan {
+  font-family: inherit;
+  flex: none;
+  width: auto;
+  height: auto;
+  min-height: 1.85rem;
+  margin: 0;
+  padding: 0.2rem 0.6rem;
+  line-height: 1.2;
+  background: var(--cc-panel);
+  border: 1px solid var(--cc-line);
+  border-radius: 4px;
+  color: var(--cc-ink-2);
+  font-size: var(--font-size-12, 0.75rem);
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.cc-pill small {
+  opacity: 0.7;
+  margin-left: 0.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.cc-pill:hover,
+.cc-classic:hover,
+.cc-export:hover,
+.cc-rescan:hover {
+  color: var(--cc-ink);
+  border-color: #8a7a55;
+}
+
+.cc-pill.on {
+  border-color: var(--cc-gold);
+  background: #332c1f;
+  color: var(--cc-ink);
+}
+
+.cc-classic {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+}
+
+/* -------------------------------------------------- */
+/*  The body: rail, cards, detail                      */
+/* -------------------------------------------------- */
+
+.cc-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.cc-rail {
+  flex: 0 0 15rem;
+  overflow-y: auto;
+  padding: 0.5rem;
+  border-right: 1px solid var(--cc-line);
+  background: rgba(0, 0, 0, 0.14);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.cc-key {
+  font-family: var(--font-sans-condensed, "Roboto Condensed", sans-serif);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cc-ink-3);
+}
+
+.cc-rail > .cc-key {
+  margin: 0.6rem 0 0.2rem 0.35rem;
+}
+
+.cc-rail > .cc-key:first-child {
+  margin-top: 0.1rem;
+}
+
+.cc-folder {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.5rem 0.1rem;
+  font-size: var(--font-size-12, 0.75rem);
+  color: var(--cc-ink-3);
+  min-width: 0;
+}
+
+.cc-folder span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cc-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  height: auto;
+  min-height: 1.9rem;
+  margin: 0;
+  padding: 0.3rem 0.5rem;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--cc-ink-2);
+  font-size: var(--font-size-13, 0.8125rem);
+  text-align: left;
+  line-height: 1.25;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.cc-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--cc-ink);
+}
+
+.cc-row.on {
+  background: rgba(201, 162, 74, 0.16);
+  border-color: var(--cc-gold);
+  color: var(--cc-ink);
+  font-weight: 600;
+}
+
+.cc-row.drop-ok {
+  outline: 2px dashed var(--cc-gold);
+  outline-offset: -2px;
+  background: rgba(201, 162, 74, 0.12);
+}
+
+.cc-row .n {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cc-row small {
+  color: var(--cc-ink-3);
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+
+.cc-row.cc-journal {
+  padding-left: 1.4rem;
+}
+
+.cc-row.cc-cat {
+  padding-left: 2.4rem;
+  min-height: 1.7rem;
+  font-size: var(--font-size-12, 0.75rem);
+}
+
+.cc-newcount {
+  flex: none;
+  min-width: 1.2rem;
+  padding: 0 0.35rem;
+  border-radius: 0.6rem;
+  background: var(--cc-gold);
+  color: var(--cc-gold-ink);
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.cc-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 0.5rem 0.75rem 0.6rem;
+  gap: 0.5rem;
+}
+
+.cc-head {
+  display: flex;
+  align-items: center;
+  min-height: 2rem;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  flex: none;
+}
+
+.cc-head h2 {
+  margin: 0;
+  font-family: inherit;
+  padding: 0;
+  border: 0;
+  font-size: var(--font-size-16, 1rem);
+  font-weight: 600;
+  color: var(--cc-ink);
+}
+
+.cc-count,
+.cc-loading {
+  font-size: var(--font-size-12, 0.75rem);
+  color: var(--cc-ink-3);
+}
+
+.cc-export {
+  margin-left: auto;
+}
+
+.cc-export,
+.cc-rescan {
+  min-height: 1.6rem;
+  padding: 0.1rem 0.45rem;
+}
+
+.cc-cards {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+  /* max-content, or a card (overflow: hidden, so no minimum height) shrinks to nothing once the
+     cards overflow the fixed-height grid. */
+  grid-auto-rows: max-content;
+  gap: 0.6rem;
+  align-content: start;
+  padding: 2px 4px 4px 2px;
+}
+
+.cc-cards.cc-size-s {
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+}
+
+.cc-cards.cc-size-l {
+  grid-template-columns: repeat(auto-fill, minmax(16.5rem, 1fr));
+}
+
+.cc-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--cc-card);
+  border: 1px solid var(--cc-line);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.cc-card[hidden] {
+  display: none;
+}
+
+.cc-card:hover {
+  border-color: #9f9275;
+}
+
+.cc-card.on {
+  border-color: var(--cc-gold);
+  box-shadow: 0 0 0 1px var(--cc-gold);
+}
+
+/* New: a soft glow and the chip, never the solid gold edge of the picked card. */
+.cc-card.unseen {
+  border-color: #7d6a3f;
+  box-shadow: 0 0 14px rgba(201, 162, 74, 0.28);
+}
+
+.cc-card.dragging {
+  opacity: 0.35;
+}
+
+.cc-pick {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+  line-height: 1.3;
+}
+
+.cc-pick:focus-visible {
+  outline: 2px solid var(--cc-gold);
+  outline-offset: -2px;
+}
+
+.cc-thumb {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  background: #181513;
+}
+
+.cc-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 0;
+}
+
+/* A picture's shape, tagged once it loads: a tall one is cropped from the top, so a portrait
+   keeps its head; a scroll or a panorama is shown whole. */
+.cc-thumb img[data-shape="tall"],
+.cc-opts-head img[data-shape="tall"],
+.cc-res-th img[data-shape="tall"] {
+  object-position: top center;
+}
+
+.cc-thumb img[data-shape="odd"],
+.cc-opts-head img[data-shape="odd"],
+.cc-res-th img[data-shape="odd"] {
+  object-fit: contain;
+}
+
+.cc-excerpt {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+  height: 100%;
+  padding: 2rem 0.7rem 0;
+  overflow: hidden;
+  background: linear-gradient(#27231f, #1f1c19);
+  color: var(--cc-ink-2);
+  font-size: var(--font-size-12, 0.75rem);
+  line-height: 1.4;
+  -webkit-mask-image: linear-gradient(#000 70%, transparent);
+  mask-image: linear-gradient(#000 70%, transparent);
+}
+
+/* The kind's icon sits top right, clear of the badge; the Show buttons cover it on hover. */
+.cc-excerpt i {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.55rem;
+  font-size: 1rem;
+  color: var(--cc-ink-3);
+}
+
+.cc-badge,
+.cc-new {
+  position: absolute;
+  top: 0.35rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: calc(100% - 5.5rem);
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.7rem;
+  background: rgba(12, 11, 10, 0.85);
+  color: var(--cc-ink);
+  font-size: 0.68rem;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cc-badge {
+  left: 0.35rem;
+}
+
+.cc-badge.gm {
+  color: var(--cc-red);
+}
+
+.cc-badge.file {
+  color: var(--cc-blue);
+}
+
+.cc-new {
+  left: 0.35rem;
+  background: var(--cc-gold);
+  color: var(--cc-gold-ink);
+  font-weight: 700;
+}
+
+.cc-cb {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 0.4rem 0.55rem 0.5rem;
+}
+
+.cc-nm {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-width: 0;
+  color: var(--cc-ink);
+  font-weight: 600;
+  font-size: var(--font-size-13, 0.8125rem);
+}
+
+.cc-nm span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cc-nm i {
+  flex: none;
+  color: var(--cc-gold);
+  font-size: 0.7rem;
+}
+
+.cc-sub {
+  display: flex;
+  gap: 0.35rem;
+  min-width: 0;
+  color: var(--cc-ink-3);
+  font-size: 0.7rem;
+}
+
+.cc-where {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.cc-why {
+  flex: none;
+  color: var(--cc-gold);
+}
+
+.cc-why:empty {
+  display: none;
+}
+
+.cc-acts {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  display: flex;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.12s,
+    visibility 0.12s;
+}
+
+.cc-card:hover .cc-acts,
+.cc-card.on .cc-acts,
+.cc-card:focus-within .cc-acts {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.cc-acts button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  width: auto;
+  height: 1.75rem;
+  margin: 0;
+  padding: 0 0.55rem;
+  background: var(--cc-gold);
+  border: 1px solid var(--cc-gold);
+  color: var(--cc-gold-ink);
+  font-size: var(--font-size-12, 0.75rem);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+}
+
+.cc-acts .go {
+  border-radius: 4px 0 0 4px;
+}
+
+.cc-acts .more {
+  border-radius: 0 4px 4px 0;
+  border-left-color: #8e7435;
+  padding: 0 0.4rem;
+}
+
+.cc-acts .go:hover,
+.cc-acts .more:hover {
+  background: #e0b95c;
+}
+
+.cc-empty {
+  grid-column: 1 / -1;
+  padding: 2.5rem 1rem;
+  text-align: center;
+  color: var(--cc-ink-3);
+}
+
+.cc-empty[hidden] {
+  display: none;
+}
+
+/* The detail panel */
+
+.cc-detail {
+  flex: 0 0 19rem;
+  overflow-y: auto;
+  padding: 0.65rem;
+  border-left: 1px solid var(--cc-line);
+  background: rgba(0, 0, 0, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.cc-big {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #181513;
+  border: 1px solid var(--cc-line);
+  border-radius: 5px;
+  flex: none;
+}
+
+.cc-big img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border: 0;
+}
+
+.cc-big p {
+  align-self: flex-start;
+  margin: 0;
+  padding: 0.75rem;
+  color: var(--cc-ink-2);
+  font-size: var(--font-size-12, 0.75rem);
+  line-height: 1.45;
+  overflow: hidden;
+}
+
+.cc-detail h3 {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: var(--font-size-15, 0.95rem);
+  font-weight: 600;
+  color: var(--cc-ink);
+  overflow-wrap: anywhere;
+}
+
+.cc-kindline {
+  font-size: 0.72rem;
+  color: var(--cc-ink-3);
+}
+
+.cc-btns,
+.cc-togs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.cc-btn,
+.cc-tog {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: none;
+  width: auto;
+  height: auto;
+  min-height: 1.95rem;
+  margin: 0;
+  padding: 0.2rem 0.65rem;
+  background: #2f3238;
+  border: 1px solid var(--cc-line);
+  border-radius: 4px;
+  color: var(--cc-ink);
+  font-size: var(--font-size-12, 0.75rem);
+  line-height: 1.2;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.cc-btn:hover,
+.cc-tog:hover {
+  border-color: #8a7a55;
+}
+
+.cc-btn.pri {
+  background: var(--cc-gold);
+  border-color: var(--cc-gold);
+  color: var(--cc-gold-ink);
+  font-weight: 700;
+}
+
+.cc-btn.pri:hover {
+  background: #e0b95c;
+}
+
+.cc-btn.on {
+  border-color: var(--cc-gold);
+  color: var(--cc-gold);
+}
+
+.cc-tog {
+  border-radius: 1rem;
+  background: var(--cc-panel);
+  color: var(--cc-ink-2);
+}
+
+.cc-tog.on {
+  border-color: var(--cc-green);
+  background: rgba(98, 173, 114, 0.18);
+  color: var(--cc-ink);
+}
+
+.cc-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: #6c675e;
+  flex: none;
+}
+
+/* Connected is blue, so it never reads as the green of "can see". */
+.cc-dot.online {
+  background: #5b9bd5;
+}
+
+.cc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: var(--font-size-12, 0.75rem);
+  color: var(--cc-ink);
+}
+
+.cc-file,
+.cc-note {
+  font-size: 0.7rem;
+  color: var(--cc-ink-3);
+  overflow-wrap: anywhere;
+}
+
+.cc-field select {
+  max-width: 100%;
+  height: auto;
+  min-height: 1.9rem;
+  padding: 0.2rem 0.4rem;
+  background: var(--cc-panel);
+  border: 1px solid var(--cc-line);
+  border-radius: 4px;
+  color: var(--cc-ink);
+  font-size: var(--font-size-12, 0.75rem);
+}
+
+.cc-field select option {
+  background: var(--cc-panel);
+  color: var(--cc-ink);
+}
+
+/* The Show options */
+
+.cc-veil {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 4rem;
+  background: rgba(8, 7, 6, 0.55);
+}
+
+.cc-opts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 28rem;
+  max-width: calc(100% - 2rem);
+  padding: 0.85rem;
+  background: var(--cc-panel);
+  border: 1px solid var(--cc-gold);
+  border-radius: 6px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  max-height: calc(100% - 6rem);
+  overflow-y: auto;
+}
+
+.cc-opts-head {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cc-opts-head img {
+  width: 4.5rem;
+  height: 3.4rem;
+  object-fit: cover;
+  border: 1px solid var(--cc-line);
+  border-radius: 4px;
+}
+
+.cc-opts-head > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.cc-opts-head strong {
+  display: block;
+  font-size: var(--font-size-14, 0.875rem);
+  overflow-wrap: anywhere;
+}
+
+.cc-x {
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  color: var(--cc-ink-3);
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.cc-opts-foot {
+  position: sticky;
+  bottom: -0.85rem;
+  margin: 0 -0.85rem -0.85rem;
+  padding: 0.6rem 0.85rem 0.85rem;
+  background: var(--cc-panel);
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+/* -------------------------------------------------- */
+/*  The finder                                         */
+/* -------------------------------------------------- */
+
+.cc-finder {
+  display: flex;
+  flex-direction: column;
+}
+
+.cc-finder-box {
+  flex: none;
+  margin: 0.6rem;
+  min-height: 2.6rem;
+}
+
+.cc-finder-box input {
+  font-size: var(--font-size-16, 1rem);
+}
+
+.cardcatalogue kbd {
+  display: inline-block;
+  padding: 0 0.3rem;
+  border: 1px solid #5a5446;
+  border-bottom-width: 2px;
+  border-radius: 3px;
+  background: #2b2722;
+  color: var(--cc-ink);
+  font-family: var(--font-sans-condensed, "Roboto Condensed", sans-serif);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.cc-results {
+  list-style: none;
+  margin: 0;
+  padding: 0 0.4rem 0.4rem;
+  max-height: 26rem;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.cc-res-group {
+  padding: 0.45rem 0.5rem 0.15rem;
+  font-family: var(--font-sans-condensed, "Roboto Condensed", sans-serif);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cc-ink-3);
+}
+
+.cc-res {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.cc-res:not(.on):hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.cc-res.on {
+  background: rgba(201, 162, 74, 0.15);
+  border-color: var(--cc-gold);
+}
+
+.cc-res-th {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 3rem;
+  overflow: hidden;
+  background: #181513;
+  border: 1px solid var(--cc-line);
+  border-radius: 4px;
+  color: var(--cc-ink-3);
+}
+
+.cc-res-th img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 0;
+}
+
+.cc-res-tx {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.cc-res-nm {
+  font-weight: 600;
+  color: var(--cc-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cc-res-sub {
+  font-size: 0.72rem;
+  color: var(--cc-ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cc-res-go {
+  flex: none;
+  font-size: 0.7rem;
+  color: var(--cc-ink-2);
+  white-space: nowrap;
+}
+
+.cc-res-none {
+  padding: 1.5rem;
+  text-align: center;
+  color: var(--cc-ink-3);
+}
+
+.cc-finder-foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  padding: 0.45rem 0.75rem;
+  border-top: 1px solid var(--cc-line);
+  background: #1a1815;
+  font-size: 0.7rem;
+  color: var(--cc-ink-3);
+}
+
+/* -------------------------------------------------- */
+/*  Classic Mode's way back, in the stock directory    */
+/* -------------------------------------------------- */
+
+.cardcatalogue-directory-button {
+  flex: 1 1 100%;
+}
+
+/* -------------------------------------------------- */
+/*  A narrow window: the rail and the detail narrower,  */
+/*  then the detail gone (a double click still opens)   */
+/* -------------------------------------------------- */
+
+@container cardcatalogue (max-width: 980px) {
+  .cc-rail {
+    flex-basis: 11.5rem;
+  }
+  .cc-detail {
+    flex-basis: 15rem;
+  }
+}
+
+@container cardcatalogue (max-width: 880px) {
+  .cc-classic-text {
+    display: none;
+  }
+  .cc-detail {
+    display: none;
+  }
+}
+
+/* -------------------------------------------------- */
+/*  Focus, the keep switch, small cards, the hints     */
+/* -------------------------------------------------- */
+
+.cc-row:focus-visible,
+.cc-pill:focus-visible,
+.cc-classic:focus-visible,
+.cc-export:focus-visible,
+.cc-rescan:focus-visible,
+.cc-btn:focus-visible,
+.cc-tog:focus-visible,
+.cc-x:focus-visible,
+.cc-more:focus-visible,
+.cc-acts button:focus-visible {
+  outline: 2px solid var(--cc-gold);
+  outline-offset: 1px;
+}
+
+.cc-tog.cc-switch {
+  align-self: flex-start;
+  border-radius: 4px;
+}
+
+.cc-tog.cc-switch i {
+  color: var(--cc-ink-3);
+}
+
+.cc-tog.cc-switch.on i {
+  color: var(--cc-green);
+}
+
+.cc-cards.cc-size-s .cc-badge .cc-badge-text {
+  display: none;
+}
+
+.cc-detail[hidden] {
+  display: none;
+}
+
+.cc-more {
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: auto;
+  height: auto;
+  margin: 0.25rem 0 0.75rem;
+  padding: 0.3rem 0.8rem;
+  background: transparent;
+  border: 1px dashed var(--cc-gold);
+  border-radius: 1rem;
+  color: var(--cc-gold);
+  font-family: inherit;
+  font-size: var(--font-size-12, 0.75rem);
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.cc-more[hidden] {
+  display: none;
+}
+
+.cc-undo {
+  border-color: var(--cc-gold);
+  color: var(--cc-gold);
+}
+
+/* The strip a reveal leaves at the top of the cards, with its Undo. */
+.cc-reveal {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: none;
+  padding: 0.35rem 0.4rem 0.35rem 0.6rem;
+  border: 1px solid #6b5a33;
+  border-radius: 4px;
+  background: rgba(201, 162, 74, 0.12);
+  color: var(--cc-ink);
+  font-size: var(--font-size-12, 0.75rem);
+}
+
+.cc-reveal > span {
+  flex: 1;
+  min-width: 0;
+}
+
+.cc-reveal .cc-x {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+.cc-markall {
+  margin-left: auto;
+}
+
+/* The pin sits under the Show buttons at the picture's top right, clear of the badge: shown on
+   hover, focus or selection, and always while the card is pinned. */
+.cc-pin {
+  position: absolute;
+  right: 0.35rem;
+  top: 2.3rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  margin: 0;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(12, 11, 10, 0.85);
+  border: 1px solid var(--cc-line);
+  border-radius: 4px;
+  color: var(--cc-ink-2);
+  font-size: 0.75rem;
+  cursor: pointer;
+  box-shadow: none;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.cc-pin[aria-pressed="true"] {
+  color: var(--cc-gold);
+  opacity: 1;
+  visibility: visible;
+}
+
+.cc-card:hover .cc-pin,
+.cc-card.on .cc-pin,
+.cc-card:focus-within .cc-pin {
+  opacity: 1;
+  visibility: visible;
+}
+
+.cc-pin:focus-visible {
+  outline: 2px solid var(--cc-gold);
+  outline-offset: 1px;
+}
+
+/* While the Show buttons cover the top of a card, its badge shrinks to its icon. */
+.cc-card:is(:hover, .on, :focus-within) .cc-badge .cc-badge-text {
+  display: none;
+}
+
+/* A text page's detail: the words, not an empty picture frame. */
+.cc-big:has(> p) {
+  aspect-ratio: auto;
+  max-height: 14rem;
+  align-items: flex-start;
+  overflow-y: auto;
+}
+
+/* "Everyone" is on: each player can see it through it, drawn quieter than a player's own grant. */
+.cc-tog.on.implied {
+  border-color: #3f6a4a;
+  background: rgba(98, 173, 114, 0.08);
+  color: var(--cc-ink-2);
+}
+
+/* While searching, the pills' counts (which count the view, not the search) step aside. */
+.cc-searching .cc-pill small {
+  display: none;
+}
+
+/* -------------------------------------------------- */
+/*  The Reader: one page, its picture and its text      */
+/* -------------------------------------------------- */
+
+.cc-reader {
+  display: flex;
+  flex-direction: column;
+  max-height: 82vh;
+}
+
+.cc-reader-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1rem 1.25rem 1.25rem;
+  font-size: var(--font-size-14, 0.875rem);
+  line-height: 1.6;
+  color: var(--cc-ink);
+}
+
+.cc-reader-title {
+  margin: 0 0 0.75rem;
+  padding: 0;
+  border: 0;
+  font-family: inherit;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--cc-ink);
+}
+
+.cc-reader-figure {
+  margin: 0 0 0.75rem;
+}
+
+.cc-reader-figure img,
+.cc-reader-video {
+  display: block;
+  width: 100%;
+  max-height: 64vh;
+  object-fit: contain;
+  border: 0;
+  border-radius: 4px;
+  background: #121010;
+}
+
+.cc-reader-figure figcaption {
+  margin-top: 0.4rem;
+  text-align: center;
+  font-size: var(--font-size-12, 0.75rem);
+  color: var(--cc-ink-3);
+}
+
+/* A picture in the text stays under half the window's height, so the words show beneath it. */
+.cc-reader-text img {
+  display: block;
+  max-width: 100%;
+  max-height: 46vh;
+  width: auto;
+  height: auto;
+  margin: 0 auto;
+  border: 0;
+  border-radius: 4px;
+}
+
+.cc-reader-text figure {
+  margin: 0 0 0.75rem;
+}
+
+.cc-reader-text figcaption {
+  text-align: center;
+  font-size: var(--font-size-12, 0.75rem);
+  color: var(--cc-ink-3);
+}
+
+.cc-reader-text p {
+  margin: 0 0 0.7rem;
+}
+
+.cc-reader-text :is(h1, h2, h3, h4) {
+  margin: 1rem 0 0.5rem;
+  border: 0;
+  font-family: inherit;
+  color: var(--cc-ink);
+}
+
+.cc-reader-text :is(aside, blockquote) {
+  margin: 0.75rem 0;
+  padding: 0.6rem 0.8rem;
+  border-left: 3px solid var(--cc-gold);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 0 4px 4px 0;
+}
+
+.cc-reader-text a {
+  color: var(--cc-gold);
+}
+
+.cc-reader-text table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.cc-reader-text :is(th, td) {
+  padding: 0.25rem 0.4rem;
+  border-bottom: 1px solid var(--cc-line);
+  text-align: left;
+}
+
+.cc-reader-empty {
+  color: var(--cc-ink-3);
+}
+
+.cc-reader-foot {
+  display: flex;
+  justify-content: flex-end;
+  flex: none;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid var(--cc-line);
+}
+
+/* Last, so no later image rule outranks it: a page no player can see, dimmed for the GM. */
+.cc-card.dim .cc-thumb img {
+  opacity: 0.6;
+}
+
+/* -------------------------------------------------- */
+/*  The scenes case: wide cards, the active edge;      */
+/*  the folder tree and the chevron's list, shared     */
+/* -------------------------------------------------- */
+
+/* A scene's thumbnail is Foundry's 300 × 100 strip, so the cards are wide and shown whole. */
+.cardcatalogue-scenes-library .cc-cards {
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+}
+
+.cardcatalogue-scenes-library .cc-cards.cc-size-s {
+  grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+}
+
+.cardcatalogue-scenes-library .cc-cards.cc-size-l {
+  grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
+}
+
+.cardcatalogue-scenes-library .cc-thumb {
+  aspect-ratio: 3 / 1;
+}
+
+.cc-nothumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background:
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.025) 0 10px, transparent 10px 20px),
+    linear-gradient(#27231f, #1f1c19);
+  color: var(--cc-ink-3);
+  font-size: 1.4rem;
+}
+
+/* The active scene wears the gold edge's quieter cousin; the picked card's solid edge wins. */
+.cc-card.active:not(.on) {
+  border-color: #8e7435;
+  box-shadow: inset 0 3px 0 var(--cc-gold);
+}
+
+.cc-badges {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.35rem;
+  display: flex;
+  gap: 0.25rem;
+  max-width: calc(100% - 9rem);
+  pointer-events: none;
+}
+
+.cc-badges .cc-badge {
+  position: static;
+  max-width: none;
+}
+
+.cc-badge.active {
+  background: var(--cc-gold);
+  color: var(--cc-gold-ink);
+  font-weight: 700;
+}
+
+.cc-badge.here {
+  color: var(--cc-blue);
+}
+
+.cc-icons {
+  position: absolute;
+  right: 0.4rem;
+  bottom: 0.3rem;
+  display: flex;
+  gap: 0.35rem;
+  padding: 0.12rem 0.35rem;
+  border-radius: 0.6rem;
+  background: rgba(12, 11, 10, 0.75);
+  color: var(--cc-ink-2);
+  font-size: 0.65rem;
+}
+
+.cc-icons:not(:has(i)) {
+  display: none;
+}
+
+/* The folder tree: each level one step in, the folder's own icon before its name. */
+.cc-row.cc-folderrow {
+  padding-left: calc(0.5rem + var(--depth, 0) * 0.9rem);
+}
+
+.cc-ficon {
+  flex: none;
+  color: var(--cc-ink-3);
+  font-size: 0.75rem;
+}
+
+.cc-row.on .cc-ficon {
+  color: var(--cc-gold);
+}
+
+.cc-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  background: none;
+  border: 0;
+  box-shadow: none;
+  color: var(--cc-ink);
+  font-size: var(--font-size-12, 0.75rem);
+  text-align: left;
+  cursor: pointer;
+}
+
+.cc-link:hover {
+  color: var(--cc-gold);
+  text-decoration: underline;
+}
+
+.cc-link:focus-visible {
+  outline: 2px solid var(--cc-gold);
+  outline-offset: 2px;
+}
+
+/* The chevron: the scene's strip on top, then one row per action with what it does. */
+.cc-opts-strip {
+  width: 9rem;
+  height: 3rem;
+}
+
+.cc-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.cc-menu .cc-btn {
+  justify-content: flex-start;
+  width: 100%;
+  padding: 0.45rem 0.65rem;
+  text-align: left;
+}
+
+.cc-micon {
+  flex: none;
+  width: 1.1rem;
+  text-align: center;
+  color: var(--cc-gold);
+}
+
+.cc-menu .cc-btn span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.cc-menu .cc-btn small {
+  color: var(--cc-ink-3);
+  font-size: 0.7rem;
+}
+
+.cc-menu .cc-btn:disabled,
+.cc-tog:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* The finder's strip, in Foundry's own shape. */
+.cardcatalogue-scenes-finder .cc-res-th {
+  width: 5.4rem;
+  height: 1.8rem;
+}
+
+/* -------------------------------------------------- */
+/*  The case strip: the cases, switched in place       */
+/* -------------------------------------------------- */
+
+.cc-cases {
+  display: flex;
+  flex: none;
+  border: 1px solid var(--cc-line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.cc-case {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: auto;
+  height: auto;
+  min-height: 2.1rem;
+  margin: 0;
+  padding: 0.2rem 0.7rem;
+  background: var(--cc-panel);
+  border: 0;
+  border-right: 1px solid var(--cc-line);
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--cc-ink-2);
+  font-size: var(--font-size-12, 0.75rem);
+  cursor: pointer;
+}
+
+.cc-case:last-child {
+  border-right: 0;
+}
+
+.cc-case:hover {
+  color: var(--cc-ink);
+  background: #2e2924;
+}
+
+.cc-case.on {
+  background: #332c1f;
+  color: var(--cc-ink);
+  box-shadow: inset 0 -2px 0 var(--cc-gold);
+  font-weight: 600;
+}
+
+.cc-case:focus-visible {
+  outline: 2px solid var(--cc-gold);
+  outline-offset: -2px;
+}
+
+@container cardcatalogue (max-width: 1100px) {
+  .cc-case-text {
+    display: none;
+  }
+}
+
+/* -------------------------------------------------- */
+/*  The actors and items cases                         */
+/* -------------------------------------------------- */
+
+/* A card's picture is an icon more often than art: shown whole, on the case's ground. */
+.cc-iconimg {
+  object-fit: contain;
+  padding: 12%;
+  box-sizing: border-box;
+}
+
+.cardcatalogue-docs .cc-badge {
+  left: 0.35rem;
+  color: var(--cc-ink);
+}
+
+.cardcatalogue-docs .cc-nothumb {
+  font-size: 2rem;
+}
+
+/* The chevron's choice list (Give to…): a heading, then one button per recipient. */
+.cc-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--cc-line);
+  border-radius: 4px;
+  background: #2f3238;
+}
+
+.cc-choices-head {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: var(--font-size-12, 0.75rem);
+}
+
+.cc-choice-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.cc-choice-hint {
+  color: var(--cc-ink-3);
+  font-size: 0.7rem;
+}
+
+/* A card's or the panel's one button with nothing to do (View on the scene you are on): quiet. */
+.cc-acts .go:disabled,
+.cc-btn.pri:disabled {
+  opacity: 0.6;
+  cursor: default;
+  filter: saturate(0.4);
+}
+
+/* The panel's ×, over the picture's corner: the panel goes, the cards stay. */
+.cc-detail {
+  position: relative;
+}
+
+.cc-detail-x {
+  position: absolute;
+  top: 0.95rem;
+  right: 0.95rem;
+  z-index: 2;
+  background: rgba(12, 11, 10, 0.8);
+}

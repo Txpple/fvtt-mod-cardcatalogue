@@ -100,28 +100,17 @@
     "docs": {
       "types": "Types",
       "folders": "Folders",
-      "pin": "Pin",
-      "unpin": "Unpin",
-      "pinned": "Pinned",
-      "pinHint": "Pins are kept in this browser, for the next session's shortlist.",
-      "copyRef": "Copy a link to paste in a journal or chat",
-      "copied": "Copied.",
       "classic": "Classic Mode",
-      "where": "Where",
-      "noPicture": "No picture",
-      "lastOpened": "Opened {when}, as this browser saw it",
       "failed": "That did not work; the console has the details.",
       "matching": "{n} matching “{q}”",
       "more": "{n} more outside this view: search everything",
       "searchHere": "Nothing here matches “{q}”.",
       "move": "move",
       "moreActions": "more",
-      "finderPinned": "Pinned",
       "finderRecent": "Opened lately",
-      "finderEmpty": "Type to search. Pinned and lately opened cards appear here.",
+      "finderEmpty": "Type to search. What you opened lately appears here.",
       "matches": "{n} matching",
-      "matchesMore": "{n} matching, the first {shown} shown",
-      "closePanel": "Close the panel (Escape)"
+      "matchesMore": "{n} matching, the first {shown} shown"
     },
     "journal": {
       "library": {
@@ -258,31 +247,7 @@
         "searchHere": "Nothing in this view matches “{q}”."
       },
       "detail": {
-        "where": "Where it lives",
-        "section": "Section",
-        "canSee": "Players can see",
-        "fileNote": "A picture not in a journal: no player can open it again until it is added to the Handouts journal. Show still sends it as an image popout.",
-        "noPlayers": "This world has no players yet.",
-        "everyone": "Everyone",
-        "canSeeNote": "Highlighted players can open it again from their journal case.",
-        "lastShown": "Last shown from this browser",
-        "fileLine": "A picture not in a journal yet",
-        "pageLine": "{kind} page in {journal}",
-        "onNoPage": "Not in a journal: {folder}",
-        "shownLine": "{when} · to {to}",
-        "notShown": "Not shown from this browser",
-        "openJournal": "Open in journal",
-        "copyLink": "Copy a web link: it opens this page in the game, after logging in, for anyone who can see it",
-        "copyRef": "Copy a link for Foundry's text (@UUID), to paste into a journal, a description or chat",
-        "copied": "Link copied.",
-        "look": "Look at it",
-        "again": "Show again to {to}"
-      },
-      "pin": {
-        "hint": "Pinned handouts are kept in this browser, for the next session's shortlist.",
-        "on": "Pinned",
-        "off": "Pin",
-        "unpin": "Unpin"
+        "openJournal": "Open in journal"
       },
       "keep": {
         "button": "Add to the Handouts journal",
@@ -329,7 +294,6 @@
         "title": "Find a handout",
         "placeholder": "A name, a section, a file, a word from the text",
         "placeholderPlayer": "Search what you have been given",
-        "pinned": "Pinned",
         "recent": "Recently shown",
         "matches": "{n} matching",
         "matchesMore": "{n} matching, the first {shown} shown",
@@ -340,7 +304,7 @@
         "shiftEnter": "choose who",
         "ctrlEnter": "open in journal",
         "none": "Nothing by that name, section, file or word.",
-        "empty": "Type to search. Pinned and recently shown handouts appear here."
+        "empty": "Type to search. Recently shown handouts appear here."
       },
       "reader": {
         "gone": "Gone",
@@ -469,38 +433,13 @@
         "thumbMaking": "Making the thumbnail of “{name}”…",
         "thumbMade": "The thumbnail of “{name}” is made."
       },
-      "detail": {
-        "noPicture": "No map image",
-        "navName": "On the bar as “{name}”",
-        "squares": "{size} squares",
-        "day": "Daylight",
-        "night": "Night",
-        "dark": "{n}% dark",
-        "where": "Where",
-        "playlist": "Playlist",
-        "notes": "Notes",
-        "lastKey": "Last active",
-        "activeNow": "Active now",
-        "lastActive": "{when}, as this browser saw it",
-        "notActive": "Not since this browser began keeping track",
-        "noThumbNote": "No thumbnail yet: its card shows a plain tile until one is made.",
-        "copyRef": "Copy a link to paste in a journal or chat",
-        "copied": "Copied."
-      },
       "drop": {
         "filed": "“{name}” is now in {folder}.",
         "unfiled": "“{name}” is now in no folder."
       },
-      "pin": {
-        "hint": "Pinned scenes are kept in this browser, for the next session's shortlist.",
-        "on": "Pinned",
-        "off": "Pin",
-        "unpin": "Unpin"
-      },
       "finder": {
         "title": "Find a scene",
         "placeholder": "A name, a folder, a note, a playlist, a file",
-        "pinned": "Pinned",
         "recent": "Active lately",
         "matches": "{n} matching",
         "matchesMore": "{n} matching, the first {shown} shown",
@@ -510,7 +449,7 @@
         "shiftEnter": "more",
         "ctrlEnter": "activate for everyone",
         "none": "Nothing by that name, folder, note, playlist or file.",
-        "empty": "Type to search. Pinned scenes and those active lately appear here."
+        "empty": "Type to search. The scenes active lately appear here."
       },
       "error": {
         "action": "That did not work; the console has the details."
@@ -577,9 +516,6 @@
         "level": "Level {n}",
         "cr": "CR {cr}",
         "here": "On the scene you are viewing"
-      },
-      "detail": {
-        "owners": "Owned by {names}"
       }
     },
     "items": {
@@ -638,15 +574,6 @@
         "attunement": "Requires attunement",
         "spellLevel": "Level {n}",
         "cantrip": "Cantrip"
-      },
-      "detail": {
-        "price": "Price {price}",
-        "weight": "{n} {units}",
-        "source": "{book} {page}",
-        "attune": {
-          "required": "Requires attunement",
-          "optional": "Attunement optional"
-        }
       }
     }
   }

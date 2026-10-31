@@ -1,13 +1,13 @@
 /**
  * The the scenes case window: the Scenes directory as cards. A rail (the views, then the folders), the
- * cards (each with Activate and a chevron of the other actions), a detail panel, the Undo strip.
+ * cards (each with View and a chevron of the other actions), the Undo strip.
  * Everything it draws is read live from Foundry's scenes; the only state of its own is the
  * browser's (memory.js). The search filters the drawn cards from a map kept here, never from the
  * DOM, and never redraws. GM only, as the Scenes tab is.
  */
 
 import { log, MODULE_ID, t } from "./common.js";
-import { activateAs, darknessOf, folderTree, inView, matchWhy, searchFields, squares, VIEWS } from "./decide.js";
+import { activateAs, folderTree, inView, matchWhy, searchFields, VIEWS } from "./decide.js";
 import * as memory from "./memory.js";
 import * as scenes from "./scenes.js";
 import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
@@ -59,14 +59,6 @@ export function sceneCards() {
     .sort((a, b) => byName(a.folder, b.folder) || byName(a.name, b.name));
 }
 
-/** The time a scene was active, short. */
-function when(at) {
-  try {
-    return new Date(at).toLocaleString(game.i18n.lang, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-  } catch {
-    return new Date(at).toLocaleString();
-  }
-}
 
 /** Open Foundry's own Scenes directory: the sidebar's tab, the sidebar expanded. */
 export const openClassicScenes = () => openClassic("scenes");
@@ -85,7 +77,6 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       rail: ScenesWindow.#onRail,
       searchAll: ScenesWindow.#onSearchAll,
       pick: ScenesWindow.#onPick,
-      unpick: ScenesWindow.#onUnpick,
       activate: ScenesWindow.#onActivate,
       openMenu: ScenesWindow.#onOpenMenu,
       closeMenu: ScenesWindow.#onCloseMenu,
@@ -95,8 +86,6 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       preload: ScenesWindow.#onPreload,
       toggleNav: ScenesWindow.#onToggleNav,
       makeThumb: ScenesWindow.#onMakeThumb,
-      pin: ScenesWindow.#onPin,
-      copyRef: ScenesWindow.#onCopyRef,
       undo: ScenesWindow.#onUndo,
       dismissUndo: ScenesWindow.#onDismissUndo,
       classic: ScenesWindow.#onClassic,
@@ -107,7 +96,7 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
   static PARTS = {
     main: {
       template: `modules/${MODULE_ID}/templates/scenes/library.hbs`,
-      scrollable: [".cc-cards", ".cc-rail", ".cc-detail"]
+      scrollable: [".cc-cards", ".cc-rail"]
     }
   };
 
@@ -224,7 +213,6 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     context.cards = list.map(c => this.#cardContext(c));
     context.countBase = counted(list.filter(c => inView(c, view)).length, "count.scenes");
     context.emptyText = t(`empty.${view.startsWith("f:") ? "folder" : view}`);
-    context.detail = this.#detailContext(all, list);
     context.menu = this.#menu ? this.#menuContext(all) : null;
     const undo = scenes.lastActivation();
     context.undo = undo ? { text: t("activate.done", { name: undo.name }), back: t("activate.back", { name: undo.previousName }) } : null;
@@ -243,59 +231,10 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       nav: card.nav || card.active,
       playlist: card.playlist,
       notes: card.notes,
-      pinned: memory.isPinned(card.key),
       selected: this.#selected === card.key,
       // The card's one button is View (the user's ruling); on the scene this client is on, it says so.
       goLabel: card.viewed ? t("badge.here") : t("menu.look"),
       goHint: card.viewed ? t("menu.lookHere") : t("menu.lookHint")
-    };
-  }
-
-  #detailContext(all, list) {
-    if (!list.some(c => c.key === this.#selected)) return null;
-    const card = all.find(c => c.key === this.#selected);
-    if (!card) return null;
-    const { scene } = card;
-    const grid = scene.grid;
-    const dark = darknessOf(scene.environment?.darknessLevel);
-    const size = squares(scene.width, scene.height, grid?.size);
-    const line = [
-      size ? t("detail.squares", { size }) : "",
-      grid?.distance ? `${grid.distance} ${grid.units ?? ""}`.trim() : "",
-      typeof dark === "number" ? t("detail.dark", { n: dark }) : t(`detail.${dark}`)
-    ].filter(Boolean);
-    const last = memory.lastActive(card.key);
-    const counts = [
-      ["tokens", scene.tokens?.size],
-      ["walls", scene.walls?.size],
-      ["lights", scene.lights?.size],
-      ["sounds", scene.sounds?.size],
-      ["levels", scene.levels?.size > 1 ? scene.levels.size : 0]
-    ]
-      .filter(([, n]) => n)
-      .map(([k, n]) => counted(n, `count.${k}`));
-    const as = activateAs(card);
-    return {
-      key: card.key,
-      name: card.name,
-      picture: card.background || card.thumb,
-      navName: card.navName,
-      line: line.join(" · "),
-      counts: counts.join(" · "),
-      active: card.active,
-      viewed: card.viewed,
-      where: card.folder || t("rail.noFolder"),
-      file: card.file,
-      nav: card.nav || card.active,
-      navLocked: card.active,
-      playlist: card.playlist,
-      notes: card.notes,
-      pinned: memory.isPinned(card.key),
-      last: card.active ? t("detail.activeNow") : last ? t("detail.lastActive", { when: when(last.at) }) : t("detail.notActive"),
-      viewLabel: card.viewed ? t("badge.here") : t("menu.look"),
-      actLabel: t(`activate.everyoneAs.${as}`),
-      actIcon: as === "pull" ? "fa-people-pulling" : "fa-bullseye",
-      noThumb: !card.thumb && scenes.canThumb(scene)
     };
   }
 
@@ -364,14 +303,6 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
         return stops[next].focus();
       }
       const typing = ev.target.closest?.("input, textarea, select, [contenteditable]");
-      // Escape closes the panel first, the window after.
-      if (ev.key === "Escape" && this.#selected && !typing) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        this.#selected = null;
-        this.#sticky = null;
-        return this.render();
-      }
       if (ev.key === "/" && !typing && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
         ev.preventDefault();
         this.element.querySelector("input[name=search]")?.focus();
@@ -476,11 +407,6 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       empty.hidden = shown > 0;
       empty.textContent = !q ? (empty.dataset.view ?? "") : elsewhere ? t("empty.searchHere", { q }) : t("empty.search");
     }
-    const detail = root.querySelector(".cc-detail[data-key]");
-    if (detail) {
-      const card = root.querySelector(`.cc-card[data-key="${CSS.escape(detail.dataset.key)}"]`);
-      detail.hidden = !card || card.hidden;
-    }
   }
 
   #wireDrag(root) {
@@ -567,22 +493,13 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     this.render();
   }
 
-  /** A click picks; a second click, a double click, or Enter on the picked card views it (the DM only). */
-  /** The panel's ×: the card stays where it is, the panel goes. */
-  static #onUnpick() {
-    this.#selected = null;
-    this.#sticky = null;
-    this.render();
-  }
-
-  static #onPick(event, target) {
+  /** A click views the scene (only the DM moves). */
+  static #onPick(_event, target) {
     const key = target.closest("[data-key]")?.dataset.key;
     if (!key) return;
-    if (this.#selected === key && (event.detail >= 2 || event.detail === 0)) {
-      const scene = fromUuidSync(key);
-      if (isScene(scene)) void scenes.guarded("viewing the scene", () => scenes.view(scene));
-      return;
-    }
+    // A click views it (only the DM moves), the card's one action; the card stays marked.
+    const scene = fromUuidSync(key);
+    if (isScene(scene) && !scene.isView) void scenes.guarded("viewing the scene", () => scenes.view(scene));
     this.#selected = key;
     if (this.#sticky !== key) this.#sticky = null;
     this.render();
@@ -652,25 +569,6 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     if (made) ui.notifications.info(t("menu.thumbMade", { name: scene.name }));
   }
 
-  static #onPin(_event, target) {
-    const key = target.closest("[data-key]")?.dataset.key ?? this.#selected;
-    if (!key) return;
-    memory.togglePin(key);
-    this.render();
-  }
-
-  /** The picked scene as Foundry's own content link, for a journal, a description or a chat message. */
-  static async #onCopyRef() {
-    const scene = fromUuidSync(this.#selected);
-    if (!isScene(scene)) return;
-    const text = `@UUID[${scene.uuid}]{${scene.name}}`;
-    try {
-      await game.clipboard.copyPlainText(text);
-      ui.notifications.info(t("detail.copied"));
-    } catch {
-      ui.notifications.info(text);
-    }
-  }
 
   static async #onUndo() {
     const back = scenes.lastActivation()?.previousName ?? "";

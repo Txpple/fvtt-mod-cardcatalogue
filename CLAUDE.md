@@ -7,7 +7,7 @@ sidebar showing only the tabs the table uses (the two rules carried over from Ho
 Foundry's own directories. Part of Open Roll 5e (the suite repo is `..`, its CLAUDE.md has the family's conventions;
 the plan is `../docs/plans/cardcatalogue.md`). Plain ES modules, no build step, no libWrapper, no socketlib, MIT.
 
-**State (2026-10-31).** 0.1.0, the working draft, unreleased: the public repo `Txpple/fvtt-mod-cardcatalogue`
+**State (2026-10-31).** 1.0.0, the first release (the user: "commit/push, put on prod. remove scroll case and archive it"), was 0.1.0, the working draft: the public repo `Txpple/fvtt-mod-cardcatalogue`
 (made on the user's word, `verify` green on GitHub), in `repos.json` without a blurb until it is released and
 Scroll Case retires; the name is free (the setup screen's `getPackages`, 7,087 modules, has no "Card Catalogue",
 no `cardcatalog` and no "catalogue" at all). On the sandbox (`deploy --local`, registered by a
@@ -22,7 +22,7 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   `journal/show.js` (a page's ownership and section, a new section, an image page for a kept picture); the scenes'
   in `scenes/scenes.js` (`active`, `navigation`, `thumb`, `folder`); the actors' a token placed and the stock
   ownership dialog; the items' a copy on an actor and dnd5e's chat card; any card's `folder` from a drop on the rail.
-  Pins, recently shown or opened, New, the view and the size live in localStorage per case, world and user.
+  Recently shown or opened, New, the view and the size live in localStorage per case, world and user.
 - **The cases are registered, the shell is shared** (`shell/cases.js`): each case registers its id, sidebar tab,
   icon, who sees it, how it opens, and `aside()` (the module it replaces is still active: Scroll Case for the
   journal, Map Case for scenes; the case stays out of the way so two windows never answer one button). The shell
@@ -37,10 +37,13 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   though its owner keeps the token and the stock directory still lists it. The GM sees them all.
 - **Who sees which case**: the journal and actors every user; scenes GMs (the tab is GM only); items GMs, and a
   player only while the sidebar keeps their Items tab (`gmOnly` on `CONFIG.ui.sidebar.TABS.items`).
-- **The card's one button** (the user's rulings): Show for a page, **View** for a scene (only the GM moves;
-  "You are here" greyed on the scene this client is on; Activate, or Pull everyone on the active scene, heads the
-  chevron and sits in the panel), Open (the sheet) for an actor or an item. The chevron holds the rest, GM only for
-  actors and items. **Each panel has an ×**, and Escape closes the panel before the window. **One finder per case** (the user's
+- **No side panel, no pins** (the user's rulings: "the actions i need are in that little yellow chevron"). A click
+  on a card does the case's one thing: the journal opens the page to read (the Reader; a picture on no page, to
+  look at), scenes view, actors and items open the sheet. The card's button: Show for a page, **View** for a scene
+  (only the GM moves; "You are here" greyed on the scene this client is on), Open for an actor or an item. The
+  chevron holds the rest: the journal's Show options; the scenes' Activate (Pull everyone on the active scene),
+  Edit, Notes, Preload, the bar, the thumbnail; the actors' and items' GM actions. A page's visibility per player
+  and its section are set through Show and a drop on the rail, or Foundry's own sheet. **One finder per case** (the user's
   ruling): the journal's Ctrl+Shift+H (Enter shows), the scenes' Ctrl+Shift+M (Enter views), the actors' and items'
   unbound (Enter opens; Ctrl+Enter shows the art, or posts the item to chat).
 - **The sidebar-tabs rules** (`tabs/rules.js` pure and tested, `tabs/apply.js` the writes) are House Rules 1.3.0's,
@@ -55,7 +58,7 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   `cardcatalogue` window class; each case's own rules follow, scoped to its window. Clue Board copies it from here.
 - **Actors and items share one window** (`docs/library.js`, `docs/finder.js`, `templates/docs/`), each configured by
   a spec in its `case.js`: its collection, its search fields (`docs/decide.js` matches over them), how a document
-  becomes a card, its views, its one action, its chevron and its panel's quick buttons.
+  becomes a card, its views, its one action and its chevron.
 - **A picture shown from actors or items** (`shell/art.js`) goes through the journal case's Show (the same Reader on
   the players' screens) while the journal case is on, else Foundry's own image share.
 

@@ -1,6 +1,6 @@
 /**
- * The finder: a search box over the scenes, opened by the keybinding. Empty, it lists the pins and
- * the scenes active lately; typing narrows, the arrows move, Enter views the pick (only the DM
+ * The finder: a search box over the scenes, opened by the keybinding. Empty, it lists the scenes
+ * active lately; typing narrows, the arrows move, Enter views the pick (only the DM
  * moves, so a stray Enter never moves the table), Shift+Enter opens its chevron in the window,
  * Ctrl+Enter activates it, Escape clears and then closes. The list redraws by itself, never the
  * window, so the caret never leaves the box.
@@ -78,15 +78,11 @@ export class Finder extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!q) {
       const record = memory.load();
       const byKey = new Map(this.#cards.map(c => [c.key, c]));
-      const pinned = record.pins.map(k => byKey.get(k)).filter(Boolean);
       const recent = record.recent
         .map(r => byKey.get(r.key))
-        .filter(c => c && !pinned.includes(c))
-        .slice(0, 6);
-      return [
-        { label: t("finder.pinned"), rows: pinned.map(card => ({ card, why: "" })) },
-        { label: t("finder.recent"), rows: recent.map(card => ({ card, why: "" })) }
-      ].filter(g => g.rows.length);
+        .filter(Boolean)
+        .slice(0, 8);
+      return [{ label: t("finder.recent"), rows: recent.map(card => ({ card, why: "" })) }].filter(g => g.rows.length);
     }
     const hits = [];
     for (const card of this.#cards) {

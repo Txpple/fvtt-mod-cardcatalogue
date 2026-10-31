@@ -74,12 +74,6 @@ const spec = {
       icons: here && user.isGM ? [{ icon: "fa-location-dot", tip: t("card.here") }] : []
     };
   },
-  detailLines(actor, user) {
-    const classes = Object.values(actor.classes ?? {}).map(c => `${c.name} ${c.system?.levels ?? ""}`.trim());
-    const species = actor.itemTypes?.race?.[0]?.name ?? "";
-    const owners = user.isGM ? players().filter(u => actor.testUserPermission(u, "OWNER")) : [];
-    return [[species, ...classes].filter(Boolean).join(" · "), owners.length ? t("detail.owners", { names: owners.map(u => u.name).join(", ") }) : ""];
-  },
   primary: {
     label: "go",
     icon: "fa-id-card",
@@ -87,7 +81,6 @@ const spec = {
   },
   second: { label: "menu.art", run: actor => showArt(actor.img, actor.name) },
   playerMenu: false,
-  quick: (_actor, user) => (user.isGM ? [{ act: "art", icon: "fa-image", label: "menu.art", run: a => showArt(a.img, a.name) }] : []),
   menu(actor, user) {
     if (!user.isGM) return [];
     const tokenSrc = actor.prototypeToken?.texture?.src;

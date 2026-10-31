@@ -116,27 +116,22 @@ try {
     const found = [...el.querySelectorAll(".cc-card[data-key]")].filter(c => !c.hidden).map(c => c.dataset.key);
     input.value = "";
     input.dispatchEvent(new Event("input", { bubbles: true }));
-    // The panel's × closes it; Escape does too.
+    // No panel for actors: a click on the card opens the sheet.
     el.querySelector(`.cc-card[data-key="${pc.uuid}"] [data-action="pick"]`)?.click();
-    const panel = !!(await wait(() => el.querySelector(".cc-detail")));
-    el.querySelector('.cc-detail [data-action="unpick"]')?.click();
-    const xClosed = !!(await wait(() => !el.querySelector(".cc-detail")));
-    el.querySelector(`.cc-card[data-key="${pc.uuid}"] [data-action="pick"]`)?.click();
-    const pick = await wait(() => el.querySelector(".cc-detail") && el.querySelector(`.cc-card[data-key="${pc.uuid}"] [data-action="pick"]`));
-    pick?.focus();
-    pick?.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
-    const escClosed = !!(await wait(() => !el.querySelector(".cc-detail")));
-    const windowStays = win.rendered;
-    // The card's one button opens the sheet.
+    const clickSheet = !!(await wait(() => pc.sheet?.rendered));
+    await new Promise(r => setTimeout(r, 300));
+    const noPanel = !el.querySelector(".cc-detail");
+    await pc.sheet?.close();
+    await wait(() => !pc.sheet?.rendered);
+    // The card's one button opens the sheet too.
     el.querySelector(`.cc-card[data-key="${pc.uuid}"] .cc-acts .go`)?.click();
     const sheet = !!(await wait(() => pc.sheet?.rendered));
     await pc.sheet?.close();
-    return { before, after: ui.sidebar.tabGroups.primary, panel, xClosed, escClosed, windowStays, inOrder, cards, total: game.actors.size, strip, types, pcName: pc.name, foundPc: found.includes(pc.uuid), sheet };
+    return { before, after: ui.sidebar.tabGroups.primary, clickSheet, noPanel, inOrder, cards, total: game.actors.size, strip, types, pcName: pc.name, foundPc: found.includes(pc.uuid), sheet };
   });
   assert(A.cards === A.total && A.cards > 0, `a card per actor (${A.cards} of ${A.total})`);
   assert(A.before === A.after, "the sidebar did not switch tabs");
-  assert(A.panel && A.xClosed, "the panel's × closes the panel");
-  assert(A.escClosed && A.windowStays, "Escape closes the panel and leaves the window open");
+  assert(A.clickSheet && A.noPanel, "a click on an actor card opens its sheet, and no side panel opens");
   assert(A.inOrder, "All runs by type (characters, NPCs, groups), then by name");
   assert(["journal", "scenes", "actors", "items"].every(c => A.strip.includes(c)), `the strip holds the four cases (${A.strip.join(", ")})`);
   assert(A.types.includes("t:character") && A.types.includes("t:npc"), `the rail lists the types (${A.types.join(", ")})`);
@@ -203,6 +198,15 @@ try {
     const samePlace = win && Math.abs(win.position.left - pos.left) < 2 && Math.abs(win.position.top - pos.top) < 2;
     const cards = win?.element.querySelectorAll(".cc-card[data-key]").length ?? 0;
     const item = game.items.find(i => "quantity" in (i.system ?? {}));
+    // No panel for items either: a click on the card opens the sheet.
+    let clickSheet = false;
+    let noPanel = false;
+    if (item) {
+      win.element.querySelector(`.cc-card[data-key="${item.uuid}"] [data-action="pick"]`)?.click();
+      clickSheet = !!(await wait(() => item.sheet?.rendered));
+      noPanel = !win.element.querySelector(".cc-detail");
+      await item.sheet?.close();
+    }
     let rows = [];
     let recipients = 0;
     if (item) {
@@ -212,10 +216,11 @@ try {
       recipients = menu?.querySelectorAll('[data-act="give"]').length ?? 0;
       win.element.querySelector('.cc-opts [data-action="closeMenu"]')?.click();
     }
-    return { closedFrom, samePlace, cards, total: game.items.size, rows: [...new Set(rows)], recipients, item: item?.name };
+    return { closedFrom, samePlace, clickSheet, noPanel, cards, total: game.items.size, rows: [...new Set(rows)], recipients, item: item?.name };
   });
   assert(C.closedFrom && C.samePlace, "the items case opened where the actors case stood, and the actors case closed");
   assert(C.cards === C.total, `a card per world item (${C.cards} of ${C.total})`);
+  assert(C.clickSheet && C.noPanel, "a click on an item card opens its sheet, and no side panel opens");
   assert(["art", "post", "give"].every(r => C.rows.includes(r)), `the item chevron: Show the art, Post to chat, Give to… (${C.rows.join(", ")})`);
   assert(C.recipients > 0, `Give to… names the party and its characters (${C.recipients})`);
   await shot(f.page, "11-items");
@@ -235,10 +240,10 @@ try {
     const memKey = `fvtt-mod-scrollcase.${game.world.id}.${game.user.id}`;
     return {
       out,
-      pins: game.modules.get(id).api.journal.memory.load().pins.length,
-      oldPins: (() => {
+      recent: game.modules.get(id).api.journal.memory.load().recent.length,
+      oldRecent: (() => {
         try {
-          return JSON.parse(localStorage.getItem(memKey) ?? "{}").pins?.length ?? 0;
+          return JSON.parse(localStorage.getItem(memKey) ?? "{}").recent?.length ?? 0;
         } catch {
           return 0;
         }
@@ -249,7 +254,7 @@ try {
     };
   }, MODULE_ID);
   for (const p of D.out) assert(p.was === undefined || p.was === p.now, `${p.from} carried over (${JSON.stringify(p.was)} → ${JSON.stringify(p.now)})`);
-  assert(D.pins >= D.oldPins, `the journal case read Scroll Case's pins in this browser (${D.pins}, Scroll Case ${D.oldPins})`);
+  assert(D.recent >= D.oldRecent, `the journal case read Scroll Case's shown history in this browser (${D.recent}, Scroll Case ${D.oldRecent})`);
   assert(!D.combatButton && D.scenesButton, `the GM's sidebar: no Combat, Scenes kept (${D.houseRulesHasTabs ? "House Rules still hiding, Card Catalogue stepping aside" : "Card Catalogue hiding"})`);
 
   // --- E. a player's actors case ------------------------------------------------------------

@@ -1,6 +1,6 @@
 /**
  * The finder of an actors or items case: a search box over the case's cards, opened by its key.
- * Empty, it lists the pins and what was opened lately; typing narrows, the arrows move, Enter does
+ * Empty, it lists what was opened lately; typing narrows, the arrows move, Enter does
  * the case's one thing (opens the sheet), Shift+Enter opens the chevron in the window, Ctrl+Enter
  * the case's second action, Escape clears and then closes. The list redraws by itself, never the
  * window, so the caret never leaves the box.
@@ -91,15 +91,11 @@ export function makeCaseFinder(spec, CaseWindow, record) {
       if (!q) {
         const rec = record.load();
         const byKey = new Map(this.#cards.map(c => [c.key, c]));
-        const pinned = rec.pins.map(k => byKey.get(k)).filter(Boolean);
         const recent = rec.recent
           .map(r => byKey.get(r.key))
-          .filter(c => c && !pinned.includes(c))
-          .slice(0, 6);
-        return [
-          { label: rootT("docs.finderPinned"), rows: pinned.map(card => ({ card, why: "" })) },
-          { label: rootT("docs.finderRecent"), rows: recent.map(card => ({ card, why: "" })) }
-        ].filter(g => g.rows.length);
+          .filter(Boolean)
+          .slice(0, 8);
+        return [{ label: rootT("docs.finderRecent"), rows: recent.map(card => ({ card, why: "" })) }].filter(g => g.rows.length);
       }
       const hits = [];
       for (const card of this.#cards) {

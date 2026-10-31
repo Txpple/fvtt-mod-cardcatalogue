@@ -14,10 +14,10 @@ thing you came for a click away.
 - **One window**: each sidebar button opens its case, and the strip across the top switches cases in place.
 - **The sidebar shows only the tabs the table uses**: players lose Combat, Placeables, Items, Rollable Tables, Cards
   and Macros; GMs lose Combat, Rollable Tables, Cards and Macros. Each its own switch.
-- **A skin, nothing more.** It writes only what Foundry's own directories write; pins and history live in your
+- **A skin, nothing more.** It writes only what Foundry's own directories write; history lives in your
   browser. Classic Mode puts any directory back, per case, per client.
 
-Replaces Open Roll 5e: Scroll Case (its settings, pins and page links carry over) and House Rules' two sidebar rules.
+Replaces Open Roll 5e: Scroll Case (its settings, history and page links carry over) and House Rules' two sidebar rules.
 
 Requires Foundry VTT 14 and, for actors and items, the dnd5e system. MIT.
 

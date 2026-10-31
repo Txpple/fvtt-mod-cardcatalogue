@@ -1,13 +1,11 @@
 import {
   activateAs,
-  darknessOf,
   fileName,
   folderTree,
   inView,
   matchWhy,
   remember,
   searchFields,
-  squares,
   UNDO_FOR,
   undoCheck
 } from "../scripts/scenes/decide.js";
@@ -119,22 +117,9 @@ describe("the folder tree", () => {
 });
 
 describe("a card's lines", () => {
-  it("counts squares", () => {
-    expect(squares(4760, 3780, 140)).toBe("34 × 27");
-    expect(squares(0, 3780, 140)).toBe("");
-    expect(squares(4760, 3780, 0)).toBe("");
-  });
-
   it("names the button", () => {
     expect(activateAs({ active: false })).toBe("activate");
     expect(activateAs({ active: true })).toBe("pull");
-  });
-
-  it("reads darkness", () => {
-    expect(darknessOf(0)).toBe("day");
-    expect(darknessOf(1)).toBe("night");
-    expect(darknessOf(0.55)).toBe(55);
-    expect(darknessOf(undefined)).toBe("day");
   });
 
   it("takes a file's name", () => {

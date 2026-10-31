@@ -75,14 +75,6 @@ export function setVisible(page, wanted) {
   });
 }
 
-/** One player in or out, decided against the page as it is when the write runs. */
-export const toggleVisible = (page, userId) =>
-  setVisible(page, ids => (ids.includes(userId) ? ids.filter(u => u !== userId) : [...ids, userId]));
-
-/** Everyone in, or (when everyone already sees it) everyone out. */
-export const toggleEveryone = page =>
-  setVisible(page, ids => (ids.length === players().length ? [] : players().map(u => u.id)));
-
 /* -------------------------------------------------- */
 /*  The last reveal, for Undo                         */
 /* -------------------------------------------------- */
@@ -218,13 +210,6 @@ export async function setSection(page, categoryId) {
   if ((page.category ?? null) === next) return false;
   await page.update({ category: next });
   return true;
-}
-
-/** A new section in a journal, last in its order. */
-export async function newSection(entry, name) {
-  const sort = (Math.max(0, ...entry.categories.map(c => c.sort ?? 0)) || 0) + CONST.SORT_INTEGER_DENSITY;
-  const [category] = await entry.createEmbeddedDocuments("JournalEntryCategory", [{ name, sort }]);
-  return category;
 }
 
 /** Open a page in the stock journal sheet, on that page. */

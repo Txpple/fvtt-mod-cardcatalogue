@@ -68,7 +68,7 @@
               {{#if icons.length}}<span class="cc-icons">{{#each icons}}<i class="fa-solid {{icon}}" data-tooltip="{{tip}}" aria-label="{{tip}}"></i>{{/each}}</span>{{/if}}
             </span>
             <span class="cc-cb">
-              <span class="cc-nm">{{#if pinned}}<i class="fa-solid fa-thumbtack" inert></i>{{/if}}<span dir="auto">{{name}}</span></span>
+              <span class="cc-nm"><span dir="auto">{{name}}</span></span>
               <span class="cc-sub"><span class="cc-where">{{sub}}</span><span class="cc-why"></span></span>
             </span>
           </button>
@@ -76,7 +76,6 @@
             <button type="button" class="go" data-action="go"><i class="fa-solid {{../goIcon}}" inert></i> {{../goLabel}}</button>
             {{#if ../hasMenu}}<button type="button" class="more" data-action="openMenu" aria-label="{{../labels.menu}}" data-tooltip="{{../labels.menu}}"><i class="fa-solid fa-chevron-down" inert></i></button>{{/if}}
           </span>
-          <button type="button" class="cc-pin" data-action="pin" aria-label="{{#if pinned}}{{../labels.unpin}}{{else}}{{../labels.pin}}{{/if}}" data-tooltip="{{#if pinned}}{{../labels.unpin}}{{else}}{{../labels.pin}}{{/if}}" aria-pressed="{{#if pinned}}true{{else}}false{{/if}}"><i class="fa-solid fa-thumbtack" inert></i></button>
         </article>
         {{/each}}
         <div class="cc-empty" data-view="{{emptyText}}" {{#if cards.length}}hidden{{/if}}>{{emptyText}}</div>
@@ -84,38 +83,6 @@
       </div>
     </section>
 
-    {{#if detail}}
-    <aside class="cc-detail" data-key="{{detail.key}}" aria-label="{{detail.name}}">
-      <button type="button" class="cc-x cc-detail-x" data-action="unpick" aria-label="{{localize 'fvtt-mod-cardcatalogue.docs.closePanel'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.docs.closePanel'}}"><i class="fa-solid fa-xmark" inert></i></button>
-      <div class="cc-big">
-        {{#if detail.picture}}<img src="{{detail.picture}}" alt="{{detail.name}}">
-        {{else}}<p><i class="fa-solid {{goIcon}}" inert></i> {{labels.noPicture}}</p>{{/if}}
-      </div>
-      <div>
-        <h3 dir="auto">{{detail.name}}</h3>
-        {{#if detail.kindLine}}<div class="cc-kindline">{{detail.kindLine}}</div>{{/if}}
-        {{#each detail.lines}}<div class="cc-kindline">{{this}}</div>{{/each}}
-      </div>
-      <div class="cc-btns">
-        <button type="button" class="cc-btn pri" data-action="go"><i class="fa-solid {{goIcon}}" inert></i> {{goLabel}}</button>
-        {{#if hasMenu}}<button type="button" class="cc-btn" data-action="openMenu" aria-label="{{labels.menu}}" data-tooltip="{{labels.menu}}"><i class="fa-solid fa-chevron-down" inert></i></button>{{/if}}
-      </div>
-      <div class="cc-btns">
-        {{#each detail.quick}}
-        <button type="button" class="cc-btn" data-action="act" data-act="{{act}}" {{#if disabled}}disabled{{/if}}><i class="fa-solid {{icon}}" inert></i> {{label}}</button>
-        {{/each}}
-        <button type="button" class="cc-btn {{#if detail.pinned}}on{{/if}}" data-action="pin" aria-pressed="{{#if detail.pinned}}true{{else}}false{{/if}}" data-tooltip="{{labels.pinHint}}"><i class="fa-solid fa-thumbtack" inert></i> {{#if detail.pinned}}{{labels.pinned}}{{else}}{{labels.pin}}{{/if}}</button>
-        <button type="button" class="cc-btn" data-action="copyRef" aria-label="{{labels.copyRef}}" data-tooltip="{{labels.copyRef}}"><i class="fa-solid fa-at" inert></i></button>
-      </div>
-      <div class="cc-field">
-        <span class="cc-key">{{labels.where}}</span>
-        <span>{{detail.where}}</span>
-      </div>
-      {{#if detail.last}}
-      <div class="cc-field"><span class="cc-note">{{detail.last}}</span></div>
-      {{/if}}
-    </aside>
-    {{/if}}
   </div>
 
   {{#if menu}}

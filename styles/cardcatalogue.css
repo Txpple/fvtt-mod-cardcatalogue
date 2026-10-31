@@ -1119,48 +1119,6 @@
   margin-left: auto;
 }
 
-/* The pin sits under the Show buttons at the picture's top right, clear of the badge: shown on
-   hover, focus or selection, and always while the card is pinned. */
-.cc-pin {
-  position: absolute;
-  right: 0.35rem;
-  top: 2.3rem;
-  width: 1.75rem;
-  height: 1.75rem;
-  margin: 0;
-  padding: 0;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(12, 11, 10, 0.85);
-  border: 1px solid var(--cc-line);
-  border-radius: 4px;
-  color: var(--cc-ink-2);
-  font-size: 0.75rem;
-  cursor: pointer;
-  box-shadow: none;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.cc-pin[aria-pressed="true"] {
-  color: var(--cc-gold);
-  opacity: 1;
-  visibility: visible;
-}
-
-.cc-card:hover .cc-pin,
-.cc-card.on .cc-pin,
-.cc-card:focus-within .cc-pin {
-  opacity: 1;
-  visibility: visible;
-}
-
-.cc-pin:focus-visible {
-  outline: 2px solid var(--cc-gold);
-  outline-offset: 1px;
-}
-
 /* While the Show buttons cover the top of a card, its badge shrinks to its icon. */
 .cc-card:is(:hover, .on, :focus-within) .cc-badge .cc-badge-text {
   display: none;
@@ -1598,17 +1556,4 @@
   opacity: 0.6;
   cursor: default;
   filter: saturate(0.4);
-}
-
-/* The panel's ×, over the picture's corner: the panel goes, the cards stay. */
-.cc-detail {
-  position: relative;
-}
-
-.cc-detail-x {
-  position: absolute;
-  top: 0.95rem;
-  right: 0.95rem;
-  z-index: 2;
-  background: rgba(12, 11, 10, 0.8);
 }

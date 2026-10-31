@@ -215,28 +215,20 @@ try {
         const players = game.users.filter(u => !u.isGM).map(u => u.id);
         const sees = p => players.filter(u => p.testUserPermission(game.users.get(u), "OBSERVER"));
         const out = {};
-        // the API's way to the detail panel: pick the card
+        // The GM's click on a card opens the page to read (no side panel). The API brings the card into view.
         win.select(picture.uuid);
         await win.render();
-        out.detail = !!win.element.querySelector(`.cc-detail[data-key="${picture.uuid}"]`);
+        win.element.querySelector(`.cc-card[data-key="${picture.uuid}"] [data-action="pick"]`)?.click();
+        out.reader = await wait(() => foundry.applications.instances.get(`cardcatalogue-journal-reader-${picture.id}`)?.rendered);
+        out.noPanel = !win.element.querySelector(".cc-detail");
+        await foundry.applications.instances.get(`cardcatalogue-journal-reader-${picture.id}`)?.close();
         out.startHidden = sees(picture).length === 0;
-        // one player, by the detail's toggle
-        win.element.querySelector(`.cc-detail [data-action="seeUser"][data-user="${userId}"]`)?.click();
-        await wait(() => picture.testUserPermission(game.users.get(userId), "OBSERVER"));
-        out.onlyTemp = JSON.stringify(sees(picture)) === JSON.stringify([userId]);
+        // A Show that keeps it visible, to one player (not connected yet): only they can see it; Undo
+        // puts the map back.
+        const res = await game.modules.get(id).api.journal.show.showPage(picture, { keep: true, to: [userId] });
+        out.onlyTemp = !!res?.revealed && JSON.stringify(sees(picture)) === JSON.stringify([userId]);
         out.mapOne = { ...picture._source.ownership };
-        // everyone
-        await wait(() => win.element.querySelector('.cc-detail [data-action="seeAll"]'));
-        win.element.querySelector('.cc-detail [data-action="seeAll"]')?.click();
-        await wait(() => picture._source.ownership.default === L.OBSERVER);
-        out.all = sees(picture).length === players.length;
-        out.mapAll = { ...picture._source.ownership };
-        // no one again
-        await wait(() => win.element.querySelector('.cc-detail [data-action="seeAll"].on'));
-        win.element.querySelector('.cc-detail [data-action="seeAll"]')?.click();
-        await wait(() => sees(picture).length === 0);
-        out.none = sees(picture).length === 0;
-        out.mapNone = { ...picture._source.ownership };
+        out.undone = (await game.modules.get(id).api.journal.show.undoReveal()) === "undone" && sees(picture).length === 0;
         out.letterUntouched = letter.testUserPermission(game.users.get(userId), "OBSERVER") === false;
         // Just the picture of a GM-only text page, kept, to the temp player (not connected yet, so no
         // screen gets it): the page's ownership is never touched.
@@ -258,9 +250,7 @@ try {
         win.element.querySelector('.cc-row[data-view="loose"]')?.click();
         await new Promise(r => setTimeout(r, 400));
         const loose = win.element.querySelector(".cc-card[data-loose]")?.dataset.key;
-        win.select(loose);
-        await win.render();
-        win.element.querySelector('.cc-detail [data-action="keep"]')?.click();
+        await api.journal.show.keepFile(loose);
         await wait(() => game.journal.getName(keep)?.pages.size === 1);
         const kept = game.journal.getName(keep)?.pages.contents[0];
         out.kept = kept ? { name: kept.name, type: kept.type, src: kept.src === loose, hidden: sees(kept).length === 0 } : null;
@@ -270,16 +260,15 @@ try {
       },
       { id: MODULE_ID, scratch: SCRATCH, keep: SCRATCH_KEEP, userId: temp.userId }
     );
-    assert(C.detail, "picking a card opens its detail panel");
+    assert(C.reader && C.noPanel, "the GM's click on a card opens the page in the Reader, no side panel");
     assert(C.startHidden, "the scratch picture starts GM only");
-    assert(C.onlyTemp, `one player's toggle: only that player can see it (${JSON.stringify(C.mapOne)})`);
-    assert(C.all, `Everyone: every player can see it (${JSON.stringify(C.mapAll)})`);
-    assert(C.none, `Everyone off: no player can see it (${JSON.stringify(C.mapNone)})`);
+    assert(C.onlyTemp, `a Show that keeps it visible, to one player: only that player can see it (${JSON.stringify(C.mapOne)})`);
+    assert(C.undone, "its Undo puts the page back to GM only");
     assert(C.letterUntouched, "the other page of the journal is untouched");
     assert(C.pictureOnlyKept, "Show the picture of a text page leaves who can open the page as it was");
     assert(C.gmLetterPicture, "the GM's card shows the picture inside the page's secret section (the GM owns it)");
     assert(C.sectionRow && /ZZ Section/.test(C.sectionSub ?? ""), `a section shows in the rail and on the card (${C.sectionSub})`);
-    assert(C.keepBefore && C.kept?.type === "image" && C.kept.src && C.kept.hidden, `Keep as a handout makes a GM-only image page (${C.kept?.name})`);
+    assert(C.keepBefore && C.kept?.type === "image" && C.kept.src && C.kept.hidden, `Add to the Handouts journal makes a GM-only image page (${C.kept?.name})`);
     assert(C.keptGone, "the kept file is no longer listed as on no page");
 
     // --- D. a player ---------------------------------------------------------------------

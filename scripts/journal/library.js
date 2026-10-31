@@ -1,6 +1,6 @@
 /**
  * The the journal case window: the journal as cards. The DM's view has a rail (the views, the journals by
- * folder with their sections), the cards, a detail panel and Show; a player's view is what they
+ * folder with their sections), the cards with Show and its chevron; a player's view is what they
  * can see, newest shown first, the unopened marked New. Everything it draws is read live from
  * Foundry's journal; the only state of its own is the browser's (memory.js).
  *
@@ -21,7 +21,6 @@ import {
   kindOf,
   matchWhy,
   normPath,
-  pageLink,
   pictureOf,
   plainText,
   prettyName,
@@ -215,14 +214,6 @@ function exportEntry(card, user = game.user) {
   };
 }
 
-/** The time a thing was shown, short. */
-function when(at) {
-  try {
-    return new Date(at).toLocaleString(game.i18n.lang, { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
-  } catch {
-    return new Date(at).toLocaleString();
-  }
-}
 
 /** Open Foundry's own journal: the sidebar's Journal tab, the sidebar expanded. */
 export const openClassicJournal = () => openClassic("journal");
@@ -253,9 +244,7 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       view: JournalWindow.#onView,
       searchAll: JournalWindow.#onSearchAll,
       pick: JournalWindow.#onPick,
-      unpick: JournalWindow.#onUnpick,
       quickShow: JournalWindow.#onQuickShow,
-      showPicture: JournalWindow.#onShowPicture,
       openOpts: JournalWindow.#onOpenOpts,
       optAll: JournalWindow.#onOptAll,
       optUser: JournalWindow.#onOptUser,
@@ -265,17 +254,9 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       optCaption: JournalWindow.#onOptCaption,
       optGo: JournalWindow.#onOptGo,
       optCancel: JournalWindow.#onOptCancel,
-      pin: JournalWindow.#onPin,
-      openJournal: JournalWindow.#onOpenJournal,
-      copyLink: JournalWindow.#onCopyLink,
-      copyRef: JournalWindow.#onCopyRef,
-      keep: JournalWindow.#onKeep,
       undo: JournalWindow.#onUndo,
       dismissReveal: JournalWindow.#onDismissReveal,
-      showAgain: JournalWindow.#onShowAgain,
       markSeen: JournalWindow.#onMarkSeen,
-      seeAll: JournalWindow.#onSeeAll,
-      seeUser: JournalWindow.#onSeeUser,
       classic: JournalWindow.#onClassic,
       case: JournalWindow.#onCase,
       rescan: JournalWindow.#onRescan,
@@ -286,7 +267,7 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
   static PARTS = {
     main: {
       template: `modules/${MODULE_ID}/templates/journal/library.hbs`,
-      scrollable: [".cc-cards", ".cc-rail", ".cc-detail"]
+      scrollable: [".cc-cards", ".cc-rail"]
     }
   };
 
@@ -426,7 +407,7 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       });
     }
 
-    // The rail: who can see a page for the GM, All then New for a player. Pins and what was shown live in
+    // The rail: who can see a page for the GM, All then New for a player. What was shown lives in
     // the finder (its empty list), not on the rail.
     const viewIds = gm ? ["all", "visible", "gm", "loose"] : ["all", "unseen"];
     if (!this.#view || !this.#validView(this.#view, viewIds)) this.#view = "all";
@@ -468,7 +449,6 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     ];
     context.countBase = view === "loose" ? counted(nFiles, "count.files") : gm || nPages ? counted(nPages, "count.pages") : "";
     context.emptyText = t(`empty.${gm ? "gm" : "player"}.${view.startsWith("j:") || view.startsWith("c:") ? "journal" : view}`);
-    context.detail = gm ? this.#detailContext(all, seeing, players, list, searchOnly) : null;
     context.opts = gm && this.#opts ? this.#optsContext(all) : null;
     const reveal = gm ? show.lastReveal() : null;
     context.reveal = reveal ? { text: t("show.revealed", { name: reveal.name, whom: reveal.whom }) } : null;
@@ -556,49 +536,12 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       loose: card.loose,
       entryId: card.entry?.id ?? "",
       category: card.page?.category ?? "",
-      pinned: memory.isPinned(card.key),
       unseen: !gm && !memory.isSeen(card.key),
       selected: gm && this.#selected === card.key,
       dim: gm && !card.loose && who.none,
       showLabel: t(`show.as.${as}`),
       showHint: t(`show.hint.${as}`),
       ...(gm ? this.#badge(card, who, players) : {})
-    };
-  }
-
-  #detailContext(all, seeing, players, list, searchOnly) {
-    const drawn = new Set([...list, ...searchOnly].map(c => c.key));
-    if (!drawn.has(this.#selected)) return null;
-    const card = all.find(c => c.key === this.#selected);
-    if (!card) return null;
-    const who = seeing.get(card.key);
-    const shown = memory.lastShown(card.key);
-    const cats = card.entry ? card.entry.categories.contents.slice().sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0)) : [];
-    return {
-      key: card.key,
-      name: card.name,
-      picture: card.picture,
-      excerpt: card.text ? `${card.text.slice(0, 600)}${card.text.length > 600 ? "…" : ""}` : card.excerpt,
-      icon: ICONS[card.kind],
-      loose: card.loose,
-      textPicture: card.kind === "text" && card.hasPicture,
-      kindLine: card.loose ? t("detail.fileLine") : t("detail.pageLine", { kind: t(`kind.${card.kind}`), journal: card.journal }),
-      where: card.loose ? t("detail.onNoPage", { folder: card.folder }) : [card.folder, card.journal, card.section, card.name].filter(Boolean).join(" › "),
-      file: card.file,
-      pinned: memory.isPinned(card.key),
-      sections: card.entry
-        ? [
-            { id: "", name: t("section.none"), on: !card.page.category },
-            ...cats.map(c => ({ id: c.id, name: c.name || t("section.unnamed"), on: card.page.category === c.id })),
-            { id: "__new", name: t("section.new"), on: false }
-          ]
-        : null,
-      everyone: who.all,
-      players: players.map(u => ({ id: u.id, name: u.name, character: u.character?.name ?? "", on: who.ids.includes(u.id), online: u.active })),
-      noPlayers: !players.length,
-      shown: shown ? t("detail.shownLine", { when: when(shown.at), to: shown.to }) : t("detail.notShown"),
-      again: shown?.ids?.length ? t("detail.again", { to: shown.to }) : null,
-      showLabel: t(`show.everyoneAs.${showAs(card, who)}`)
     };
   }
 
@@ -675,14 +618,6 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
         return stops[next].focus();
       }
       const typing = ev.target.closest?.("input, textarea, select, [contenteditable]");
-      // Escape closes the panel first, the window after.
-      if (ev.key === "Escape" && this.#selected && !typing) {
-        ev.preventDefault();
-        ev.stopPropagation();
-        this.#selected = null;
-        this.#sticky = null;
-        return this.render();
-      }
       if (ev.key === "/" && !typing && !ev.ctrlKey && !ev.metaKey && !ev.altKey) {
         ev.preventDefault();
         this.element.querySelector("input[name=search]")?.focus();
@@ -708,7 +643,6 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
         this.#filter();
       }
     });
-    root.querySelector("select[name=section]")?.addEventListener("change", ev => void this.#onSection(ev.currentTarget.value));
     this.#wireDrag(root);
 
     // A click on the veil closes the Show options, not the window.
@@ -750,7 +684,7 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       const scope = f.zone ? root.querySelector(f.zone) : f.key ? root.querySelector(`.cc-card[data-key="${CSS.escape(f.key)}"]`) : root;
       el = scope?.querySelector(sel.join("")) ?? (f.key && !f.zone ? scope?.querySelector('[data-action="pick"]') : null);
     }
-    // Gone with the redraw (an Undo done, a pin taken off in Pinned): the picked card, else the search.
+    // Gone with the redraw (an Undo done): the picked card, else the search.
     if (!usable(el)) {
       const picked = this.#selected ? root.querySelector(`.cc-card[data-key="${CSS.escape(this.#selected)}"] [data-action="pick"]`) : null;
       el = usable(picked) ? picked : root.querySelector("input[name=search]");
@@ -806,12 +740,6 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     if (empty) {
       empty.hidden = shown + shownFiles > 0;
       empty.textContent = !q ? (empty.dataset.view ?? "") : elsewhere ? t("empty.searchHere", { q }) : t("empty.search");
-    }
-    // The detail panel follows the cards: a card the search hides takes its panel with it.
-    const detail = root.querySelector(".cc-detail[data-key]");
-    if (detail) {
-      const card = root.querySelector(`.cc-card[data-key="${CSS.escape(detail.dataset.key)}"]`);
-      detail.hidden = !card || card.hidden;
     }
   }
 
@@ -869,24 +797,6 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       ui.notifications.info(cat ? t("drop.filed", { name: page.name, section: cat }) : t("drop.unfiled", { name: page.name }));
     } catch (err) {
       log.error("a drop failed", err);
-      ui.notifications.error(t("error.write"));
-    }
-  }
-
-  async #onSection(value) {
-    const page = fromUuidSync(this.#selected);
-    if (!isPage(page)) return;
-    try {
-      if (value === "__new") {
-        const name = await promptName();
-        if (!name) return this.render();
-        const cat = await show.newSection(page.parent, name);
-        await show.setSection(page, cat.id);
-        return;
-      }
-      await show.setSection(page, value);
-    } catch (err) {
-      log.error("filing the page failed", err);
       ui.notifications.error(t("error.write"));
     }
   }
@@ -964,14 +874,7 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     this.render();
   }
 
-  /** The panel's ×: the card stays where it is, the panel goes. */
-  static #onUnpick() {
-    this.#selected = null;
-    this.#sticky = null;
-    this.render();
-  }
-
-  static #onPick(event, target) {
+  static #onPick(_event, target) {
     const key = target.closest("[data-key]")?.dataset.key;
     if (!key) return;
     if (!game.user.isGM) {
@@ -983,13 +886,11 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       }
       return;
     }
-    // The DM: a click picks; a second click, a double click, or Enter on the picked card opens it to look at.
-    if (this.#selected === key && (event.detail >= 2 || event.detail === 0)) {
-      const { page, file } = JournalWindow.#resolve(key);
-      if (page) show.openForReading(page);
-      else show.openPicture(file);
-      return;
-    }
+    // The DM: a click opens it to read (a picture on no page, to look at), as a player's does; the
+    // card stays marked as the last one opened. Show and the rest are on the card and its chevron.
+    const { page, file } = JournalWindow.#resolve(key);
+    if (page) show.openForReading(page);
+    else show.openPicture(file);
     this.#selected = key;
     if (this.#sticky !== key) this.#sticky = null;
     this.render();
@@ -1000,12 +901,6 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     if (event.detail > 1) return;
     const key = target.closest("[data-key]")?.dataset.key;
     if (key) return this.#show(key);
-  }
-
-  static #onShowPicture(event, target) {
-    event.stopPropagation();
-    const key = target.closest("[data-key]")?.dataset.key;
-    if (key) return this.#show(key, { picture: true });
   }
 
   static #onOpenOpts(event, target) {
@@ -1059,45 +954,6 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     this.#closeOpts();
   }
 
-  static #onPin(_event, target) {
-    const key = target.closest("[data-key]")?.dataset.key ?? this.#selected;
-    if (!key) return;
-    memory.togglePin(key);
-    this.render();
-  }
-
-  static #onOpenJournal() {
-    const { page, file } = JournalWindow.#resolve(this.#selected);
-    if (page) show.openInJournal(page);
-    else if (file) show.openPicture(file);
-  }
-
-  /** A web link to the picked page: once logged in, it opens the page for whoever may see it (scrollcase.js). */
-  static #onCopyLink() {
-    const page = fromUuidSync(this.#selected);
-    if (isPage(page)) return copyText(pageLink(window.location.href, page.uuid));
-  }
-
-  /** The picked page as Foundry's own content link, for a journal, a description or a chat message. */
-  static #onCopyRef() {
-    const page = fromUuidSync(this.#selected);
-    if (isPage(page)) return copyText(`@UUID[${page.uuid}]{${page.name}}`);
-  }
-
-  static async #onKeep() {
-    const file = this.#selected;
-    if (!file || fromUuidSync(file)) return;
-    try {
-      const page = await show.keepFile(file);
-      this.#selected = page.uuid;
-      this.#sticky = page.uuid;
-      ui.notifications.info(t("keep.done", { name: page.name, journal: page.parent.name }));
-    } catch (err) {
-      log.error("keeping the file failed", err);
-      ui.notifications.error(t("error.write"));
-    }
-    this.render();
-  }
 
   static async #onUndo() {
     const name = show.lastReveal()?.name ?? "";
@@ -1117,13 +973,6 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     this.render();
   }
 
-  /** Show it again to the same players as last time (from this browser). */
-  static #onShowAgain() {
-    const last = memory.lastShown(this.#selected);
-    if (!last?.ids?.length) return;
-    return this.#show(this.#selected, { to: last.ids });
-  }
-
   /** A player's New view: every card in it marked seen. */
   static #onMarkSeen() {
     const keys = [...this.element.querySelectorAll(".cc-card[data-key]")].map(c => c.dataset.key);
@@ -1131,28 +980,6 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       for (const k of keys) r.seen[k] = Date.now();
     });
     this.render();
-  }
-
-  static async #onSeeAll() {
-    const page = fromUuidSync(this.#selected);
-    if (!isPage(page)) return;
-    try {
-      await show.toggleEveryone(page);
-    } catch (err) {
-      log.error("setting who can see it failed", err);
-      ui.notifications.error(t("error.write"));
-    }
-  }
-
-  static async #onSeeUser(_event, target) {
-    const page = fromUuidSync(this.#selected);
-    if (!isPage(page)) return;
-    try {
-      await show.toggleVisible(page, target.dataset.user);
-    } catch (err) {
-      log.error("setting who can see it failed", err);
-      ui.notifications.error(t("error.write"));
-    }
   }
 
   static async #onClassic() {
@@ -1198,31 +1025,5 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     this.#focus = null;
     this.#sticky = null;
     this.#returnTo = null;
-  }
-}
-
-/** Text to the clipboard; where the browser refuses, the text in a notice to copy by hand. */
-async function copyText(text) {
-  try {
-    await game.clipboard.copyPlainText(text);
-    ui.notifications.info(t("detail.copied"));
-  } catch {
-    ui.notifications.info(text);
-  }
-}
-
-/** A name, asked for in a small dialog; null when cancelled. */
-async function promptName() {
-  const DialogV2 = foundry.applications.api.DialogV2;
-  try {
-    const name = await DialogV2.prompt({
-      window: { title: t("section.newTitle") },
-      content: `<div class="form-group"><label>${t("section.name")}</label><input type="text" name="name" autofocus></div>`,
-      ok: { label: t("section.create"), callback: (_event, button) => button.form.elements.name.value.trim() },
-      rejectClose: false
-    });
-    return name || null;
-  } catch {
-    return null;
   }
 }

@@ -5,7 +5,6 @@
  * makes). A player has the case only while the sidebar keeps their Items tab.
  */
 
-import { crLabel } from "../docs/decide.js";
 import { makeCaseFinder } from "../docs/finder.js";
 import { makeCaseWindow } from "../docs/library.js";
 import { plainText } from "../journal/decide.js";
@@ -84,21 +83,9 @@ const spec = {
       icons: item.system?.attunement ? [{ icon: "fa-hand-sparkles", tip: t("card.attunement") }] : []
     };
   },
-  detailLines(item) {
-    const s = item.system ?? {};
-    const cr = crLabel(s.cr);
-    return [
-      priceOf(item) ? t("detail.price", { price: priceOf(item) }) : "",
-      s.weight?.value ? t("detail.weight", { n: s.weight.value, units: s.weight.units ?? "lb" }) : "",
-      s.attunement ? t(`detail.attune.${s.attunement}`) : "",
-      s.source?.book ? t("detail.source", { book: s.source.book, page: s.source.page ?? "" }).trim() : "",
-      cr
-    ];
-  },
   primary: { label: "go", icon: "fa-book-open", run: item => item.sheet.render(true) },
   second: { label: "menu.post", run: post },
   playerMenu: false,
-  quick: (_item, user) => (user.isGM ? [{ act: "post", icon: "fa-comment", label: "menu.post", run: post }] : []),
   menu(item, user) {
     if (!user.isGM) return [];
     const physical = "quantity" in (item.system ?? {});

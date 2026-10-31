@@ -4,7 +4,7 @@
  * Setting documents, which outlive a disabled or removed module; a document's `value` is already
  * parsed, while the browser's storage holds JSON text), and this browser's Classic Mode
  * for the journal takes Scroll Case's. A setting already stored here is never touched, so the copy
- * runs once and a GM's later choice stands. Each browser's pins and shown history are read in
+ * runs once and a GM's later choice stands. Each browser's shown history are read in
  * journal/memory.js, the first time the journal case has none.
  */
 

@@ -154,19 +154,13 @@ try {
   assert(A.api === "function", "module.api.open is there");
   await shot("01-window");
 
-  // The active scene picked (its map in the panel), then its chevron open: for the shots only.
+  // The active scene's chevron open: for the shots only.
   if (shots) {
     await f.evaluate(async () => {
       const win = foundry.applications.instances.get("cardcatalogue-scenes-library");
       const card = win.element.querySelector(".cc-card.active");
       card?.scrollIntoView({ block: "center" });
-      card?.querySelector('[data-action="pick"]').click();
-      for (let i = 0; i < 40 && !win.element.querySelector(".cc-detail img")?.complete; i++) await new Promise(r => setTimeout(r, 100));
-    });
-    await shot("01b-detail");
-    await f.evaluate(async () => {
-      const win = foundry.applications.instances.get("cardcatalogue-scenes-library");
-      win.element.querySelector('.cc-detail [data-action="openMenu"]')?.click();
+      card?.querySelector('[data-action="openMenu"]')?.click();
       for (let i = 0; i < 20 && !win.element.querySelector(".cc-opts"); i++) await new Promise(r => setTimeout(r, 100));
     });
     await shot("01c-menu");
@@ -257,10 +251,11 @@ try {
         const scene = fromUuidSync(uuid);
         const win = foundry.applications.instances.get("cardcatalogue-scenes-library");
         const card = () => win.element.querySelector(`.cc-card[data-key="${uuid}"]`);
-        card().querySelector('[data-action="pick"]').click();
-        await wait(() => win.element.querySelector(`.cc-detail[data-key="${uuid}"]`));
-        win.element.querySelector('.cc-detail [data-action="toggleNav"]').click();
+        // On the bar from the chevron, then off again from it.
+        card().querySelector('[data-action="openMenu"]').click();
+        (await wait(() => win.element.querySelector('.cc-opts [data-action="toggleNav"]')))?.click();
         const on = !!(await wait(() => scene.navigation === true));
+        await wait(() => !win.element.querySelector(".cc-opts"));
         await wait(() => card()?.querySelector(".fa-compass"));
         card().querySelector('[data-action="openMenu"]').click();
         const menu = await wait(() => win.element.querySelector(".cc-opts .cc-menu"));
@@ -279,7 +274,7 @@ try {
       },
       { uuid: C.uuid, folderId: C.folderId }
     );
-    assert(D.on && D.off, "the panel's switch and the chevron put the scene on and off the bar");
+    assert(D.on && D.off, "the chevron puts the scene on the bar and takes it off");
     assert(["activate", "edit", "preload", "toggleNav"].every(a => D.actions.includes(a)), `the chevron offers Activate, Edit, Preload, the bar (${D.actions.join(", ")})`);
     assert(D.menuClosed, "a chevron action closes the chevron");
     assert(D.filed && D.row && D.inFolder, "filed in a folder, the rail lists it and holds only it");

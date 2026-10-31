@@ -1,6 +1,6 @@
 /**
- * The finder: a search box over the table, opened by the keybinding. Empty, it lists the pins and
- * what was shown last; typing narrows to everything with a thumbnail (for a GM, the pictures on no
+ * The finder: a search box over the table, opened by the keybinding. Empty, it lists what was shown
+ * last; typing narrows to everything with a thumbnail (for a GM, the pictures on no
  * page too), the arrows move, Enter shows the pick to everyone (a player's Enter opens it),
  * Shift+Enter opens the Show options in the library, Ctrl+Enter opens it in the journal, Escape
  * clears and then closes. The list redraws by itself, never the window, so the caret never leaves
@@ -99,15 +99,11 @@ export class Finder extends HandlebarsApplicationMixin(ApplicationV2) {
     const record = memory.load();
     if (!q) {
       const byKey = new Map(this.#cards.map(c => [c.key, c]));
-      const pinned = record.pins.map(k => byKey.get(k)).filter(Boolean);
       const recent = record.recent
         .map(r => byKey.get(r.key))
-        .filter(c => c && !pinned.includes(c))
-        .slice(0, 6);
-      return [
-        { label: t("finder.pinned"), rows: pinned.map(card => ({ card, why: "" })) },
-        { label: t("finder.recent"), rows: recent.map(card => ({ card, why: "" })) }
-      ].filter(g => g.rows.length);
+        .filter(Boolean)
+        .slice(0, 8);
+      return [{ label: t("finder.recent"), rows: recent.map(card => ({ card, why: "" })) }].filter(g => g.rows.length);
     }
     const hits = [];
     for (const card of this.#cards) {

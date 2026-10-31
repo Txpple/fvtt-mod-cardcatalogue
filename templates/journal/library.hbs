@@ -83,7 +83,7 @@
               {{#if unseen}}<span class="cc-new">{{localize "fvtt-mod-cardcatalogue.journal.badge.new"}}</span>{{/if}}
             </span>
             <span class="cc-cb">
-              <span class="cc-nm">{{#if pinned}}<i class="fa-solid fa-thumbtack" inert></i>{{/if}}<span dir="auto">{{name}}</span></span>
+              <span class="cc-nm"><span dir="auto">{{name}}</span></span>
               <span class="cc-sub"><span class="cc-where">{{sub}}</span><span class="cc-why"></span></span>
             </span>
           </button>
@@ -92,7 +92,6 @@
             <button type="button" class="go" data-action="quickShow" data-tooltip="{{showHint}}"><i class="fa-solid fa-paper-plane" inert></i> {{showLabel}}</button>
             <button type="button" class="more" data-action="openOpts" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.show.options'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.show.options'}}"><i class="fa-solid fa-chevron-down" inert></i></button>
           </span>
-            <button type="button" class="cc-pin" data-action="pin" aria-label="{{#if pinned}}{{localize 'fvtt-mod-cardcatalogue.journal.pin.unpin'}}{{else}}{{localize 'fvtt-mod-cardcatalogue.journal.pin.off'}}{{/if}}" data-tooltip="{{#if pinned}}{{localize 'fvtt-mod-cardcatalogue.journal.pin.unpin'}}{{else}}{{localize 'fvtt-mod-cardcatalogue.journal.pin.off'}}{{/if}}" aria-pressed="{{#if pinned}}true{{else}}false{{/if}}"><i class="fa-solid fa-thumbtack" inert></i></button>
           {{/if}}
         </article>
         {{/each}}
@@ -101,75 +100,6 @@
       </div>
     </section>
 
-    {{#if detail}}
-    <aside class="cc-detail" data-key="{{detail.key}}" aria-label="{{detail.name}}">
-      <button type="button" class="cc-x cc-detail-x" data-action="unpick" aria-label="{{localize 'fvtt-mod-cardcatalogue.docs.closePanel'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.docs.closePanel'}}"><i class="fa-solid fa-xmark" inert></i></button>
-      <div class="cc-big">
-        {{#if detail.picture}}<img src="{{detail.picture}}" alt="{{detail.name}}">
-        {{else}}<p><i class="fa-solid {{detail.icon}}" inert></i> {{detail.excerpt}}</p>{{/if}}
-      </div>
-      <div>
-        <h3 dir="auto">{{detail.name}}</h3>
-        <div class="cc-kindline">{{detail.kindLine}}</div>
-      </div>
-      <div class="cc-btns">
-        <button type="button" class="cc-btn pri" data-action="quickShow"><i class="fa-solid fa-paper-plane" inert></i> {{detail.showLabel}}</button>
-        <button type="button" class="cc-btn" data-action="openOpts" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.show.options'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.show.options'}}"><i class="fa-solid fa-chevron-down" inert></i></button>
-        {{#if detail.textPicture}}
-        <button type="button" class="cc-btn" data-action="showPicture" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.show.pictureHint'}}"><i class="fa-solid fa-image" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.show.picture"}}</button>
-        {{/if}}
-        {{#if detail.again}}
-        <button type="button" class="cc-btn" data-action="showAgain"><i class="fa-solid fa-repeat" inert></i> {{detail.again}}</button>
-        {{/if}}
-      </div>
-      <div class="cc-btns">
-        <button type="button" class="cc-btn {{#if detail.pinned}}on{{/if}}" data-action="pin" aria-pressed="{{#if detail.pinned}}true{{else}}false{{/if}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.pin.hint'}}"><i class="fa-solid fa-thumbtack" inert></i> {{#if detail.pinned}}{{localize "fvtt-mod-cardcatalogue.journal.pin.on"}}{{else}}{{localize "fvtt-mod-cardcatalogue.journal.pin.off"}}{{/if}}</button>
-        {{#if detail.loose}}
-        <button type="button" class="cc-btn" data-action="keep" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.keep.hint'}}"><i class="fa-solid fa-plus" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.keep.button"}}</button>
-        <button type="button" class="cc-btn" data-action="openJournal" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.detail.look'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.detail.look'}}"><i class="fa-solid fa-expand" inert></i></button>
-        {{else}}
-        <button type="button" class="cc-btn" data-action="openJournal"><i class="fa-solid fa-book-open" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.detail.openJournal"}}</button>
-        <button type="button" class="cc-btn" data-action="copyLink" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.detail.copyLink'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.detail.copyLink'}}"><i class="fa-solid fa-link" inert></i></button>
-        <button type="button" class="cc-btn" data-action="copyRef" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.detail.copyRef'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.detail.copyRef'}}"><i class="fa-solid fa-at" inert></i></button>
-        {{/if}}
-      </div>
-      <div class="cc-field">
-        <span class="cc-key">{{localize "fvtt-mod-cardcatalogue.journal.detail.where"}}</span>
-        <span>{{detail.where}}</span>
-        {{#if detail.file}}<span class="cc-file">{{detail.file}}</span>{{/if}}
-      </div>
-      {{#if detail.sections}}
-      <label class="cc-field">
-        <span class="cc-key">{{localize "fvtt-mod-cardcatalogue.journal.detail.section"}}</span>
-        <select name="section">
-          {{#each detail.sections}}<option value="{{id}}" {{#if on}}selected{{/if}}>{{name}}</option>{{/each}}
-        </select>
-      </label>
-      {{/if}}
-      <div class="cc-field">
-        <span class="cc-key">{{localize "fvtt-mod-cardcatalogue.journal.detail.canSee"}}</span>
-        {{#if detail.loose}}
-        <span class="cc-note">{{localize "fvtt-mod-cardcatalogue.journal.detail.fileNote"}}</span>
-        {{else if detail.noPlayers}}
-        <span class="cc-note">{{localize "fvtt-mod-cardcatalogue.journal.detail.noPlayers"}}</span>
-        {{else}}
-        <div class="cc-togs" role="group" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.detail.canSee'}}">
-          <button type="button" class="cc-tog {{#if detail.everyone}}on{{/if}}" data-action="seeAll" aria-pressed="{{#if detail.everyone}}true{{else}}false{{/if}}">{{localize "fvtt-mod-cardcatalogue.journal.detail.everyone"}}</button>
-          {{#each detail.players}}
-          <button type="button" class="cc-tog {{#if on}}on{{/if}} {{#if ../detail.everyone}}implied{{/if}}" data-action="seeUser" data-user="{{id}}" aria-pressed="{{#if on}}true{{else}}false{{/if}}" {{#if character}}data-tooltip="{{character}}"{{/if}}>
-            <span class="cc-dot {{#if online}}online{{/if}}" inert></span>{{name}}
-          </button>
-          {{/each}}
-        </div>
-        <span class="cc-note">{{localize "fvtt-mod-cardcatalogue.journal.detail.canSeeNote"}}</span>
-        {{/if}}
-      </div>
-      <div class="cc-field">
-        <span class="cc-key">{{localize "fvtt-mod-cardcatalogue.journal.detail.lastShown"}}</span>
-        <span>{{detail.shown}}</span>
-      </div>
-    </aside>
-    {{/if}}
   </div>
 
   {{#if opts}}

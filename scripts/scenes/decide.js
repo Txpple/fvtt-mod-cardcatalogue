@@ -97,17 +97,6 @@ export function folderTree(folders, cards, byName = (a, b) => a.localeCompare(b)
 }
 
 /**
- * A scene's size in grid squares (or hexes), rounded: "34 × 27".
- * @param {number} width pixels
- * @param {number} height pixels
- * @param {number} size the grid's pixels per square
- */
-export function squares(width, height, size) {
-  if (!(width > 0 && height > 0 && size > 0)) return "";
-  return `${Math.round(width / size)} × ${Math.round(height / size)}`;
-}
-
-/**
  * What the card's one button does: Activate a scene that is not active, Pull everyone back to the
  * one that is (a player who wandered off on the bar).
  * @param {{ active: boolean }} card
@@ -139,16 +128,4 @@ export function undoCheck(record, { activeId, exists, now }) {
  */
 export function remember(list, row, max = 30) {
   return [row, ...(list ?? []).filter(r => r.key !== row.key)].slice(0, max);
-}
-
-/**
- * The darkness line for the panel: "Daylight", "Night", or a percentage between.
- * @param {number} level 0 to 1
- * @returns {"day" | "night" | number}
- */
-export function darknessOf(level) {
-  const d = Number(level) || 0;
-  if (d <= 0.05) return "day";
-  if (d >= 0.95) return "night";
-  return Math.round(d * 100);
 }

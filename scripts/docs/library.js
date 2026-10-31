@@ -258,7 +258,7 @@ export function makeCaseWindow(spec) {
       context.views = fixed.map(id => ({ id, label: t(`view.${id}`), n: all.filter(c => inView(c, id)).length, on: view === id }));
       context.types = types.length > 1 ? types.map(x => ({ id: `t:${x.type}`, label: spec.typeLabel(x.type, true), n: x.n, on: view === `t:${x.type}` })) : [];
       context.folders = tree.map(f => ({ ...f, on: view === `f:${f.id}`, indent: f.depth }));
-      // For the GM, No folder stays a drop target while there are folders, even with nothing in it.
+      // For the GM, Unfiled stays a drop target while there are folders, even with nothing in it.
       context.loose = tree.length && (loose || gm) ? { n: loose, on: view === "f:", label: t("rail.noFolder") } : null;
       context.showFolders = gm || tree.length > 0;
       context.heading = this.#heading(view);

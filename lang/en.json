@@ -344,7 +344,7 @@
         "label": "Scenes and folders",
         "scenes": "Scenes",
         "folders": "Folders",
-        "noFolder": "No folder"
+        "noFolder": "Unfiled"
       },
       "view": {
         "all": "All",
@@ -440,7 +440,7 @@
       },
       "drop": {
         "filed": "“{name}” is now in {folder}.",
-        "unfiled": "“{name}” is now in no folder."
+        "unfiled": "“{name}” is now unfiled."
       },
       "finder": {
         "title": "Find a scene",
@@ -474,7 +474,7 @@
       "rail": {
         "label": "Actors and folders",
         "key": "Actors",
-        "noFolder": "No folder"
+        "noFolder": "Unfiled"
       },
       "view": {
         "all": "All",
@@ -537,7 +537,7 @@
       "rail": {
         "label": "Items and folders",
         "key": "Items",
-        "noFolder": "No folder"
+        "noFolder": "Unfiled"
       },
       "view": {
         "all": "All"
@@ -582,7 +582,7 @@
       }
     },
     "folders": {
-      "new": "New Folder",
+      "new": "Create New Folder",
       "hint": "A folder for this directory, inside the one in view when it can be: drop cards on it to file them",
       "newIn": "New folder in {folder}",
       "name": "Name",

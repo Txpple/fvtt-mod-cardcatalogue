@@ -49,10 +49,10 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   Edit, Notes, Preload, the bar, the thumbnail; the actors' and items' GM actions. A page's visibility per player
   and its section are set through Show and a drop on the rail, or Foundry's own sheet; a page's chevron (the Show
   options) carries its web link (`/game?page=<uuid>`) and its `@UUID` reference.
-- **Folders, for the GM** (the user: "+Create Folder just like we can create a thread in clue board"): New Folder at
+- **Folders, for the GM** (the user: "+Create Folder just like we can create a thread in clue board"): Create New Folder at
   the foot of the scenes', actors' and items' rails asks a name in Foundry's dialog and makes the folder inside the
   one in view when Foundry's depth allows (`shell/folders.js`), the view moving to it; the GM's rail lists empty
-  folders (`folderTree`'s `keepEmpty`) and No folder, so a card dragged onto any of them is filed there (the stock
+  folders (`folderTree`'s `keepEmpty`) and Unfiled (the top level), so a card dragged onto any of them is filed there (the stock
   drop's `folder` write). The journal files by section, as Scroll Case did. **One finder per case** (the user's
   ruling): the journal's Ctrl+Shift+H (Enter shows), the scenes' Ctrl+Shift+M (Enter views), the actors' and items'
   unbound (Enter opens; Ctrl+Enter shows the art, or posts the item to chat).

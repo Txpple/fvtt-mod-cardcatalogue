@@ -210,7 +210,7 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     context.sizes = SIZES.map(id => ({ id, label: t(`size.${id}`), aria: t(`size.${id}Aria`), on: this.#size === id }));
     context.views = VIEWS.map(id => ({ id, label: t(`view.${id}`), n: all.filter(c => inView(c, id)).length, on: view === id }));
     context.folders = tree.map(f => ({ ...f, on: view === `f:${f.id}`, indent: f.depth }));
-    // No folder stays a drop target while there are folders, even with nothing in it.
+    // Unfiled stays a drop target while there are folders, even with nothing in it.
     context.loose = tree.length ? { n: loose, on: view === "f:" } : null;
     context.heading = this.#heading(view);
     context.cards = list.map(c => this.#cardContext(c));

@@ -7,7 +7,10 @@ sidebar showing only the tabs the table uses (the two rules carried over from Ho
 Foundry's own directories. Part of Open Roll 5e (the suite repo is `..`, its CLAUDE.md has the family's conventions;
 the plan is `../docs/plans/cardcatalogue.md`). Plain ES modules, no build step, no libWrapper, no socketlib, MIT.
 
-**State (2026-10-31).** 1.0.0, the first release (the user: "commit/push, put on prod. remove scroll case and archive it"), was 0.1.0, the working draft: the public repo `Txpple/fvtt-mod-cardcatalogue`
+**State (2026-10-31).** 1.0.0 released and on prod (the user: "commit/push, put on prod. remove scroll case and archive
+it"): installed and enabled through the installer, every released file served byte-identical, a prod GM page opening
+every case with all its cards (journal 31, scenes 50, actors 84, items 39) and its sidebar without the hidden tabs;
+Scroll Case disabled, uninstalled and its repo archived. Before it, 0.1.0, the working draft: the public repo `Txpple/fvtt-mod-cardcatalogue`
 (made on the user's word, `verify` green on GitHub), in `repos.json` without a blurb until it is released and
 Scroll Case retires; the name is free (the setup screen's `getPackages`, 7,087 modules, has no "Card Catalogue",
 no `cardcatalog` and no "catalogue" at all). On the sandbox (`deploy --local`, registered by a

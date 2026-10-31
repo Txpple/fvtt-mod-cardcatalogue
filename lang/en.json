@@ -586,7 +586,9 @@
       "hint": "A folder for this directory, inside the one in view when it can be: drop cards on it to file them",
       "newIn": "New folder in {folder}",
       "name": "Name",
-      "create": "Create"
+      "create": "Create",
+      "collapse": "Collapse",
+      "expand": "Expand"
     }
   }
 }

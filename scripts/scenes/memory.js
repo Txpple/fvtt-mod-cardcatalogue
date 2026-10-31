@@ -11,12 +11,14 @@ import { remember } from "./decide.js";
 const key = () => `${MODULE_ID}.scenes.${game.world?.id ?? "world"}.${game.user?.id ?? "user"}`;
 
 const isObj = v => v && typeof v === "object" && !Array.isArray(v);
+const strings = v => (Array.isArray(v) ? v.filter(x => typeof x === "string") : []);
 
 /** A stored record, each field checked: a bad field is reset alone, so one bad value loses nothing else. */
 function mend(raw) {
   const r = isObj(raw) ? raw : {};
   return {
     recent: Array.isArray(r.recent) ? r.recent.filter(x => isObj(x) && typeof x.key === "string") : [],
+    collapsed: strings(r.collapsed),
     view: typeof r.view === "string" ? r.view : null,
     size: typeof r.size === "string" ? r.size : null
   };
@@ -67,4 +69,11 @@ export function noteActive(k) {
 
 export function setPrefs(prefs) {
   edit(r => Object.assign(r, prefs));
+}
+
+/** A folder (or a journal's folder group) collapsed in the rail, or open again. */
+export function toggleCollapsed(k) {
+  edit(r => {
+    r.collapsed = r.collapsed.includes(k) ? r.collapsed.filter(c => c !== k) : [...r.collapsed, k];
+  });
 }

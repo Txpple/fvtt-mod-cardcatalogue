@@ -99,6 +99,26 @@ export function folderTree(folders, cards, byName = (a, b) => a.localeCompare(b)
 }
 
 /**
+ * The folder tree as the rail draws it with some folders collapsed: each folder marked `kids` (it has
+ * folders under it) and `closed` (collapsed, with kids), and everything under a closed folder left out.
+ * @param {{ id: string, depth: number }[]} tree in order, from folderTree
+ * @param {Set<string>} collapsed the folder ids this browser has collapsed
+ */
+export function collapseTree(tree, collapsed) {
+  const out = [];
+  let hideBelow = Number.POSITIVE_INFINITY;
+  tree.forEach((f, i) => {
+    if (f.depth > hideBelow) return;
+    hideBelow = Number.POSITIVE_INFINITY;
+    const kids = i + 1 < tree.length && tree[i + 1].depth > f.depth;
+    const closed = kids && collapsed.has(f.id);
+    out.push({ ...f, kids, closed });
+    if (closed) hideBelow = f.depth;
+  });
+  return out;
+}
+
+/**
  * What the card's one button does: Activate a scene that is not active, Pull everyone back to the
  * one that is (a player who wandered off on the bar).
  * @param {{ active: boolean }} card

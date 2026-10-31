@@ -9,8 +9,9 @@
  */
 
 import { log, MODULE_ID, t as rootT } from "../common.js";
-import { folderTree } from "../scenes/decide.js";
+import { collapseTree, folderTree } from "../scenes/decide.js";
 import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
+import { acts, markPicked } from "../shell/cards.js";
 import { folderMenu, newFolder } from "../shell/folders.js";
 import { byType, inView, matchWhy, searchFields, typeCounts } from "./decide.js";
 import { createRecord } from "./memory.js";
@@ -87,13 +88,13 @@ export function makeCaseWindow(spec) {
           record.setPrefs({ view: "all" });
           this.render();
         },
-        pick(_event, target) {
+        pick(event, target) {
           const key = target.closest("[data-key]")?.dataset.key;
           if (!key) return;
-          // A click does the case's one thing (no side panel, the user's ruling); the card stays marked.
+          // A click selects; a double click, or Enter, does the case's one thing (the user's ruling).
           this.selected = key;
           if (this.sticky !== key) this.sticky = null;
-          this.render();
+          if (!acts(event)) return markPicked(this.element, key);
           return this.go(key);
         },
         go(event, target) {
@@ -121,6 +122,12 @@ export function makeCaseWindow(spec) {
         },
         case(_ev, target) {
           return switchCase(this, target.dataset.case);
+        },
+        /** A folder's caret: what is under it shown or hidden, remembered in this browser. */
+        toggleFolder(event, target) {
+          event.stopPropagation();
+          record.toggleCollapsed(target.dataset.folder);
+          this.render();
         },
         /** A new folder, inside the one in view when it can be; the rail then shows it, to drop cards on. */
         async newFolder() {
@@ -257,7 +264,7 @@ export function makeCaseWindow(spec) {
       context.sizes = SIZES.map(id => ({ id, label: rootT(`size.${id}`), aria: rootT(`size.${id}Aria`), on: this.size === id }));
       context.views = fixed.map(id => ({ id, label: t(`view.${id}`), n: all.filter(c => inView(c, id)).length, on: view === id }));
       context.types = types.length > 1 ? types.map(x => ({ id: `t:${x.type}`, label: spec.typeLabel(x.type, true), n: x.n, on: view === `t:${x.type}` })) : [];
-      context.folders = tree.map(f => ({ ...f, on: view === `f:${f.id}`, indent: f.depth }));
+      context.folders = collapseTree(tree, new Set(record.load().collapsed)).map(f => ({ ...f, on: view === `f:${f.id}`, indent: f.depth }));
       // For the GM, Unfiled stays a drop target while there are folders, even with nothing in it.
       context.loose = tree.length && (loose || gm) ? { n: loose, on: view === "f:", label: t("rail.noFolder") } : null;
       context.showFolders = gm || tree.length > 0;

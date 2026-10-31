@@ -1595,3 +1595,41 @@
   padding-top: 0.25rem;
   border-top: 1px solid var(--cc-line);
 }
+
+/* A folder's caret in the rail: a click shows or hides what is under it; a folder with nothing under it
+   keeps the caret's room, so the names line up. */
+.cc-caret {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.9rem;
+  color: var(--cc-ink-3);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.cc-caret:hover {
+  color: var(--cc-gold);
+}
+
+.cc-caret.none {
+  cursor: default;
+}
+
+/* The journal's folder headings are buttons now: a click collapses their journals. */
+button.cc-folder {
+  width: 100%;
+  height: auto;
+  margin: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+button.cc-folder:hover {
+  color: var(--cc-ink);
+}

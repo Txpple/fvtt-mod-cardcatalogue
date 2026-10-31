@@ -7,10 +7,11 @@
  */
 
 import { log, MODULE_ID, t } from "./common.js";
-import { activateAs, folderTree, inView, matchWhy, searchFields, VIEWS } from "./decide.js";
+import { activateAs, collapseTree, folderTree, inView, matchWhy, searchFields, VIEWS } from "./decide.js";
 import * as memory from "./memory.js";
 import * as scenes from "./scenes.js";
 import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
+import { acts, markPicked } from "../shell/cards.js";
 import { folderMenu, newFolder } from "../shell/folders.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -91,7 +92,8 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       dismissUndo: ScenesWindow.#onDismissUndo,
       classic: ScenesWindow.#onClassic,
       case: ScenesWindow.#onCase,
-      newFolder: ScenesWindow.#onNewFolder
+      newFolder: ScenesWindow.#onNewFolder,
+      toggleFolder: ScenesWindow.#onToggleFolder
     }
   };
 
@@ -209,7 +211,7 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     context.query = this.#query;
     context.sizes = SIZES.map(id => ({ id, label: t(`size.${id}`), aria: t(`size.${id}Aria`), on: this.#size === id }));
     context.views = VIEWS.map(id => ({ id, label: t(`view.${id}`), n: all.filter(c => inView(c, id)).length, on: view === id }));
-    context.folders = tree.map(f => ({ ...f, on: view === `f:${f.id}`, indent: f.depth }));
+    context.folders = collapseTree(tree, new Set(memory.load().collapsed)).map(f => ({ ...f, on: view === `f:${f.id}`, indent: f.depth }));
     // Unfiled stays a drop target while there are folders, even with nothing in it.
     context.loose = tree.length ? { n: loose, on: view === "f:" } : null;
     context.heading = this.#heading(view);
@@ -497,16 +499,15 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     this.render();
   }
 
-  /** A click views the scene (only the DM moves). */
-  static #onPick(_event, target) {
+  /** A click selects the scene; a double click, or Enter, views it (only the DM moves). */
+  static #onPick(event, target) {
     const key = target.closest("[data-key]")?.dataset.key;
     if (!key) return;
-    // A click views it (only the DM moves), the card's one action; the card stays marked.
-    const scene = fromUuidSync(key);
-    if (isScene(scene) && !scene.isView) void scenes.guarded("viewing the scene", () => scenes.view(scene));
     this.#selected = key;
     if (this.#sticky !== key) this.#sticky = null;
-    this.render();
+    if (!acts(event)) return markPicked(this.element, key);
+    const scene = fromUuidSync(key);
+    if (isScene(scene) && !scene.isView) void scenes.guarded("viewing the scene", () => scenes.view(scene));
   }
 
   static async #onActivate(event, target) {
@@ -595,6 +596,13 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
   /** Another case, where this window stands. */
   static #onCase(_event, target) {
     return switchCase(this, target.dataset.case);
+  }
+
+  /** A folder's caret: what is under it shown or hidden, remembered in this browser. */
+  static #onToggleFolder(event, target) {
+    event.stopPropagation();
+    memory.toggleCollapsed(target.dataset.folder);
+    this.render();
   }
 
   /** A new folder, inside the one in view when it can be; the rail then shows it, to drop scenes on. */

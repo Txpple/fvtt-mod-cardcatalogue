@@ -9,11 +9,13 @@ import { MODULE_ID } from "../common.js";
 import { remember } from "./decide.js";
 
 const isObj = v => v && typeof v === "object" && !Array.isArray(v);
+const strings = v => (Array.isArray(v) ? v.filter(x => typeof x === "string") : []);
 
 function mend(raw) {
   const r = isObj(raw) ? raw : {};
   return {
     recent: Array.isArray(r.recent) ? r.recent.filter(x => isObj(x) && typeof x.key === "string") : [],
+    collapsed: strings(r.collapsed),
     view: typeof r.view === "string" ? r.view : null,
     size: typeof r.size === "string" ? r.size : null
   };
@@ -57,6 +59,10 @@ export function createRecord(caseId) {
     noteOpened: k =>
       edit(r => {
         r.recent = remember(r.recent, { key: k, at: Date.now() });
+      }),
+    toggleCollapsed: k =>
+      edit(r => {
+        r.collapsed = r.collapsed.includes(k) ? r.collapsed.filter(c => c !== k) : [...r.collapsed, k];
       }),
     setPrefs: prefs => edit(r => Object.assign(r, prefs))
   };

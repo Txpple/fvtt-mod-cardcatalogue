@@ -40,7 +40,8 @@
       <div class="cc-key">{{localize "fvtt-mod-cardcatalogue.journal.rail.journals"}}</div>
       {{/if}}
       {{#each folders}}
-      {{#if name}}<div class="cc-folder"><i class="fa-solid fa-folder" inert></i> <span>{{name}}</span></div>{{/if}}
+      {{#if name}}<button type="button" class="cc-folder" data-action="toggleGroup" data-group="{{name}}" aria-expanded="{{#if closed}}false{{else}}true{{/if}}"><i class="fa-solid {{#if closed}}fa-caret-right{{else}}fa-caret-down{{/if}} cc-caret" inert></i><i class="fa-solid fa-folder" inert></i> <span>{{name}}</span></button>{{/if}}
+      {{#unless closed}}
       {{#each journals}}
       <button type="button" class="cc-row cc-journal {{#if on}}on{{/if}}" data-action="view" data-view="j:{{id}}" data-drop="journal" data-entry="{{id}}" aria-current="{{#if on}}true{{else}}false{{/if}}">
         <span class="n">{{name}}</span>{{#if nNew}}<span class="cc-newcount" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.badge.new'}}">{{nNew}}</span>{{/if}}<small>{{n}}</small>
@@ -51,6 +52,7 @@
       </button>
       {{/each}}
       {{/each}}
+      {{/unless}}
       {{/each}}
     </nav>
 

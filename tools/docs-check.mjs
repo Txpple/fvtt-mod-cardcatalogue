@@ -117,9 +117,23 @@ try {
     const found = [...el.querySelectorAll(".cc-card[data-key]")].filter(c => !c.hidden).map(c => c.dataset.key);
     input.value = "";
     input.dispatchEvent(new Event("input", { bubbles: true }));
-    // No panel for actors: a click on the card opens the sheet.
-    el.querySelector(`.cc-card[data-key="${pc.uuid}"] [data-action="pick"]`)?.click();
-    const clickSheet = !!(await wait(() => pc.sheet?.rendered));
+    // A folder's caret collapses what is under it, and opens it again.
+    const caret = el.querySelector('.cc-rail .cc-caret[data-action="toggleFolder"]');
+    const rows = () => el.querySelectorAll(".cc-rail .cc-folderrow").length;
+    const rowsBefore = rows();
+    caret?.click();
+    const fewer = !!(await wait(() => rows() < rowsBefore));
+    el.querySelector(`.cc-rail .cc-caret[data-action="toggleFolder"][data-folder="${caret?.dataset.folder}"]`)?.click();
+    const back = !!(await wait(() => rows() === rowsBefore));
+    const collapses = !!caret && fewer && back;
+    // A click selects the card (marked, nothing opens); a double click opens the sheet. No panel either way.
+    const clickN = (el, n) => el?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, detail: n, button: 0 }));
+    const pick = () => el.querySelector(`.cc-card[data-key="${pc.uuid}"] [data-action="pick"]`);
+    clickN(pick(), 1);
+    await new Promise(r => setTimeout(r, 500));
+    const selectsOnly = !pc.sheet?.rendered && !!el.querySelector(`.cc-card.on[data-key="${pc.uuid}"]`);
+    clickN(pick(), 2);
+    const clickSheet = !!(await wait(() => pc.sheet?.rendered)) && selectsOnly;
     await new Promise(r => setTimeout(r, 300));
     const noPanel = !el.querySelector(".cc-detail");
     await pc.sheet?.close();
@@ -128,11 +142,12 @@ try {
     el.querySelector(`.cc-card[data-key="${pc.uuid}"] .cc-acts .go`)?.click();
     const sheet = !!(await wait(() => pc.sheet?.rendered));
     await pc.sheet?.close();
-    return { before, after: ui.sidebar.tabGroups.primary, clickSheet, noPanel, inOrder, cards, total: game.actors.size, strip, types, pcName: pc.name, foundPc: found.includes(pc.uuid), sheet };
+    return { before, after: ui.sidebar.tabGroups.primary, collapses, clickSheet, noPanel, inOrder, cards, total: game.actors.size, strip, types, pcName: pc.name, foundPc: found.includes(pc.uuid), sheet };
   });
   assert(A.cards === A.total && A.cards > 0, `a card per actor (${A.cards} of ${A.total})`);
   assert(A.before === A.after, "the sidebar did not switch tabs");
-  assert(A.clickSheet && A.noPanel, "a click on an actor card opens its sheet, and no side panel opens");
+  assert(A.collapses, "a folder's caret hides the folders under it, and shows them again");
+  assert(A.clickSheet && A.noPanel, "a click selects an actor card, a double click opens its sheet; no side panel");
   assert(A.inOrder, "All runs by type (characters, NPCs, groups), then by name");
   assert(["journal", "scenes", "actors", "items"].every(c => A.strip.includes(c)), `the strip holds the four cases (${A.strip.join(", ")})`);
   assert(A.types.includes("t:character") && A.types.includes("t:npc"), `the rail lists the types (${A.types.join(", ")})`);
@@ -240,12 +255,17 @@ try {
     const samePlace = win && Math.abs(win.position.left - pos.left) < 2 && Math.abs(win.position.top - pos.top) < 2;
     const cards = win?.element.querySelectorAll(".cc-card[data-key]").length ?? 0;
     const item = game.items.find(i => "quantity" in (i.system ?? {}));
-    // No panel for items either: a click on the card opens the sheet.
+    // Items alike: a click selects, a double click opens the sheet.
     let clickSheet = false;
     let noPanel = false;
     if (item) {
-      win.element.querySelector(`.cc-card[data-key="${item.uuid}"] [data-action="pick"]`)?.click();
-      clickSheet = !!(await wait(() => item.sheet?.rendered));
+      const clickI = (el, n) => el?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, detail: n, button: 0 }));
+      const pick = () => win.element.querySelector(`.cc-card[data-key="${item.uuid}"] [data-action="pick"]`);
+      clickI(pick(), 1);
+      await new Promise(r => setTimeout(r, 500));
+      const selectsOnly = !item.sheet?.rendered && !!win.element.querySelector(`.cc-card.on[data-key="${item.uuid}"]`);
+      clickI(pick(), 2);
+      clickSheet = !!(await wait(() => item.sheet?.rendered)) && selectsOnly;
       noPanel = !win.element.querySelector(".cc-detail");
       await item.sheet?.close();
     }
@@ -262,7 +282,7 @@ try {
   });
   assert(C.closedFrom && C.samePlace, "the items case opened where the actors case stood, and the actors case closed");
   assert(C.cards === C.total, `a card per world item (${C.cards} of ${C.total})`);
-  assert(C.clickSheet && C.noPanel, "a click on an item card opens its sheet, and no side panel opens");
+  assert(C.clickSheet && C.noPanel, "a click selects an item card, a double click opens its sheet; no side panel");
   assert(["art", "post", "give"].every(r => C.rows.includes(r)), `the item chevron: Show the art, Post to chat, Give to… (${C.rows.join(", ")})`);
   assert(C.recipients > 0, `Give to… names the party and its characters (${C.recipients})`);
   await shot(f.page, "11-items");

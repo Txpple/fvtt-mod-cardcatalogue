@@ -175,6 +175,29 @@ try {
   assert(B.portrait.some(c => /ysolde/i.test(c.name) && c.why), `"portraits ysolde" finds a file by its folder (${B.portrait.map(c => `${c.name} [${c.why}]`).join(", ")})`);
   assert(B.noneN === 0 && B.emptyShown, "a query with no match hides every card and says so");
 
+  // The rail's folder headings collapse their journals, and open them again.
+  const G = await f.evaluate(async () => {
+    const win = foundry.applications.instances.get("cardcatalogue-journal-library");
+    const wait = async (fn, n = 40) => {
+      for (let i = 0; i < n; i++) {
+        if (fn()) return true;
+        await new Promise(r => setTimeout(r, 100));
+      }
+      return false;
+    };
+    const rows = () => win.element.querySelectorAll(".cc-rail .cc-journal").length;
+    const heading = win.element.querySelector('.cc-rail [data-action="toggleGroup"]');
+    if (!heading) return { none: true };
+    const group = heading.dataset.group;
+    const before = rows();
+    heading.click();
+    const fewer = await wait(() => rows() < before);
+    win.element.querySelector(`.cc-rail [data-action="toggleGroup"][data-group="${CSS.escape(group)}"]`)?.click();
+    const back = await wait(() => rows() === before);
+    return { fewer, back };
+  });
+  assert(G.none || (G.fewer && G.back), "a folder heading in the journal's rail hides its journals, and shows them again");
+
   if (walk) {
     // --- C. the writes, on a scratch journal ----------------------------------------------
     console.log("# C. who can see it, a section, a kept file (scratch journal)");
@@ -218,8 +241,14 @@ try {
         // The GM's click on a card opens the page to read (no side panel). The API brings the card into view.
         win.select(picture.uuid);
         await win.render();
-        win.element.querySelector(`.cc-card[data-key="${picture.uuid}"] [data-action="pick"]`)?.click();
-        out.reader = await wait(() => foundry.applications.instances.get(`cardcatalogue-journal-reader-${picture.id}`)?.rendered);
+        // A click selects, a double click opens.
+        const clickN = (el, n) => el?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, detail: n, button: 0 }));
+        const pick = () => win.element.querySelector(`.cc-card[data-key="${picture.uuid}"] [data-action="pick"]`);
+        clickN(pick(), 1);
+        await new Promise(r => setTimeout(r, 500));
+        const selectsOnly = !foundry.applications.instances.get(`cardcatalogue-journal-reader-${picture.id}`)?.rendered && !!win.element.querySelector(`.cc-card.on[data-key="${picture.uuid}"]`);
+        clickN(pick(), 2);
+        out.reader = !!(await wait(() => foundry.applications.instances.get(`cardcatalogue-journal-reader-${picture.id}`)?.rendered)) && selectsOnly;
         // The page's chevron carries its web link and its content link.
         win.element.querySelector(`.cc-card[data-key="${picture.uuid}"] [data-action="openOpts"]`)?.click();
         await wait(() => win.element.querySelector(".cc-opts"));
@@ -266,7 +295,7 @@ try {
       },
       { id: MODULE_ID, scratch: SCRATCH, keep: SCRATCH_KEEP, userId: temp.userId }
     );
-    assert(C.reader && C.noPanel, "the GM's click on a card opens the page in the Reader, no side panel");
+    assert(C.reader && C.noPanel, "the GM's click selects a card, a double click opens the page in the Reader; no side panel");
     assert(C.links, "a page's chevron carries Copy link and Copy @ reference");
     assert(C.startHidden, "the scratch picture starts GM only");
     assert(C.onlyTemp, `a Show that keeps it visible, to one player: only that player can see it (${JSON.stringify(C.mapOne)})`);

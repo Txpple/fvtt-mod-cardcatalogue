@@ -1,5 +1,6 @@
 import {
   activateAs,
+  collapseTree,
   fileName,
   folderTree,
   inView,
@@ -74,6 +75,35 @@ describe("the views", () => {
 
   it("an unknown view holds nothing", () => {
     expect(inView(card(), "pinned")).toBe(false);
+  });
+});
+
+describe("a collapsed tree", () => {
+  const tree = [
+    { id: "a", depth: 0 },
+    { id: "a1", depth: 1 },
+    { id: "a1x", depth: 2 },
+    { id: "a2", depth: 1 },
+    { id: "b", depth: 0 }
+  ];
+  const ids = out => out.map(f => f.id);
+
+  it("marks the folders with folders under them, all open", () => {
+    const out = collapseTree(tree, new Set());
+    expect(ids(out)).toEqual(["a", "a1", "a1x", "a2", "b"]);
+    expect(out.map(f => f.kids)).toEqual([true, true, false, false, false]);
+    expect(out.some(f => f.closed)).toBe(false);
+  });
+
+  it("leaves out everything under a closed folder, and only that", () => {
+    expect(ids(collapseTree(tree, new Set(["a1"])))).toEqual(["a", "a1", "a2", "b"]);
+    expect(ids(collapseTree(tree, new Set(["a"])))).toEqual(["a", "b"]);
+  });
+
+  it("a folder with nothing under it is never closed", () => {
+    const out = collapseTree(tree, new Set(["b"]));
+    expect(ids(out)).toEqual(["a", "a1", "a1x", "a2", "b"]);
+    expect(out.find(f => f.id === "b").closed).toBe(false);
   });
 });
 

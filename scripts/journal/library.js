@@ -31,6 +31,7 @@ import {
 } from "./decide.js";
 import * as memory from "./memory.js";
 import * as show from "./show.js";
+import { acts, markPicked } from "../shell/cards.js";
 import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
@@ -256,6 +257,7 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       optGo: JournalWindow.#onOptGo,
       optCancel: JournalWindow.#onOptCancel,
       copyLink: JournalWindow.#onCopyLink,
+      toggleGroup: JournalWindow.#onToggleGroup,
       copyRef: JournalWindow.#onCopyRef,
       undo: JournalWindow.#onUndo,
       dismissReveal: JournalWindow.#onDismissReveal,
@@ -513,7 +515,8 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
         cats
       });
     }
-    return [...groups].map(([name, list]) => ({ name, journals: list }));
+    const collapsed = new Set(memory.load().collapsed);
+    return [...groups].map(([name, list]) => ({ name, journals: list, closed: !!name && collapsed.has(name) }));
   }
 
   #badge(card, who, players) {
@@ -541,7 +544,7 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       entryId: card.entry?.id ?? "",
       category: card.page?.category ?? "",
       unseen: !gm && !memory.isSeen(card.key),
-      selected: gm && this.#selected === card.key,
+      selected: this.#selected === card.key,
       dim: gm && !card.loose && who.none,
       showLabel: t(`show.as.${as}`),
       showHint: t(`show.hint.${as}`),
@@ -878,9 +881,15 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     this.render();
   }
 
-  static #onPick(_event, target) {
+  static #onPick(event, target) {
     const key = target.closest("[data-key]")?.dataset.key;
     if (!key) return;
+    // A click selects; a double click, or Enter, opens it (the user's ruling, every case alike).
+    if (!acts(event)) {
+      this.#selected = key;
+      if (this.#sticky !== key) this.#sticky = null;
+      return markPicked(this.element, key);
+    }
     if (!game.user.isGM) {
       const page = fromUuidSync(key);
       if (isPage(page)) {
@@ -890,8 +899,8 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       }
       return;
     }
-    // The DM: a click opens it to read (a picture on no page, to look at), as a player's does; the
-    // card stays marked as the last one opened. Show and the rest are on the card and its chevron.
+    // The DM: it opens to read (a picture on no page, to look at), as a player's does; the card stays
+    // marked as the last one opened. Show and the rest are on the card and its chevron.
     const { page, file } = JournalWindow.#resolve(key);
     if (page) show.openForReading(page);
     else show.openPicture(file);
@@ -952,6 +961,12 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!o) return;
     if (o.to && !o.to.length) return ui.notifications.warn(t("opts.nobody"));
     return this.#show(o.key, { to: o.to, keep: o.keep, title: o.title, caption: o.caption, picture: o.picture });
+  }
+
+  /** A folder heading in the rail: its journals shown or hidden, remembered in this browser. */
+  static #onToggleGroup(_event, target) {
+    memory.toggleCollapsed(target.dataset.group);
+    this.render();
   }
 
   /** The page's web link: once logged in, it opens the page for whoever may see it (journal.js). */

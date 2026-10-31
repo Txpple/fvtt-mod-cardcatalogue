@@ -7,7 +7,8 @@ sidebar showing only the tabs the table uses (the two rules carried over from Ho
 Foundry's own directories. Part of Open Roll 5e (the suite repo is `..`, its CLAUDE.md has the family's conventions;
 the plan is `../docs/plans/cardcatalogue.md`). Plain ES modules, no build step, no libWrapper, no socketlib, MIT.
 
-**State (2026-10-31).** 1.0.1 (the journal's bar on one line; a page's Copy link and Copy @ reference in its
+**State (2026-10-31).** 1.0.2 (the top level is *Unfiled*; *+ Create New Folder* a gold pill as Clue Board's New
+Thread; a right-click on a folder's row removes it, Foundry's own Remove Folder) released and on prod. 1.0.1 (the journal's bar on one line; a page's Copy link and Copy @ reference in its
 chevron; New Folder and empty folders in the GM's rail) released and on prod. 1.0.0 released and on prod (the user: "commit/push, put on prod. remove scroll case and archive
 it"): installed and enabled through the installer, every released file served byte-identical, a prod GM page opening
 every case with all its cards (journal 31, scenes 50, actors 84, items 39) and its sidebar without the hidden tabs;
@@ -53,7 +54,10 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   the foot of the scenes', actors' and items' rails asks a name in Foundry's dialog and makes the folder inside the
   one in view when Foundry's depth allows (`shell/folders.js`), the view moving to it; the GM's rail lists empty
   folders (`folderTree`'s `keepEmpty`) and Unfiled (the top level), so a card dragged onto any of them is filed there (the stock
-  drop's `folder` write). The journal files by section, as Scroll Case did. **One finder per case** (the user's
+  drop's `folder` write). A right-click on a folder's row (`folderMenu`, Foundry's own ContextMenu) offers Remove
+  Folder: Foundry's own confirm and words, the folder deleted and its cards and subfolders moved up to its parent,
+  as the stock directory's Remove Folder does; Delete All stays in the stock directory. The journal files by section,
+  as Scroll Case did. **One finder per case** (the user's
   ruling): the journal's Ctrl+Shift+H (Enter shows), the scenes' Ctrl+Shift+M (Enter views), the actors' and items'
   unbound (Enter opens; Ctrl+Enter shows the art, or posts the item to chat).
 - **The sidebar-tabs rules** (`tabs/rules.js` pure and tested, `tabs/apply.js` the writes) are House Rules 1.3.0's,

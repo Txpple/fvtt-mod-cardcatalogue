@@ -11,7 +11,7 @@ import { activateAs, folderTree, inView, matchWhy, searchFields, VIEWS } from ".
 import * as memory from "./memory.js";
 import * as scenes from "./scenes.js";
 import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
-import { newFolder } from "../shell/folders.js";
+import { folderMenu, newFolder } from "../shell/folders.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -291,6 +291,7 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   _onFirstRender(context, options) {
     super._onFirstRender(context, options);
+    folderMenu(this.element);
     this.element.addEventListener("keydown", ev => {
       if (this.#menu && ev.key === "Escape") {
         ev.preventDefault();

@@ -196,8 +196,20 @@ try {
       const npcCard = await wait(() => win.view === "all" && win.element.querySelector(`.cc-card[data-key="${npc.uuid}"]`));
       if (made && npcCard) drag(npcCard, win.element.querySelector(`.cc-rail [data-folder="${made.id}"]`));
       const dropped = !!(made && (await wait(() => npc.folder?.id === made.id)));
+      // A right-click on its row: Remove Folder, Foundry's own confirm; the folder goes, the NPC moves up a level.
+      let removed = false;
+      if (made && dropped) {
+        const row = win.element.querySelector(`.cc-rail [data-folder="${made.id}"]`);
+        const r = row.getBoundingClientRect();
+        row.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: r.left + 10, clientY: r.top + 5, button: 2 }));
+        const item = await wait(() => [...document.querySelectorAll("#context-menu li, .context-menu li")].find(li => /Remove Folder/i.test(li.textContent)));
+        item?.click();
+        const yes = await wait(() => document.querySelector('dialog button[data-action="yes"], .application.dialog button[data-action="yes"]'));
+        yes?.click();
+        removed = !!(await wait(() => !game.folders.get(made.id))) && !!(await wait(() => npc.folder === null || npc.folder === undefined));
+      }
       await npc.update({ folder: was });
-      return { rows, placed, closed, here: here.length === 1 && here[0] === npc.uuid, npc: npc.name, made: !!made, inView, madeRow, dropped };
+      return { rows, placed, closed, here: here.length === 1 && here[0] === npc.uuid, npc: npc.name, made: !!made, inView, madeRow, dropped, removed };
     },
     { scratch: SCRATCH }
   );
@@ -206,6 +218,7 @@ try {
   assert(B.here, "On this scene lists the actor with a token there, and only it");
   assert(B.made && B.inView && B.madeRow, "New Folder asks a name, makes the folder and shows it, empty, in the rail");
   assert(B.dropped, "an actor card dragged onto the new folder is filed there");
+  assert(B.removed, "a right-click's Remove Folder removes the folder and moves what was in it up a level");
 
   // --- C. switching in place, the items case ------------------------------------------------
   console.log("# C. the strip switches to items in place");

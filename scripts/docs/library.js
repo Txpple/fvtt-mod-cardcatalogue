@@ -11,7 +11,7 @@
 import { log, MODULE_ID, t as rootT } from "../common.js";
 import { folderTree } from "../scenes/decide.js";
 import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
-import { newFolder } from "../shell/folders.js";
+import { folderMenu, newFolder } from "../shell/folders.js";
 import { byType, inView, matchWhy, searchFields, typeCounts } from "./decide.js";
 import { createRecord } from "./memory.js";
 
@@ -372,6 +372,7 @@ export function makeCaseWindow(spec) {
     /** @override */
     _onFirstRender(context, options) {
       super._onFirstRender(context, options);
+      folderMenu(this.element);
       this.element.addEventListener("keydown", ev => {
         if (this.menu && ev.key === "Escape") {
           ev.preventDefault();

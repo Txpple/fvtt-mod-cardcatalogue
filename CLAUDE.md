@@ -7,8 +7,9 @@ sidebar showing only the tabs the table uses (the two rules carried over from Ho
 Foundry's own directories. Part of Open Roll 5e (the suite repo is `..`, its CLAUDE.md has the family's conventions;
 the plan is `../docs/plans/cardcatalogue.md`). Plain ES modules, no build step, no libWrapper, no socketlib, MIT.
 
-**State (2026-10-31).** 0.1.0, the working draft, local only: no GitHub repo, nothing committed, not in
-`repos.json`; the name is free (the setup screen's `getPackages`, 7,087 modules, has no "Card Catalogue",
+**State (2026-10-31).** 0.1.0, the working draft, unreleased: the public repo `Txpple/fvtt-mod-cardcatalogue`
+(made on the user's word, `verify` green on GitHub), in `repos.json` without a blurb until it is released and
+Scroll Case retires; the name is free (the setup screen's `getPackages`, 7,087 modules, has no "Card Catalogue",
 no `cardcatalog` and no "catalogue" at all). On the sandbox (`deploy --local`, registered by a
 restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 deployed `--local` beside it).
 `npm run verify` green (129 tests); the three walks GREEN on the sandbox: `tools/journal-check.mjs --walk` 43

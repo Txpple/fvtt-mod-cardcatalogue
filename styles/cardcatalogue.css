@@ -1566,12 +1566,26 @@
   filter: saturate(0.4);
 }
 
-/* New Folder at the foot of the folders: quieter than a folder, the same row. */
+/* Create New Folder at the foot of the folders: Clue Board's New Thread, a gold pill sized to its words. */
 .cc-row.cc-newfolder {
-  margin-top: 0.15rem;
-  color: var(--cc-ink-3);
-  border-style: dashed;
-  border-color: var(--cc-line);
+  width: auto;
+  min-height: 0;
+  align-self: flex-start;
+  margin: 0.5rem 0 0 0.25rem;
+  padding: 0.3rem 0.8rem;
+  border: 1px dashed var(--cc-gold);
+  border-radius: 1rem;
+  color: var(--cc-gold);
+  font-size: var(--font-size-12, 0.75rem);
+}
+
+.cc-row.cc-newfolder:hover {
+  background: rgba(201, 162, 74, 0.12);
+  color: var(--cc-gold);
+}
+
+.cc-row.cc-newfolder .cc-ficon {
+  color: var(--cc-gold);
 }
 
 /* The page's two links in the Show options, under the switches. */

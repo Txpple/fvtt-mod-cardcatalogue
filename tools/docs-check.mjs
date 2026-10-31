@@ -117,15 +117,6 @@ try {
     const found = [...el.querySelectorAll(".cc-card[data-key]")].filter(c => !c.hidden).map(c => c.dataset.key);
     input.value = "";
     input.dispatchEvent(new Event("input", { bubbles: true }));
-    // A folder's caret collapses what is under it, and opens it again.
-    const caret = el.querySelector('.cc-rail .cc-caret[data-action="toggleFolder"]');
-    const rows = () => el.querySelectorAll(".cc-rail .cc-folderrow").length;
-    const rowsBefore = rows();
-    caret?.click();
-    const fewer = !!(await wait(() => rows() < rowsBefore));
-    el.querySelector(`.cc-rail .cc-caret[data-action="toggleFolder"][data-folder="${caret?.dataset.folder}"]`)?.click();
-    const back = !!(await wait(() => rows() === rowsBefore));
-    const collapses = !!caret && fewer && back;
     // A click selects the card (marked, nothing opens); a double click opens the sheet. No panel either way.
     const clickN = (el, n) => el?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, detail: n, button: 0 }));
     const pick = () => el.querySelector(`.cc-card[data-key="${pc.uuid}"] [data-action="pick"]`);
@@ -142,11 +133,10 @@ try {
     el.querySelector(`.cc-card[data-key="${pc.uuid}"] .cc-acts .go`)?.click();
     const sheet = !!(await wait(() => pc.sheet?.rendered));
     await pc.sheet?.close();
-    return { before, after: ui.sidebar.tabGroups.primary, collapses, clickSheet, noPanel, inOrder, cards, total: game.actors.size, strip, types, pcName: pc.name, foundPc: found.includes(pc.uuid), sheet };
+    return { before, after: ui.sidebar.tabGroups.primary, clickSheet, noPanel, inOrder, cards, total: game.actors.size, strip, types, pcName: pc.name, foundPc: found.includes(pc.uuid), sheet };
   });
   assert(A.cards === A.total && A.cards > 0, `a card per actor (${A.cards} of ${A.total})`);
   assert(A.before === A.after, "the sidebar did not switch tabs");
-  assert(A.collapses, "a folder's caret hides the folders under it, and shows them again");
   assert(A.clickSheet && A.noPanel, "a click selects an actor card, a double click opens its sheet; no side panel");
   assert(A.inOrder, "All runs by type (characters, NPCs, groups), then by name");
   assert(["journal", "scenes", "actors", "items"].every(c => A.strip.includes(c)), `the strip holds the four cases (${A.strip.join(", ")})`);
@@ -154,6 +144,33 @@ try {
   assert(A.foundPc, `the search finds ${A.pcName}`);
   assert(A.sheet, "the card's Open opens the sheet");
   await shot(f.page, "10-actors");
+
+  // A folder's caret, clicked with the real mouse: what is under it hides, then shows again, and the
+  // view never moves to the folder (the caret is its own button, beside the row).
+  const caretAt = await f.evaluate(() => {
+    const win = foundry.applications.instances.get("cardcatalogue-actors-library");
+    const c = win.element.querySelector('.cc-rail .cc-caret[data-action="toggleFolder"]');
+    if (!c) return null;
+    c.scrollIntoView({ block: "center" });
+    const r = c.getBoundingClientRect();
+    return { x: r.left + r.width / 2, y: r.top + r.height / 2, id: c.dataset.folder, rows: win.element.querySelectorAll(".cc-rail .cc-folderrow").length, view: win.view };
+  });
+  const railState = () =>
+    f.evaluate(() => {
+      const win = foundry.applications.instances.get("cardcatalogue-actors-library");
+      return { rows: win.element.querySelectorAll(".cc-rail .cc-folderrow").length, view: win.view };
+    });
+  let collapses = false;
+  if (caretAt) {
+    await f.page.mouse.click(caretAt.x, caretAt.y);
+    await new Promise(r => setTimeout(r, 700));
+    const closed = await railState();
+    await f.page.mouse.click(caretAt.x, caretAt.y);
+    await new Promise(r => setTimeout(r, 700));
+    const open = await railState();
+    collapses = closed.rows < caretAt.rows && open.rows === caretAt.rows && closed.view === caretAt.view && open.view === caretAt.view;
+  }
+  assert(collapses, "a folder's caret, clicked, hides the folders under it and shows them again, never picking the folder");
 
   // --- B. the chevron: a token placed on a scratch scene -------------------------------------
   console.log("# B. the chevron places a token where the GM is looking");

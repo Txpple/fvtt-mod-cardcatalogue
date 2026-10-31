@@ -7,10 +7,11 @@ sidebar showing only the tabs the table uses (the two rules carried over from Ho
 Foundry's own directories. Part of Open Roll 5e (the suite repo is `..`, its CLAUDE.md has the family's conventions;
 the plan is `../docs/plans/cardcatalogue.md`). Plain ES modules, no build step, no libWrapper, no socketlib, MIT.
 
-**State (2026-10-31).** 1.0.3 (a click selects a card, a double click or Enter does its one thing; the rail's
+**State (2026-10-31).** 1.0.4 (a folder's caret is its own button beside the row: inside it, a real click picked
+the folder; walked with the real mouse) released and on prod; 1.0.3 (a click selects a card, a double click or Enter does its one thing; the rail's
 folders collapse by a caret, the journal's folder headings collapse their journals, each browser remembering)
-released and on prod; 1.0.2 (the top level is *Unfiled*; *+ Create New Folder* a gold pill as Clue Board's New
-Thread; a right-click on a folder's row removes it, Foundry's own Remove Folder) released and on prod. 1.0.1 (the journal's bar on one line; a page's Copy link and Copy @ reference in its
+released, never on prod; 1.0.2 (the top level is *Unfiled*; *+ Create New Folder* a gold pill as Clue Board's New
+Thread; a right-click on a folder's row removes it, Foundry's own Remove Folder) released, never on prod. 1.0.1 (the journal's bar on one line; a page's Copy link and Copy @ reference in its
 chevron; New Folder and empty folders in the GM's rail) released and on prod. 1.0.0 released and on prod (the user: "commit/push, put on prod. remove scroll case and archive
 it"): installed and enabled through the installer, every released file served byte-identical, a prod GM page opening
 every case with all its cards (journal 31, scenes 50, actors 84, items 39) and its sidebar without the hidden tabs;
@@ -61,7 +62,9 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   drop's `folder` write). A right-click on a folder's row (`folderMenu`, Foundry's own ContextMenu) offers Remove
   Folder: Foundry's own confirm and words, the folder deleted and its cards and subfolders moved up to its parent,
   as the stock directory's Remove Folder does; Delete All stays in the stock directory. A folder with folders under it
-  has a caret that collapses them (`collapseTree`, pure and tested); the journal's folder headings collapse their
+  has a caret that collapses them (`collapseTree`, pure and tested), its own button beside the row in a
+  `.cc-folderline` (inside the row, a real click picked the folder; a scripted `.click()` hid that, so the walk
+  clicks it with the real mouse); the journal's folder headings collapse their
   journals; what is collapsed lives in each case's browser record. The journal files by section,
   as Scroll Case did. **One finder per case** (the user's
   ruling): the journal's Ctrl+Shift+H (Enter shows), the scenes' Ctrl+Shift+M (Enter views), the actors' and items'

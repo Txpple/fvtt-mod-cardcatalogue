@@ -33,14 +33,20 @@
       {{/each}}
       <div class="cc-key">{{localize "fvtt-mod-cardcatalogue.scenes.rail.folders"}}</div>
       {{#each folders}}
-      <button type="button" class="cc-row cc-folderrow {{#if on}}on{{/if}}" style="--depth: {{indent}}" data-action="rail" data-view="f:{{id}}" data-drop="folder" data-folder="{{id}}" aria-current="{{#if on}}true{{else}}false{{/if}}">
-        {{#if kids}}<span class="cc-caret" data-action="toggleFolder" data-folder="{{id}}" role="button" aria-expanded="{{#if closed}}false{{else}}true{{/if}}" aria-label="{{#if closed}}{{localize 'fvtt-mod-cardcatalogue.folders.expand'}}{{else}}{{localize 'fvtt-mod-cardcatalogue.folders.collapse'}}{{/if}}"><i class="fa-solid {{#if closed}}fa-caret-right{{else}}fa-caret-down{{/if}}" inert></i></span>{{else}}<span class="cc-caret none" inert></span>{{/if}}<i class="fa-solid fa-folder cc-ficon" inert></i><span class="n">{{name}}</span><small>{{n}}</small>
-      </button>
+      <div class="cc-folderline" style="--depth: {{indent}}">
+        {{#if kids}}<button type="button" class="cc-caret" data-action="toggleFolder" data-folder="{{id}}" aria-expanded="{{#if closed}}false{{else}}true{{/if}}" aria-label="{{#if closed}}{{localize 'fvtt-mod-cardcatalogue.folders.expand'}}{{else}}{{localize 'fvtt-mod-cardcatalogue.folders.collapse'}}{{/if}}"><i class="fa-solid {{#if closed}}fa-caret-right{{else}}fa-caret-down{{/if}}" inert></i></button>{{else}}<span class="cc-caret none" inert></span>{{/if}}
+        <button type="button" class="cc-row cc-folderrow {{#if on}}on{{/if}}" data-action="rail" data-view="f:{{id}}" data-drop="folder" data-folder="{{id}}" aria-current="{{#if on}}true{{else}}false{{/if}}">
+          <i class="fa-solid fa-folder cc-ficon" inert></i><span class="n">{{name}}</span><small>{{n}}</small>
+        </button>
+      </div>
       {{/each}}
       {{#if loose}}
-      <button type="button" class="cc-row cc-folderrow {{#if loose.on}}on{{/if}}" style="--depth: 0" data-action="rail" data-view="f:" data-drop="folder" data-folder="" aria-current="{{#if loose.on}}true{{else}}false{{/if}}">
-        <span class="cc-caret none" inert></span><i class="fa-regular fa-folder-open cc-ficon" inert></i><span class="n">{{localize "fvtt-mod-cardcatalogue.scenes.rail.noFolder"}}</span><small>{{loose.n}}</small>
-      </button>
+      <div class="cc-folderline" style="--depth: 0">
+        <span class="cc-caret none" inert></span>
+        <button type="button" class="cc-row cc-folderrow {{#if loose.on}}on{{/if}}" data-action="rail" data-view="f:" data-drop="folder" data-folder="" aria-current="{{#if loose.on}}true{{else}}false{{/if}}">
+          <i class="fa-regular fa-folder-open cc-ficon" inert></i><span class="n">{{localize "fvtt-mod-cardcatalogue.scenes.rail.noFolder"}}</span><small>{{loose.n}}</small>
+        </button>
+      </div>
       {{/if}}
       <button type="button" class="cc-row cc-newfolder" data-action="newFolder" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.folders.hint'}}">
         <i class="fa-solid fa-plus cc-ficon" inert></i><span class="n">{{localize "fvtt-mod-cardcatalogue.folders.new"}}</span>

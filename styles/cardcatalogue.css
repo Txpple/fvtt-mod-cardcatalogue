@@ -1353,8 +1353,19 @@
 }
 
 /* The folder tree: each level one step in, the folder's own icon before its name. */
-.cc-row.cc-folderrow {
-  padding-left: calc(0.5rem + var(--depth, 0) * 0.9rem);
+/* A folder's line: the caret (its own button, so a click on it never picks the folder), then the row,
+   the line indented by its depth. */
+.cc-folderline {
+  display: flex;
+  align-items: center;
+  gap: 0.1rem;
+  padding-left: calc(var(--depth, 0) * 0.9rem);
+}
+
+.cc-folderline > .cc-row.cc-folderrow {
+  flex: 1;
+  min-width: 0;
+  padding-left: 0.35rem;
 }
 
 .cc-ficon {
@@ -1603,14 +1614,27 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 0.9rem;
+  width: 1.2rem;
+  height: 1.9rem;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+  box-shadow: none;
   color: var(--cc-ink-3);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   cursor: pointer;
 }
 
 .cc-caret:hover {
   color: var(--cc-gold);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.cc-caret:focus-visible {
+  outline: 2px solid var(--cc-gold);
+  outline-offset: -2px;
 }
 
 .cc-caret.none {

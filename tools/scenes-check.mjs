@@ -263,9 +263,19 @@ try {
         menu?.querySelector('[data-action="toggleNav"]').click();
         const off = !!(await wait(() => scene.navigation === false));
         const menuClosed = !!(await wait(() => !win.element.querySelector(".cc-opts")));
-        // A drop's write, as the card dropped on the folder's row makes it.
-        await game.modules.get("fvtt-mod-cardcatalogue").api.scenes.scenes.setFolder(scene, folderId);
-        const filed = !!(await wait(() => scene.folder?.id === folderId));
+        // A real drag: the card's dragstart, then dragover and drop on the folder's row.
+        const drag = (card, row) => {
+          const dt = new DataTransfer();
+          card.dispatchEvent(new DragEvent("dragstart", { bubbles: true, dataTransfer: dt }));
+          row.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt }));
+          row.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt }));
+          card.dispatchEvent(new DragEvent("dragend", { bubbles: true, dataTransfer: dt }));
+        };
+        win.element.querySelector('.cc-rail [data-view="all"]')?.click();
+        await wait(() => win.element.querySelector(`.cc-rail [data-folder="${folderId}"]`) && card());
+        const emptyRow = !!win.element.querySelector(`.cc-rail [data-folder="${folderId}"]`);
+        drag(card(), win.element.querySelector(`.cc-rail [data-folder="${folderId}"]`));
+        const filed = !!(await wait(() => scene.folder?.id === folderId)) && emptyRow;
         const row = await wait(() => win.element.querySelector(`.cc-rail [data-view="f:${folderId}"]`));
         row?.click();
         await wait(() => win.element.querySelector(".cc-head h2")?.textContent === scene.folder?.name);
@@ -277,7 +287,7 @@ try {
     assert(D.on && D.off, "the chevron puts the scene on the bar and takes it off");
     assert(["activate", "edit", "preload", "toggleNav"].every(a => D.actions.includes(a)), `the chevron offers Activate, Edit, Preload, the bar (${D.actions.join(", ")})`);
     assert(D.menuClosed, "a chevron action closes the chevron");
-    assert(D.filed && D.row && D.inFolder, "filed in a folder, the rail lists it and holds only it");
+    assert(D.filed && D.row && D.inFolder, "an empty folder is in the GM's rail; a card dragged onto it is filed there, and the folder holds only it");
     await shot("02-folder");
 
     // --- E. the finder ---------------------------------------------------------------------

@@ -21,6 +21,7 @@ import {
   kindOf,
   matchWhy,
   normPath,
+  pageLink,
   pictureOf,
   plainText,
   prettyName,
@@ -254,6 +255,8 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       optCaption: JournalWindow.#onOptCaption,
       optGo: JournalWindow.#onOptGo,
       optCancel: JournalWindow.#onOptCancel,
+      copyLink: JournalWindow.#onCopyLink,
+      copyRef: JournalWindow.#onCopyRef,
       undo: JournalWindow.#onUndo,
       dismissReveal: JournalWindow.#onDismissReveal,
       markSeen: JournalWindow.#onMarkSeen,
@@ -433,7 +436,8 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     context.size = this.#size;
     context.query = this.#query;
     context.loading = gm && !!filesLoading;
-    context.types = TYPES.map(id => ({ id, label: t(`type.${id}`), n: typeCount[id], on: this.#type === id }));
+    // A type with no page in view is no pill (All and the chosen one always are): the bar stays one line.
+    context.types = TYPES.filter(id => id === "all" || typeCount[id] > 0 || this.#type === id).map(id => ({ id, label: t(`type.${id}`), n: typeCount[id], on: this.#type === id }));
     context.sizes = SIZES.map(id => ({ id, label: t(`size.${id}`), aria: t(`size.${id}Aria`), on: this.#size === id }));
     context.views = viewIds.map(id => ({
       id,
@@ -950,6 +954,18 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     return this.#show(o.key, { to: o.to, keep: o.keep, title: o.title, caption: o.caption, picture: o.picture });
   }
 
+  /** The page's web link: once logged in, it opens the page for whoever may see it (journal.js). */
+  static #onCopyLink() {
+    const page = fromUuidSync(this.#opts?.key);
+    if (isPage(page)) return copyText(pageLink(window.location.href, page.uuid), t("opts.copied"));
+  }
+
+  /** The page as Foundry's own content link, for a journal, a description or a chat message. */
+  static #onCopyRef() {
+    const page = fromUuidSync(this.#opts?.key);
+    if (isPage(page)) return copyText(`@UUID[${page.uuid}]{${page.name}}`, t("opts.copied"));
+  }
+
   static #onOptCancel() {
     this.#closeOpts();
   }
@@ -1025,5 +1041,15 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     this.#focus = null;
     this.#sticky = null;
     this.#returnTo = null;
+  }
+}
+
+/** Text to the clipboard; where the browser refuses, the text in a notice to copy by hand. */
+async function copyText(text, done) {
+  try {
+    await game.clipboard.copyPlainText(text);
+    ui.notifications.info(done);
+  } catch {
+    ui.notifications.info(text);
   }
 }

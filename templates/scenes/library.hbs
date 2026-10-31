@@ -31,9 +31,7 @@
         <span class="n">{{label}}</span><small>{{n}}</small>
       </button>
       {{/each}}
-      {{#if folders.length}}
       <div class="cc-key">{{localize "fvtt-mod-cardcatalogue.scenes.rail.folders"}}</div>
-      {{/if}}
       {{#each folders}}
       <button type="button" class="cc-row cc-folderrow {{#if on}}on{{/if}}" style="--depth: {{indent}}" data-action="rail" data-view="f:{{id}}" data-drop="folder" data-folder="{{id}}" aria-current="{{#if on}}true{{else}}false{{/if}}">
         <i class="fa-solid fa-folder cc-ficon" inert></i><span class="n">{{name}}</span><small>{{n}}</small>
@@ -44,6 +42,9 @@
         <i class="fa-regular fa-folder-open cc-ficon" inert></i><span class="n">{{localize "fvtt-mod-cardcatalogue.scenes.rail.noFolder"}}</span><small>{{loose.n}}</small>
       </button>
       {{/if}}
+      <button type="button" class="cc-row cc-newfolder" data-action="newFolder" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.folders.hint'}}">
+        <i class="fa-solid fa-folder-plus cc-ficon" inert></i><span class="n">{{localize "fvtt-mod-cardcatalogue.folders.new"}}</span>
+      </button>
     </nav>
 
     <section class="cc-main">

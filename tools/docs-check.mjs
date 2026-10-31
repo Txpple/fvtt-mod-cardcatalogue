@@ -67,6 +67,7 @@ cleanup = async () => {
       async ({ scratch, userName, prior }) => {
         if (prior?.viewedId && canvas.scene?.id !== prior.viewedId) await game.scenes.get(prior.viewedId)?.view();
         for (const s of game.scenes.filter(s => s.name === scratch)) await s.delete();
+        for (const fo of game.folders.filter(fo => fo.type === "Actor" && fo.name === "ZZ-CC Folder")) await fo.delete();
         for (const u of game.users.filter(u => u.name === userName)) await u.delete();
         for (const app of [...foundry.applications.instances.values()]) {
           if (app.id?.startsWith("cardcatalogue-") || app.document?.documentName === "Actor" || app.document?.documentName === "Item") await app.close();
@@ -170,13 +171,41 @@ try {
       await wait(() => win.view === "here" && win.element.querySelectorAll(".cc-card[data-key]").length < game.actors.size);
       const here = [...win.element.querySelectorAll(".cc-card[data-key]")].map(c => c.dataset.key);
       win.element.querySelector('.cc-rail [data-view="all"]')?.click();
-      return { rows, placed, closed, here: here.length === 1 && here[0] === npc.uuid, npc: npc.name };
+      // A real drag: the card's dragstart, then dragover and drop on the folder's row.
+      const drag = (card, row) => {
+        const dt = new DataTransfer();
+        card.dispatchEvent(new DragEvent("dragstart", { bubbles: true, dataTransfer: dt }));
+        row.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt }));
+        row.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt }));
+        card.dispatchEvent(new DragEvent("dragend", { bubbles: true, dataTransfer: dt }));
+      };
+      // New Folder: its dialog asks the name; the rail shows the new folder, empty, and the view moves to it.
+      for (const fo of game.folders.filter(fo => fo.type === "Actor" && fo.name === "ZZ-CC Folder")) await fo.delete();
+      win.element.querySelector('.cc-rail [data-action="newFolder"]')?.click();
+      const input = await wait(() => [...document.querySelectorAll('dialog input[name="name"], .application input[name="name"]')].find(i => i.offsetParent));
+      if (input) {
+        input.value = "ZZ-CC Folder";
+        input.closest("form, .application")?.querySelector('[data-action="ok"], button[type="submit"]')?.click();
+      }
+      const made = await wait(() => game.folders.find(fo => fo.type === "Actor" && fo.name === "ZZ-CC Folder"));
+      const inView = !!(await wait(() => made && win.view === `f:${made.id}`));
+      const madeRow = !!(made && (await wait(() => win.element.querySelector(`.cc-rail [data-folder="${made.id}"]`))));
+      // Back to All, then the NPC dragged onto the new folder; it goes back where it was after.
+      const was = npc.folder?.id ?? null;
+      win.element.querySelector('.cc-rail [data-view="all"]')?.click();
+      const npcCard = await wait(() => win.view === "all" && win.element.querySelector(`.cc-card[data-key="${npc.uuid}"]`));
+      if (made && npcCard) drag(npcCard, win.element.querySelector(`.cc-rail [data-folder="${made.id}"]`));
+      const dropped = !!(made && (await wait(() => npc.folder?.id === made.id)));
+      await npc.update({ folder: was });
+      return { rows, placed, closed, here: here.length === 1 && here[0] === npc.uuid, npc: npc.name, made: !!made, inView, madeRow, dropped };
     },
     { scratch: SCRATCH }
   );
   assert(["art", "tokenArt", "place", "ownership"].every(r => B.rows.includes(r)), `the GM's chevron: Show the art, the token art, Place a token, Ownership (${B.rows.join(", ")})`);
   assert(B.placed && B.closed, `Place a token put ${B.npc} on the viewed scene and closed the chevron`);
   assert(B.here, "On this scene lists the actor with a token there, and only it");
+  assert(B.made && B.inView && B.madeRow, "New Folder asks a name, makes the folder and shows it, empty, in the rail");
+  assert(B.dropped, "an actor card dragged onto the new folder is filed there");
 
   // --- C. switching in place, the items case ------------------------------------------------
   console.log("# C. the strip switches to items in place");

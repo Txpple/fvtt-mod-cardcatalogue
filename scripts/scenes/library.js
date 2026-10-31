@@ -11,6 +11,7 @@ import { activateAs, folderTree, inView, matchWhy, searchFields, VIEWS } from ".
 import * as memory from "./memory.js";
 import * as scenes from "./scenes.js";
 import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
+import { newFolder } from "../shell/folders.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -89,7 +90,8 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       undo: ScenesWindow.#onUndo,
       dismissUndo: ScenesWindow.#onDismissUndo,
       classic: ScenesWindow.#onClassic,
-      case: ScenesWindow.#onCase
+      case: ScenesWindow.#onCase,
+      newFolder: ScenesWindow.#onNewFolder
     }
   };
 
@@ -199,7 +201,7 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     this.#inView = new Set(list.map(c => c.key));
 
     const folders = game.folders.filter(f => f.type === "Scene").map(f => ({ id: f.id, name: f.name, parent: f.folder?.id ?? null, sort: f.sort }));
-    const tree = folderTree(folders, all, byName);
+    const tree = folderTree(folders, all, byName, { keepEmpty: true });
     const loose = all.filter(c => !c.folders.length).length;
 
     context.cases = stripContext("scenes");
@@ -208,7 +210,8 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     context.sizes = SIZES.map(id => ({ id, label: t(`size.${id}`), aria: t(`size.${id}Aria`), on: this.#size === id }));
     context.views = VIEWS.map(id => ({ id, label: t(`view.${id}`), n: all.filter(c => inView(c, id)).length, on: view === id }));
     context.folders = tree.map(f => ({ ...f, on: view === `f:${f.id}`, indent: f.depth }));
-    context.loose = tree.length && loose ? { n: loose, on: view === "f:" } : null;
+    // No folder stays a drop target while there are folders, even with nothing in it.
+    context.loose = tree.length ? { n: loose, on: view === "f:" } : null;
     context.heading = this.#heading(view);
     context.cards = list.map(c => this.#cardContext(c));
     context.countBase = counted(list.filter(c => inView(c, view)).length, "count.scenes");
@@ -591,6 +594,17 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
   /** Another case, where this window stands. */
   static #onCase(_event, target) {
     return switchCase(this, target.dataset.case);
+  }
+
+  /** A new folder, inside the one in view when it can be; the rail then shows it, to drop scenes on. */
+  static async #onNewFolder() {
+    const parent = this.#view?.startsWith("f:") ? this.#view.slice(2) || null : null;
+    const folder = await scenes.guarded("making the folder", () => newFolder("Scene", parent));
+    if (!folder) return;
+    this.#view = `f:${folder.id}`;
+    this.#sticky = null;
+    memory.setPrefs({ view: this.#view });
+    this.render();
   }
 
   /** The case this window is, for the strip. */

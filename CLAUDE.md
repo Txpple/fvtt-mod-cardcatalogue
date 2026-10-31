@@ -7,7 +7,8 @@ sidebar showing only the tabs the table uses (the two rules carried over from Ho
 Foundry's own directories. Part of Open Roll 5e (the suite repo is `..`, its CLAUDE.md has the family's conventions;
 the plan is `../docs/plans/cardcatalogue.md`). Plain ES modules, no build step, no libWrapper, no socketlib, MIT.
 
-**State (2026-10-31).** 1.0.0 released and on prod (the user: "commit/push, put on prod. remove scroll case and archive
+**State (2026-10-31).** 1.0.1 (the journal's bar on one line; a page's Copy link and Copy @ reference in its
+chevron; New Folder and empty folders in the GM's rail) released and on prod. 1.0.0 released and on prod (the user: "commit/push, put on prod. remove scroll case and archive
 it"): installed and enabled through the installer, every released file served byte-identical, a prod GM page opening
 every case with all its cards (journal 31, scenes 50, actors 84, items 39) and its sidebar without the hidden tabs;
 Scroll Case disabled, uninstalled and its repo archived. Before it, 0.1.0, the working draft: the public repo `Txpple/fvtt-mod-cardcatalogue`
@@ -46,7 +47,13 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   (only the GM moves; "You are here" greyed on the scene this client is on), Open for an actor or an item. The
   chevron holds the rest: the journal's Show options; the scenes' Activate (Pull everyone on the active scene),
   Edit, Notes, Preload, the bar, the thumbnail; the actors' and items' GM actions. A page's visibility per player
-  and its section are set through Show and a drop on the rail, or Foundry's own sheet. **One finder per case** (the user's
+  and its section are set through Show and a drop on the rail, or Foundry's own sheet; a page's chevron (the Show
+  options) carries its web link (`/game?page=<uuid>`) and its `@UUID` reference.
+- **Folders, for the GM** (the user: "+Create Folder just like we can create a thread in clue board"): New Folder at
+  the foot of the scenes', actors' and items' rails asks a name in Foundry's dialog and makes the folder inside the
+  one in view when Foundry's depth allows (`shell/folders.js`), the view moving to it; the GM's rail lists empty
+  folders (`folderTree`'s `keepEmpty`) and No folder, so a card dragged onto any of them is filed there (the stock
+  drop's `folder` write). The journal files by section, as Scroll Case did. **One finder per case** (the user's
   ruling): the journal's Ctrl+Shift+H (Enter shows), the scenes' Ctrl+Shift+M (Enter views), the actors' and items'
   unbound (Enter opens; Ctrl+Enter shows the art, or posts the item to chat).
 - **The sidebar-tabs rules** (`tabs/rules.js` pure and tested, `tabs/apply.js` the writes) are House Rules 1.3.0's,

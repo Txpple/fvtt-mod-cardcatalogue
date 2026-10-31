@@ -11,6 +11,7 @@
 import { log, MODULE_ID, t as rootT } from "../common.js";
 import { folderTree } from "../scenes/decide.js";
 import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
+import { newFolder } from "../shell/folders.js";
 import { byType, inView, matchWhy, searchFields, typeCounts } from "./decide.js";
 import { createRecord } from "./memory.js";
 
@@ -120,6 +121,22 @@ export function makeCaseWindow(spec) {
         },
         case(_ev, target) {
           return switchCase(this, target.dataset.case);
+        },
+        /** A new folder, inside the one in view when it can be; the rail then shows it, to drop cards on. */
+        async newFolder() {
+          const parent = this.view?.startsWith("f:") ? this.view.slice(2) || null : null;
+          let folder = null;
+          try {
+            folder = await newFolder(spec.documentName, parent);
+          } catch (err) {
+            log.error("making the folder failed", err);
+            ui.notifications.error(rootT("docs.failed"));
+          }
+          if (!folder) return;
+          this.view = `f:${folder.id}`;
+          this.sticky = null;
+          record.setPrefs({ view: this.view });
+          this.render();
         }
       }
     };
@@ -226,7 +243,7 @@ export function makeCaseWindow(spec) {
       const folders = game.folders
         .filter(f => f.type === spec.documentName && (gm || f.visible !== false))
         .map(f => ({ id: f.id, name: f.name, parent: f.folder?.id ?? null, sort: f.sort }));
-      const tree = folderTree(folders, all, byName);
+      const tree = folderTree(folders, all, byName, { keepEmpty: gm });
       const loose = all.filter(c => !c.folders.length).length;
 
       context.cases = stripContext(spec.id);
@@ -241,7 +258,9 @@ export function makeCaseWindow(spec) {
       context.views = fixed.map(id => ({ id, label: t(`view.${id}`), n: all.filter(c => inView(c, id)).length, on: view === id }));
       context.types = types.length > 1 ? types.map(x => ({ id: `t:${x.type}`, label: spec.typeLabel(x.type, true), n: x.n, on: view === `t:${x.type}` })) : [];
       context.folders = tree.map(f => ({ ...f, on: view === `f:${f.id}`, indent: f.depth }));
-      context.loose = tree.length && loose ? { n: loose, on: view === "f:", label: t("rail.noFolder") } : null;
+      // For the GM, No folder stays a drop target while there are folders, even with nothing in it.
+      context.loose = tree.length && (loose || gm) ? { n: loose, on: view === "f:", label: t("rail.noFolder") } : null;
+      context.showFolders = gm || tree.length > 0;
       context.heading = this.#heading(view);
       context.cards = list.map(c => this.#cardContext(c));
       context.countBase = counted(list.filter(c => inView(c, view)).length, "count.cards");

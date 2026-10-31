@@ -220,6 +220,12 @@ try {
         await win.render();
         win.element.querySelector(`.cc-card[data-key="${picture.uuid}"] [data-action="pick"]`)?.click();
         out.reader = await wait(() => foundry.applications.instances.get(`cardcatalogue-journal-reader-${picture.id}`)?.rendered);
+        // The page's chevron carries its web link and its content link.
+        win.element.querySelector(`.cc-card[data-key="${picture.uuid}"] [data-action="openOpts"]`)?.click();
+        await wait(() => win.element.querySelector(".cc-opts"));
+        out.links = ["copyLink", "copyRef"].every(a => !!win.element.querySelector(`.cc-opts [data-action="${a}"]`));
+        win.element.querySelector('.cc-opts [data-action="optCancel"]')?.click();
+        await wait(() => !win.element.querySelector(".cc-opts"));
         out.noPanel = !win.element.querySelector(".cc-detail");
         await foundry.applications.instances.get(`cardcatalogue-journal-reader-${picture.id}`)?.close();
         out.startHidden = sees(picture).length === 0;
@@ -261,6 +267,7 @@ try {
       { id: MODULE_ID, scratch: SCRATCH, keep: SCRATCH_KEEP, userId: temp.userId }
     );
     assert(C.reader && C.noPanel, "the GM's click on a card opens the page in the Reader, no side panel");
+    assert(C.links, "a page's chevron carries Copy link and Copy @ reference");
     assert(C.startHidden, "the scratch picture starts GM only");
     assert(C.onlyTemp, `a Show that keeps it visible, to one player: only that player can see it (${JSON.stringify(C.mapOne)})`);
     assert(C.undone, "its Undo puts the page back to GM only");

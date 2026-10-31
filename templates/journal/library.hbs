@@ -134,6 +134,12 @@
         {{#unless opts.loose}}<button type="button" class="cc-tog cc-switch {{#if opts.caption}}on{{/if}}" data-action="optCaption" role="switch" aria-checked="{{#if opts.caption}}true{{else}}false{{/if}}"><i class="fa-regular {{#if opts.caption}}fa-square-check{{else}}fa-square{{/if}}" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.opts.caption"}}</button>{{/unless}}
       </div>
       {{/if}}
+      {{#unless opts.loose}}
+      <div class="cc-togs cc-opts-links">
+        <button type="button" class="cc-tog" data-action="copyLink" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.opts.copyLinkHint'}}"><i class="fa-solid fa-link" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.opts.copyLink"}}</button>
+        <button type="button" class="cc-tog" data-action="copyRef" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.opts.copyRefHint'}}"><i class="fa-solid fa-at" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.opts.copyRef"}}</button>
+      </div>
+      {{/unless}}
       <div class="cc-opts-foot">
         <button type="button" class="cc-btn" data-action="optCancel">{{localize "Cancel"}}</button>
         <button type="button" class="cc-btn pri" data-action="optGo"><i class="fa-solid fa-paper-plane" inert></i> {{localize "fvtt-mod-cardcatalogue.journal.show.button"}}</button>

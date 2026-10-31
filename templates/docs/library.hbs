@@ -37,7 +37,7 @@
       </button>
       {{/each}}
       {{/if}}
-      {{#if folders.length}}
+      {{#if showFolders}}
       <div class="cc-key">{{localize "fvtt-mod-cardcatalogue.docs.folders"}}</div>
       {{/if}}
       {{#each folders}}
@@ -48,6 +48,11 @@
       {{#if loose}}
       <button type="button" class="cc-row cc-folderrow {{#if loose.on}}on{{/if}}" style="--depth: 0" data-action="rail" data-view="f:" data-drop="folder" data-folder="" aria-current="{{#if loose.on}}true{{else}}false{{/if}}">
         <i class="fa-regular fa-folder-open cc-ficon" inert></i><span class="n">{{loose.label}}</span><small>{{loose.n}}</small>
+      </button>
+      {{/if}}
+      {{#if isGM}}
+      <button type="button" class="cc-row cc-newfolder" data-action="newFolder" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.folders.hint'}}">
+        <i class="fa-solid fa-folder-plus cc-ficon" inert></i><span class="n">{{localize "fvtt-mod-cardcatalogue.folders.new"}}</span>
       </button>
       {{/if}}
     </nav>

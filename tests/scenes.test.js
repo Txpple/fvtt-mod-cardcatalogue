@@ -104,6 +104,15 @@ describe("the folder tree", () => {
     expect(folderTree(folders, cards).some(f => f.id === "e")).toBe(false);
   });
 
+  it("keeps it, at its place, when asked (the GM's rail)", () => {
+    expect(folderTree(folders, cards, undefined, { keepEmpty: true })).toEqual([
+      { id: "e", name: "Empty", depth: 0, n: 0 },
+      { id: "t", name: "Town", depth: 0, n: 1 },
+      { id: "b", name: "Blight", depth: 0, n: 3 },
+      { id: "c", name: "Caves", depth: 1, n: 2 }
+    ]);
+  });
+
   it("orders by name when the sorts tie", () => {
     const tied = [
       { id: "z", name: "Zed", parent: null },

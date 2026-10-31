@@ -59,7 +59,7 @@
 }
 
 .cc-search {
-  flex: 1 1 18rem;
+  flex: 1 1 14rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -1502,6 +1502,14 @@
   }
 }
 
+/* The journal's bar carries the type pills too: Classic Mode keeps its icon and its tooltip
+   sooner, so the bar stays one line. */
+@container cardcatalogue (max-width: 1250px) {
+  .cardcatalogue-journal-library .cc-classic-text {
+    display: none;
+  }
+}
+
 /* -------------------------------------------------- */
 /*  The actors and items cases                         */
 /* -------------------------------------------------- */
@@ -1556,4 +1564,18 @@
   opacity: 0.6;
   cursor: default;
   filter: saturate(0.4);
+}
+
+/* New Folder at the foot of the folders: quieter than a folder, the same row. */
+.cc-row.cc-newfolder {
+  margin-top: 0.15rem;
+  color: var(--cc-ink-3);
+  border-style: dashed;
+  border-color: var(--cc-line);
+}
+
+/* The page's two links in the Show options, under the switches. */
+.cc-opts-links {
+  padding-top: 0.25rem;
+  border-top: 1px solid var(--cc-line);
 }

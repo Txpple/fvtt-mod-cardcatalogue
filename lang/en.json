@@ -276,7 +276,12 @@
         "pictureOnly": "Just the picture",
         "title": "Title on the popout",
         "caption": "Caption",
-        "nobody": "Pick at least one player, or Everyone."
+        "nobody": "Pick at least one player, or Everyone.",
+        "copyLink": "Copy link",
+        "copyLinkHint": "A web link that opens this page for anyone who may see it, through the login",
+        "copyRef": "Copy @ reference",
+        "copyRefHint": "Foundry's content link, to paste in a journal, a description or a chat message",
+        "copied": "Copied."
       },
       "drop": {
         "filed": "{name} filed under {section}.",
@@ -575,6 +580,13 @@
         "spellLevel": "Level {n}",
         "cantrip": "Cantrip"
       }
+    },
+    "folders": {
+      "new": "New Folder",
+      "hint": "A folder for this directory, inside the one in view when it can be: drop cards on it to file them",
+      "newIn": "New folder in {folder}",
+      "name": "Name",
+      "create": "Create"
     }
   }
 }

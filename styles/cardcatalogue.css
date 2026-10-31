@@ -1568,6 +1568,8 @@
 
 /* Create New Folder at the foot of the folders: Clue Board's New Thread, a gold pill sized to its words. */
 .cc-row.cc-newfolder {
+  /* Never squeezed when the folders overflow the rail (a column that scrolls). */
+  flex: none;
   width: auto;
   min-height: 0;
   align-self: flex-start;

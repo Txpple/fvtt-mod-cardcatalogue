@@ -283,13 +283,15 @@ describe("the export", () => {
   });
 
   it("names the file after the view and the day", () => {
-    expect(exportName("Session 02 › Clues", "2026-10-30T21:00:00.000Z")).toBe(
-      "scrollcase-session-02-clues-2026-10-30.json"
+    expect(
+      exportName("Session 02 › Clues", "2026-10-30T21:00:00.000Z", "cardcatalogue-journal")
+    ).toBe("cardcatalogue-journal-session-02-clues-2026-10-30.json");
+    expect(exportName("Café Notes", "2026-10-30T00:00:00Z", "cardcatalogue-journal")).toBe(
+      "cardcatalogue-journal-cafe-notes-2026-10-30.json"
     );
-    expect(exportName("Café Notes", "2026-10-30T00:00:00Z")).toBe(
-      "scrollcase-cafe-notes-2026-10-30.json"
+    expect(exportName("", "2026-10-30T00:00:00Z", "cardcatalogue-journal")).toBe(
+      "cardcatalogue-journal-entries-2026-10-30.json"
     );
-    expect(exportName("", "2026-10-30T00:00:00Z")).toBe("scrollcase-entries-2026-10-30.json");
     expect(exportName("Player Characters", "2026-10-31", "cardcatalogue-actors")).toBe(
       "cardcatalogue-actors-player-characters-2026-10-31.json"
     );
@@ -302,10 +304,11 @@ describe("the export", () => {
       type: "all",
       search: "",
       at: "2026-10-30T00:00:00Z",
-      entries: [{ name: "A" }]
+      entries: [{ name: "A" }],
+      format: "fvtt-mod-cardcatalogue/journal"
     });
     expect(data).toMatchObject({
-      format: "fvtt-mod-scrollcase/entries",
+      format: "fvtt-mod-cardcatalogue/journal",
       version: 1,
       view: "All pages",
       search: null,

@@ -1039,9 +1039,9 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     const at = new Date().toISOString();
     const heading = this.#heading(this.#view);
     const search = this.#query.trim();
-    const data = exportOf({ world: game.world.title, view: heading, type: this.#type, search, at, entries });
+    const data = exportOf({ world: game.world.title, view: heading, type: this.#type, search, at, entries, format: `${MODULE_ID}/journal` });
     // The file is named for the local day; the export's own stamp stays UTC.
-    const name = exportName(search ? `${heading} ${search}` : heading, new Date().toLocaleDateString("en-CA"));
+    const name = exportName(search ? `${heading} ${search}` : heading, new Date().toLocaleDateString("en-CA"), "cardcatalogue-journal");
     foundry.utils.saveDataToFile(JSON.stringify(data, null, 2), "application/json", name);
     ui.notifications.info(t(entries.length === 1 ? "export.doneOne" : "export.done", { name, n: entries.length }));
   }

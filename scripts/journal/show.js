@@ -3,7 +3,7 @@
  * ownership (the Show dialog's and the ownership dialog's write), a page's section, a new section,
  * a new image page for a kept file. Showing is a message on the module's own socket channel (not
  * data: nothing is stored): each player's client it is for opens it in the Reader, or, in Classic
- * Mode or for a PDF, as Foundry's own Show would (scrollcase.js, `receiveShow`).
+ * Mode or for a PDF, as Foundry's own Show would (journal.js, `receiveShow`).
  *
  * Ownership writes on one page run one after another, each reading the page as the last one left
  * it, so two quick toggles never build on the same stale map. A Show that reveals a page records

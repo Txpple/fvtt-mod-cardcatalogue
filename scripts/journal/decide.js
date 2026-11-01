@@ -1,7 +1,7 @@
 // @ts-check
 /**
  * The decisions that need no Foundry: what a card shows, what a search matches and why, and the
- * ownership map a "who can see it" choice comes to. Tested in tests/scrollcase.test.js.
+ * ownership map a "who can see it" choice comes to. Tested in tests/journal.test.js.
  */
 
 /** Foundry's ownership levels (CONST.DOCUMENT_OWNERSHIP_LEVELS), copied so this file needs no Foundry. */
@@ -293,10 +293,10 @@ export function withoutImages(html) {
 }
 
 /**
- * What an export file is called: `<prefix>-<what is in view>-<date>.json`; the journal's prefix is
- * Scroll Case's, the other cases' `cardcatalogue-<case>`.
+ * What an export file is called: `<prefix>-<what is in view>-<date>.json`, each case's prefix
+ * `cardcatalogue-<case>`.
  */
-export function exportName(heading, at, prefix = "scrollcase") {
+export function exportName(heading, at, prefix) {
   const slug = String(heading ?? "")
     .toLowerCase()
     .normalize("NFKD")
@@ -310,11 +310,11 @@ export function exportName(heading, at, prefix = "scrollcase") {
 /**
  * The export of the cards in view, in their order: each card's words and where it lives, no
  * picture data (an image, video or PDF page names its file). `entries` come already read for the
- * exporting user (a player's without the GM's secrets). The other cases name their own format and
- * have no type.
+ * exporting user (a player's without the GM's secrets). Each case names its format
+ * (`fvtt-mod-cardcatalogue/<case>`); only the journal's has a type.
  * @param {{ world: string, view: string, type?: string, search: string, at: string, entries: object[], format?: string }} what
  */
-export function exportOf({ world, view, type, search, at, entries, format = "fvtt-mod-scrollcase/entries" }) {
+export function exportOf({ world, view, type, search, at, entries, format }) {
   return {
     format,
     version: 1,

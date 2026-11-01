@@ -58,13 +58,12 @@ export function sceneEntry(card) {
 }
 
 /** The rail's views, in order. */
-export const VIEWS = Object.freeze(["all", "here", "nav", "off"]);
+export const VIEWS = Object.freeze(["all", "here"]);
 
 /**
  * Whether a card sits in a view: All; Active and viewed (the active scene, and the one this client
- * looks at); on the players' bar; off it; a folder ("f:<id>", its subfolders too) or no folder
- * ("f:"). The active scene is always on the bar, as Foundry draws it.
- * @param {{ active: boolean, viewed: boolean, nav: boolean, folders: string[] }} card folders: the
+ * looks at); a folder ("f:<id>", its subfolders too) or no folder ("f:").
+ * @param {{ active: boolean, viewed: boolean, folders: string[] }} card folders: the
  *   scene's folder and every folder above it, nearest first
  * @param {string} view
  */
@@ -74,10 +73,6 @@ export function inView(card, view) {
       return true;
     case "here":
       return card.active || card.viewed;
-    case "nav":
-      return card.nav || card.active;
-    case "off":
-      return !card.nav && !card.active;
     default:
       if (view === "f:") return !card.folders.length;
       if (view?.startsWith("f:")) return card.folders.includes(view.slice(2));

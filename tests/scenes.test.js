@@ -58,13 +58,6 @@ describe("the views", () => {
     expect(inView(card(), "here")).toBe(false);
   });
 
-  it("the active scene is on the bar, as Foundry draws it", () => {
-    expect(inView(card({ active: true }), "nav")).toBe(true);
-    expect(inView(card({ active: true }), "off")).toBe(false);
-    expect(inView(card({ nav: true }), "nav")).toBe(true);
-    expect(inView(card(), "off")).toBe(true);
-  });
-
   it("a folder holds its subfolders' scenes; f: holds the loose ones", () => {
     const deep = card({ folders: ["caves", "blight"] });
     expect(inView(deep, "f:blight")).toBe(true);

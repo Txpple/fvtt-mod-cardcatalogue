@@ -59,7 +59,7 @@
       },
       "assetFolders": {
         "name": "Journal: asset folders",
-        "hint": "Where Not in a journal looks for pictures no journal page uses yet: folders relative to Data, one per line or separated by commas. Blank: the world's assets/handouts, assets/journal, assets/maps and assets/portraits."
+        "hint": "Where the GM's search looks for pictures no journal page uses yet: folders relative to Data, one per line or separated by commas. Blank: the world's assets/handouts, assets/journal, assets/maps and assets/portraits."
       },
       "handoutsJournal": {
         "name": "Journal: Handouts journal",
@@ -153,7 +153,6 @@
         "all": "All",
         "visible": "Visible to players",
         "gm": "GM only",
-        "loose": "Not in a journal",
         "unseen": "New"
       },
       "count": {
@@ -236,7 +235,6 @@
           "all": "This world has no journal pages yet.",
           "visible": "No page is visible to the players yet. Show one, or light a player under Players can see.",
           "gm": "Every page is visible to the players.",
-          "loose": "Every picture in the asset folders is in a journal.",
           "journal": "No pages here."
         },
         "player": {
@@ -348,15 +346,11 @@
       },
       "view": {
         "all": "All",
-        "here": "Active and viewed",
-        "nav": "On the players' bar",
-        "off": "Off the bar"
+        "here": "Active and viewed"
       },
       "empty": {
         "all": "No scenes yet. Make one in Classic Mode, or with the Scenes directory's Create Scene.",
         "here": "No scene is active.",
-        "nav": "No scene is on the players' bar.",
-        "off": "Every scene is on the players' bar.",
         "folder": "No scenes here.",
         "search": "No scene by that name, folder, note, playlist or file.",
         "searchHere": "Nothing here matches “{q}”."

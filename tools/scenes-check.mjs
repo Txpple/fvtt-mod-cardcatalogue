@@ -188,15 +188,14 @@ try {
     const empty = !el.querySelector(".cc-empty").hidden;
     type("");
     const rail = [...el.querySelectorAll(".cc-rail .cc-row")].map(r => ({ view: r.dataset.view, n: Number(r.querySelector("small")?.textContent) }));
-    const nav = rail.find(r => r.view === "nav")?.n;
-    const navExpected = game.scenes.filter(s => s.navigation || s.active).length;
+    const views = rail.filter(r => r.view && !r.view.startsWith("f:")).map(r => r.view);
     const folders = rail.filter(r => r.view?.startsWith("f:")).length;
     const sceneFolders = game.folders.filter(fo => fo.type === "Scene" && fo.contents.length).length;
-    return { caves: caves.length, expected, none: none.length, empty, nav, navExpected, folders, sceneFolders };
+    return { caves: caves.length, expected, none: none.length, empty, views, folders, sceneFolders };
   });
   assert(B.caves === B.expected && B.caves > 0, `"deep caves" finds the caves (${B.caves} of ${B.expected})`);
   assert(B.none === 0 && B.empty, "a word in nothing leaves no card and says so");
-  assert(B.nav === B.navExpected, `On the players' bar counts the bar (${B.nav} of ${B.navExpected})`);
+  assert(B.views.join() === "all,here", `the rail's views are All and Active and viewed (${B.views.join(", ")})`);
   assert(B.folders >= B.sceneFolders, `the rail lists the scene folders (${B.folders}, ${B.sceneFolders} with scenes)`);
 
   if (walk) {

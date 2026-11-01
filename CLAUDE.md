@@ -7,7 +7,7 @@ sidebar showing only the tabs the table uses (the two rules carried over from Ho
 Foundry's own directories. Part of Open Roll 5e (the suite repo is `..`, its CLAUDE.md has the family's conventions;
 the plan is `../docs/plans/cardcatalogue.md`). Plain ES modules, no build step, no libWrapper, no socketlib, MIT.
 
-**State (2026-10-31).** 1.0.5 (Export of the cards in view in the scenes, actors and items cases, as the journal's, `shell/export.js`; the journal's folder headings laid from the left) released and on prod; 1.0.4 (a folder's caret is its own button beside the row: inside it, a real click picked
+**State (2026-10-31).** 1.0.6 (the journal's *Not in a journal* row and the scenes' *On the players' bar* and *Off the bar* rows gone from the rails) released and on prod; 1.0.5 (Export of the cards in view in the scenes, actors and items cases, as the journal's, `shell/export.js`; the journal's folder headings laid from the left) released and on prod; 1.0.4 (a folder's caret is its own button beside the row: inside it, a real click picked
 the folder; walked with the real mouse) released and on prod before it; 1.0.3 (a click selects a card, a double click or Enter does its one thing; the rail's
 folders collapse by a caret, the journal's folder headings collapse their journals, each browser remembering)
 released, never on prod; 1.0.2 (the top level is *Unfiled*; *+ Create New Folder* a gold pill as Clue Board's New
@@ -55,6 +55,9 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   Edit, Notes, Preload, the bar, the thumbnail; the actors' and items' GM actions. A page's visibility per player
   and its section are set through Show and a drop on the rail, or Foundry's own sheet; a page's chevron (the Show
   options) carries its web link (`/game?page=<uuid>`) and its `@UUID` reference.
+- **The rails hold what the user keeps** (the user's ruling, "remove these items"): the journal's GM rail is All,
+  Visible to players, GM only and the journals, a picture on no page coming up only in All's search; the scenes'
+  rail is All, Active and viewed and the folders, the players' bar set from the chevron.
 - **Folders, for the GM** (the user: "+Create Folder just like we can create a thread in clue board"): Create New Folder at
   the foot of the scenes', actors' and items' rails asks a name in Foundry's dialog and makes the folder inside the
   one in view when Foundry's depth allows (`shell/folders.js`), the view moving to it; the GM's rail lists empty

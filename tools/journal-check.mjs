@@ -282,7 +282,9 @@ try {
         // a kept file
         const api = game.modules.get(id).api;
         out.keepBefore = !game.journal.getName(keep);
-        win.element.querySelector('.cc-row[data-view="loose"]')?.click();
+        // No rail row for the files: All draws them for the search.
+        out.noLooseRow = !win.element.querySelector('.cc-row[data-view="loose"]');
+        win.element.querySelector('.cc-row[data-view="all"]')?.click();
         await new Promise(r => setTimeout(r, 400));
         const loose = win.element.querySelector(".cc-card[data-loose]")?.dataset.key;
         await api.journal.show.keepFile(loose);
@@ -306,6 +308,7 @@ try {
     assert(C.sectionRow && /ZZ Section/.test(C.sectionSub ?? ""), `a section shows in the rail and on the card (${C.sectionSub})`);
     assert(C.keepBefore && C.kept?.type === "image" && C.kept.src && C.kept.hidden, `Add to the Handouts journal makes a GM-only image page (${C.kept?.name})`);
     assert(C.keptGone, "the kept file is no longer listed as on no page");
+    assert(C.noLooseRow, "the GM's rail has no Not in a journal row; the files come up in All's search");
 
     // --- D. a player ---------------------------------------------------------------------
     console.log("# D. a player's journal case, and a Show reaching them");
@@ -517,8 +520,11 @@ try {
       const win = game.modules.get("fvtt-mod-cardcatalogue").api.journal.open();
       for (let i = 0; i < 30 && !win.rendered; i++) await new Promise(r => setTimeout(r, 100));
     });
-    await shot("2-loose", async () => {
-      foundry.applications.instances.get("cardcatalogue-journal-library").element.querySelector('.cc-row[data-view="loose"]')?.click();
+    await shot("2-files", async () => {
+      const el = foundry.applications.instances.get("cardcatalogue-journal-library").element;
+      const input = el.querySelector("input[name=search]");
+      input.value = el.querySelector(".cc-card[data-loose] .cc-nm span")?.textContent.trim() ?? "";
+      input.dispatchEvent(new Event("input", { bubbles: true }));
     });
     console.log("  written");
   }

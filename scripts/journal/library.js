@@ -373,8 +373,6 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
         return !card.loose && !who.none;
       case "gm":
         return !card.loose && who.none;
-      case "loose":
-        return gm && card.loose;
       case "unseen":
         return !gm && !memory.isSeen(card.key);
       default:
@@ -414,7 +412,7 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
 
     // The rail: who can see a page for the GM, All then New for a player. What was shown lives in
     // the finder (its empty list), not on the rail.
-    const viewIds = gm ? ["all", "visible", "gm", "loose"] : ["all", "unseen"];
+    const viewIds = gm ? ["all", "visible", "gm"] : ["all", "unseen"];
     if (!this.#view || !this.#validView(this.#view, viewIds)) this.#view = "all";
     const view = this.#view;
     const inView = c => c.key === this.#sticky || this.#inViewOf(c, view, seeing.get(c.key));
@@ -432,7 +430,6 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
 
     const players = show.players();
     const nPages = list.filter(c => !c.loose && fits(c)).length;
-    const nFiles = list.filter(c => c.loose && fits(c)).length;
     context.isGM = gm;
     context.cases = stripContext("journal");
     context.size = this.#size;
@@ -453,7 +450,7 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       ...list.map(c => this.#cardContext(c, seeing.get(c.key), players)),
       ...searchOnly.map(c => ({ ...this.#cardContext(c, nobody, players), searchOnly: true }))
     ];
-    context.countBase = view === "loose" ? counted(nFiles, "count.files") : gm || nPages ? counted(nPages, "count.pages") : "";
+    context.countBase = gm || nPages ? counted(nPages, "count.pages") : "";
     context.emptyText = t(`empty.${gm ? "gm" : "player"}.${view.startsWith("j:") || view.startsWith("c:") ? "journal" : view}`);
     context.opts = gm && this.#opts ? this.#optsContext(all) : null;
     const reveal = gm ? show.lastReveal() : null;

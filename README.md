@@ -13,7 +13,7 @@ thing you came for a click away.
 - **Items**: Open is one click; show the art, post to chat, or give a copy to the party behind the chevron.
 - **Compendium**: every pack a wide card wearing its banner, the rail its folders; Open is one click. Lock and
   ownership behind the chevron. Players see the packs they can.
-- **One window**: each sidebar button opens its case, with its stock tab open behind it, and the strip across the
+- **One window**: each sidebar button opens its case, the sidebar left as it was, and the strip across the
   top switches cases in place. A right-click on a scene, actor, item or pack card gives Foundry's own menu for it.
 - **Painted sidebar icons**: every tab button wears a picture in place of its glyph, so players find the tab they
   want. Each player can also draw the sidebar's buttons bigger (up to twice), on their own client.

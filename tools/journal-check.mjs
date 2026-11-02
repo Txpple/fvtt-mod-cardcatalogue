@@ -111,25 +111,24 @@ try {
     const el = win?.element;
     const pages = game.journal.contents.reduce((n, j) => n + j.pages.size, 0);
     for (let i = 0; i < 60 && el?.querySelector(".cc-loading"); i++) await new Promise(r => setTimeout(r, 150));
-    // A middle click on the Journal button is the sidebar's too: it opens the journal case as well as the tab.
+    // A middle click on the Journal button is the sidebar's too: it must open the journal case, not the tab.
     await win?.close();
-    ui.sidebar.changeTab(before.tab === "journal" ? "chat" : before.tab, "primary");
     button?.dispatchEvent(new MouseEvent("auxclick", { button: 1, bubbles: true, cancelable: true }));
     let mid = null;
     for (let i = 0; i < 30 && !mid?.rendered; i++) {
       await new Promise(r => setTimeout(r, 100));
       mid = foundry.applications.instances.get("cardcatalogue-journal-library");
     }
-    const midBehind = ui.sidebar.tabGroups.primary === "journal";
+    const midStill = ui.sidebar.tabGroups.primary === before.tab && ui.sidebar.expanded === before.expanded;
     return {
-      middle: !!mid?.rendered && midBehind,
+      middle: !!mid?.rendered && midStill,
       active: !!m?.active,
       version: m?.version,
       api: !!m?.api,
       keybinding: !!game.keybindings.actions.get(`${id}.journalFinder`),
       strip,
       opened: !!win?.rendered,
-      sidebarBehind: after.tab === "journal" && after.expanded,
+      sidebarStill: before.tab === after.tab && before.expanded === after.expanded,
       cards: el?.querySelectorAll(".cc-card").length ?? 0,
       pageCards: el?.querySelectorAll(".cc-card:not([data-loose])").length ?? 0,
       fileCards: el?.querySelectorAll(".cc-card[data-loose]").length ?? 0,
@@ -142,8 +141,8 @@ try {
   assert(A.active && A.api, `the module is active, its API set (v${A.version})`);
   assert(A.keybinding, "the finder's keybinding is registered");
   assert(A.opened, "a click on the Journal button opens the journal case window");
-  assert(A.sidebarBehind, "the Journal tab is lit and open behind the window");
-  assert(A.middle, "a middle click on the Journal button opens the journal case too, the tab behind it");
+  assert(A.sidebarStill, "the sidebar did not switch tabs or expand");
+  assert(A.middle, "a middle click on the Journal button opens the journal case too, the sidebar unchanged");
   assert(A.pageCards === A.pages, `one card per journal page (${A.pageCards} of ${A.pages})`);
   assert(A.fileCards > 0, `the asset folders give file cards (${A.fileCards})`);
   assert(A.classicButton, "the window carries Classic Mode");

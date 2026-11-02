@@ -21,7 +21,7 @@ const CLASS = "cardcatalogue-tab-icons";
     as a whole number (an object lists those first, and the choices would fall out of order). */
 const SCALE_CLASS = "cardcatalogue-tab-scale";
 const SCALES = ["1.00", "1.25", "1.50", "1.75", "2.00"];
-const DEFAULT_SCALE = "1.25";
+const DEFAULT_SCALE = "1.00";
 
 /** The tabs with a picture, each `styles/icons/tabs/<tab>.webp`. */
 export const PICTURED = [

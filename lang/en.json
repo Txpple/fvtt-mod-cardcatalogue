@@ -657,7 +657,9 @@
       "name": "Name",
       "create": "Create",
       "collapse": "Collapse",
-      "expand": "Expand"
+      "expand": "Expand",
+      "rename": "Rename Folder",
+      "renameTitle": "Rename {folder}"
     },
     "export": {
       "hint": "Export the cards in view as a JSON file (their words, no pictures)",

@@ -1,22 +1,23 @@
 /**
  * A case's folders, for the GM, as the stock directory makes and removes them. Create: the name asked
  * in Foundry's own small dialog, inside the folder in view when Foundry's depth allows it, else at the
- * top; cards are then filed by dropping them on its row in the rail. Remove (a right-click on a
- * folder's row): the stock Remove Folder, its own words and its own write, the folder deleted and
- * whatever was in it (cards and subfolders) moved up to its parent.
+ * top; cards are then filed by dropping them on its row in the rail. A right-click on a folder's row:
+ * Rename (the name asked again, the folder's own `name` written, as the stock folder sheet writes it)
+ * and the stock Remove Folder, its own words and its own write, the folder deleted and whatever was
+ * in it (cards and subfolders) moved up to its parent.
  */
 
 import { t } from "../common.js";
 
 const esc = s => foundry.utils.escapeHTML?.(String(s ?? "")) ?? String(s ?? "");
 
-/** A name, asked in a small dialog; null when cancelled or blank. */
-async function askName(title) {
+/** A name, asked in a small dialog (`value` filled in, the button `ok`); null when cancelled or blank. */
+async function askName(title, { value = "", ok = t("folders.create") } = {}) {
   try {
     const name = await foundry.applications.api.DialogV2.prompt({
       window: { title },
-      content: `<div class="form-group"><label>${esc(t("folders.name"))}</label><input type="text" name="name" autofocus></div>`,
-      ok: { label: t("folders.create"), callback: (_event, button) => button.form.elements.name.value.trim() },
+      content: `<div class="form-group"><label>${esc(t("folders.name"))}</label><input type="text" name="name" value="${esc(value)}" autofocus></div>`,
+      ok: { label: ok, callback: (_event, button) => button.form.elements.name.value.trim() },
       rejectClose: false
     });
     return name || null;
@@ -35,8 +36,16 @@ export async function newFolder(type, parentId = null) {
   return Folder.implementation.create({ name, type, folder: inside?.id ?? null, sorting: "a" });
 }
 
+/** A folder named again; nothing written when the name is unchanged or the dialog cancelled. */
+export async function renameFolder(folder) {
+  if (!game.user.isGM || !folder) return null;
+  const name = await askName(t("folders.renameTitle", { folder: folder.name }), { value: folder.name, ok: t("folders.rename") });
+  if (!name || name === folder.name) return null;
+  return folder.update({ name });
+}
+
 /**
- * The right-click menu on a folder's row in a case's rail (the GM's): Remove Folder. Bound once on the
+ * The right-click menu on a folder's row in a case's rail (the GM's): Rename Folder and Remove Folder. Bound once on the
  * window's element; Foundry's menu finds the row under the click, so every redraw is covered.
  */
 export function folderMenu(element) {
@@ -46,6 +55,11 @@ export function folderMenu(element) {
     element,
     '.cc-folderrow[data-folder]:not([data-folder=""])',
     [
+      {
+        label: t("folders.rename"),
+        icon: "fa-solid fa-pen",
+        onClick: (_event, row) => renameFolder(game.folders.get(row.dataset.folder))
+      },
       {
         label: "FOLDER.Remove",
         icon: "fa-solid fa-trash",

@@ -49,9 +49,9 @@ export function casesCards(spec, user = game.user) {
     .collection()
     .contents.filter(doc => canSee(doc, user) && !spec.hidden?.(doc, user))
     .map(doc => {
-      const chain = chainOf(doc.folder);
-      // A player is not told the name of a folder the stock directory hides from them.
-      const folders = user.isGM ? chain : chain.filter(f => f.visible !== false);
+      // Every folder above a card the user sees is one the stock directory shows them (it shows a
+      // player a folder holding anything they see; a Folder's own `visible` is false for every player).
+      const folders = chainOf(doc.folder);
       return {
         key: spec.keyOf ? spec.keyOf(doc) : doc.uuid,
         doc,
@@ -294,7 +294,7 @@ export function makeCaseWindow(spec) {
       this.#inView = new Set(list.map(c => c.key));
 
       const folders = game.folders
-        .filter(f => f.type === spec.documentName && (gm || f.visible !== false))
+        .filter(f => f.type === spec.documentName)
         .map(f => ({ id: f.id, name: f.name, parent: f.folder?.id ?? null, sort: f.sort, sorting: f.sorting }));
       const tree = folderTree(folders, all, byName, { keepEmpty: gm, rootSorting: spec.collection().sortingMode });
       const loose = all.filter(c => !c.folders.length).length;

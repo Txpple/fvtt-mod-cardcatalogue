@@ -7,7 +7,7 @@ sidebar showing only the tabs the table uses (the two rules carried over from Ho
 Foundry's own directories. Part of Open Roll 5e (the suite repo is `..`, its CLAUDE.md has the family's conventions;
 the plan is `../docs/plans/cardcatalogue.md`). Plain ES modules, no build step, no libWrapper, no socketlib, MIT.
 
-**State (2026-11-01).** 1.0.9 (Rename Folder beside Remove Folder on a rail's right-click, its dialog centred; checked on the sandbox with a scratch folder) released and on prod, on the user's word ("you can just release put on prod all the way"). 1.0.8 released and on prod (the user: "commit, push, deploy to prod ... (release too)"): the compendium case, a card's stock right-click menu (its dialogs centred), the painted sidebar icons, the client's button size (1.25 to 2 times, 1.25 by default), the sidebar left where it was when a case opens, the settings menu cut to *Enabled for <Case>?* and the size, the Reader without *Open in journal*. A Playlists case was built and dropped on the user's word ("drop it": the stock tab is a mixing desk, not a catalogue). Before the tag: `verify` green, `docs-check`, `scenes-check` and `journal-check --walk` GREEN on the sandbox; the release run green; prod installed through the installer with no one connected, 66/66 served files byte-identical with the release, a prod GM page reading 1.0.8 active, the six-line menu all on, 11 painted buttons and 64 pack cards for 64 packs. The sandbox mirrored from prod after. 1.0.7 (the journal's export named as the other cases', `cardcatalogue-journal-<view>-<date>.json`, format `fvtt-mod-cardcatalogue/journal`, no longer Scroll Case's) released and on prod; 1.0.6 (the journal's *Not in a journal* row and the scenes' *On the players' bar* and *Off the bar* rows gone from the rails) released and on prod; 1.0.5 (Export of the cards in view in the scenes, actors and items cases, as the journal's, `shell/export.js`; the journal's folder headings laid from the left) released and on prod; 1.0.4 (a folder's caret is its own button beside the row: inside it, a real click picked
+**State (2026-11-01).** 1.0.10 (what a case window opens follows it into a detached window, centred; Ctrl/Shift multi-select with the picked cards dragged together; folders dragged in the rail; the sandbox's three walks GREEN and each checked live with scratch actors and folders) released and on prod. 1.0.9 (Rename Folder beside Remove Folder on a rail's right-click, its dialog centred; checked on the sandbox with a scratch folder) released and on prod, on the user's word ("you can just release put on prod all the way"). 1.0.8 released and on prod (the user: "commit, push, deploy to prod ... (release too)"): the compendium case, a card's stock right-click menu (its dialogs centred), the painted sidebar icons, the client's button size (1.25 to 2 times, 1.25 by default), the sidebar left where it was when a case opens, the settings menu cut to *Enabled for <Case>?* and the size, the Reader without *Open in journal*. A Playlists case was built and dropped on the user's word ("drop it": the stock tab is a mixing desk, not a catalogue). Before the tag: `verify` green, `docs-check`, `scenes-check` and `journal-check --walk` GREEN on the sandbox; the release run green; prod installed through the installer with no one connected, 66/66 served files byte-identical with the release, a prod GM page reading 1.0.8 active, the six-line menu all on, 11 painted buttons and 64 pack cards for 64 packs. The sandbox mirrored from prod after. 1.0.7 (the journal's export named as the other cases', `cardcatalogue-journal-<view>-<date>.json`, format `fvtt-mod-cardcatalogue/journal`, no longer Scroll Case's) released and on prod; 1.0.6 (the journal's *Not in a journal* row and the scenes' *On the players' bar* and *Off the bar* rows gone from the rails) released and on prod; 1.0.5 (Export of the cards in view in the scenes, actors and items cases, as the journal's, `shell/export.js`; the journal's folder headings laid from the left) released and on prod; 1.0.4 (a folder's caret is its own button beside the row: inside it, a real click picked
 the folder; walked with the real mouse) released and on prod before it; 1.0.3 (a click selects a card, a double click or Enter does its one thing; the rail's
 folders collapse by a caret, the journal's folder headings collapse their journals, each browser remembering)
 released, never on prod; 1.0.2 (the top level is *Unfiled*; *+ Create New Folder* a gold pill as Clue Board's New
@@ -86,10 +86,23 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   scenes, actors and items (`shell/entries.js`): the entries come from the directory's `_getEntryContextOptions`
   and its `get<Document>ContextOptions` hook, each run against a stand-in `li.directory-item` carrying the
   document's id, so the system's and modules' entries work as in the sidebar; one that throws on the stand-in is
-  left out. The right-click selects the card. The stock entries place what they open for the sidebar (Delete's
-  confirmation at the screen's right edge); the first window an entry opens is centred instead (the user: "center
-  it, its appearing on the top right"). The journal has none: its cards are pages, which the stock Journal tab has
-  no menu for.
+  left out. The right-click selects the card (keeping a pick it is in). The stock entries place what they open for
+  the sidebar (Delete's confirmation at the screen's right edge); the first window an entry opens is centred instead
+  (the user: "center it, its appearing on the top right"). The journal has none: its cards are pages, which the
+  stock Journal tab has no menu for.
+- **What a case window opens follows it** (`shell/host.js`; the user: "if i detach a window in catalogue, the modals
+  appear in main window"): every case window notes each press and key inside it; the first window that opens within
+  a moment (a dialog, a sheet, the Reader) is moved into the case window's own browser window when it is detached
+  (`render({ window: { windowId } })`, Foundry's own move) and centred there. Another case window is never moved.
+  Clue Board keeps a copy for its window (its `scripts/host.js`): a change to either is made in both.
+- **Several cards picked at once** (`shell/pick.js`, pure and tested; the user: "multiselect cards so i can mass move
+  / drag them"): in the scenes, actors, items and compendium cases Ctrl (or Cmd) adds a card or takes it out, Shift
+  picks the run from the last card clicked, in the order drawn; a plain click picks one. Dragging a picked card
+  carries every picked card, each filed as its own stock drop. Clue Board keeps a copy of the rule.
+- **Folders dragged in the rail** (`wireFolderDrag` in `shell/folders.js`, the GM's; the user: "drag and drop folders
+  in the rail"): a folder dropped on another goes inside it, on Unfiled to the top (the folder's `folder`, the stock
+  drop's write); never into itself or a folder under it, never past `CONST.FOLDER_MAX_DEPTH` (`nestAs`, pure and
+  tested). Foundry marks every `dragover` on the page droppable, so a refused drop shows by the row not lighting.
 - **The painted sidebar icons** (`tabs/icons.js`, `styles/icons/tabs/<tab>.webp`, the user's picks from imagegen):
   each stock tab and Dice So Nice's wears a picture in its glyph's `::before`, its URL a variable the script sets on
   the button (the path holds however v14 bundles the sheet), drawn only under the body's `cardcatalogue-tab-icons`
@@ -126,7 +139,7 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   settings, the templates at `init`; the stylesheet probe, the migration, the cases' `ready`, `module.api` (one key
   per case, `classic`, `hasCase`).
 - `scripts/common.js`: the id, the logger, `t`, `setting`, `switchKey`, `caseScope`.
-- `scripts/shell/`: `cases.js` (registry, takeover, strip, switching, Classic Mode), `entries.js` (a card's
+- `scripts/shell/`: `cases.js` (registry, takeover, strip, switching, Classic Mode), `host.js` (where what a case window opens appears), `pick.js` (the multi-pick and folder-nesting rules), `entries.js` (a card's
   right-click), `migrate.js`, `art.js`.
 - `scripts/journal/`: Scroll Case 1.0.4's files (`decide.js` was `decide/scrollcase.js`, `journal.js` its entry
   point's journal part); ids `cardcatalogue-journal-*`, the hook `cardcatalogue.shown`, the socket channel

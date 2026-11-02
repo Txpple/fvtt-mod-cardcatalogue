@@ -7,38 +7,12 @@
  * that looks for the row finds what it would in the sidebar.
  * The right-click also selects the card, as a click does.
  *
- * The stock entries place what they open for the sidebar (Delete's confirmation and the ownership
- * dialog at the screen's right edge, at the row's height); a card is no sidebar row, so the first
- * window an entry opens is put in the middle of the screen instead.
+ * The stock entries place what they open for the sidebar's row; ../shell/host.js centres it instead,
+ * in whichever window the case window is in.
  */
 
 import { log } from "../common.js";
-
-/** Until when the next window to open came from a card's menu, and is centred. */
-let centreUntil = 0;
-
-function centre(app) {
-  if (!centreUntil || Date.now() > centreUntil || String(app?.id ?? "").startsWith("cardcatalogue-")) return;
-  centreUntil = 0;
-  // Foundry places a window once its render hooks have run: centre it after that.
-  requestAnimationFrame(() =>
-    requestAnimationFrame(() => {
-      try {
-        const el = app.element instanceof HTMLElement ? app.element : app.element?.[0];
-        const r = el?.getBoundingClientRect();
-        if (!r?.width) return;
-        app.setPosition({ left: Math.max(0, (window.innerWidth - r.width) / 2), top: Math.max(0, (window.innerHeight - r.height) / 2) });
-      } catch (err) {
-        log.debug("centring a window from a card's menu failed", err);
-      }
-    })
-  );
-}
-
-Hooks.on("renderApplicationV2", (app, _el, _context, options) => {
-  if (options?.isFirstRender) centre(app);
-});
-Hooks.on("renderApplication", app => centre(app));
+import { centreNext } from "./host.js";
 
 /** A row as the stock directory draws it, for the entry behind a card. */
 function standIn(card, row) {
@@ -96,7 +70,7 @@ export function entryMenu(element, directory, select, row) {
         const fn = entry[k];
         if (typeof fn === "function")
           e[k] = (...args) => {
-            centreUntil = Date.now() + 3000;
+            centreNext();
             return fn(...swap(args));
           };
       }

@@ -33,6 +33,7 @@ import * as memory from "./memory.js";
 import * as show from "./show.js";
 import { acts, markPicked } from "../shell/cards.js";
 import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
+import { watchHost } from "../shell/host.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -607,6 +608,8 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
    */
   _onFirstRender(context, options) {
     super._onFirstRender(context, options);
+    // What this window opens (the Reader, a sheet, a dialog) follows it into a detached window.
+    watchHost(this);
     this.element.addEventListener("keydown", ev => {
       if (this.#opts && ev.key === "Escape") {
         ev.preventDefault();

@@ -459,7 +459,9 @@
       },
       "drop": {
         "filed": "“{name}” is now in {folder}.",
-        "unfiled": "“{name}” is now unfiled."
+        "unfiled": "“{name}” is now unfiled.",
+        "filedMany": "{n} scenes are now in {folder}.",
+        "unfiledMany": "{n} scenes are now unfiled."
       },
       "finder": {
         "title": "Find a scene",
@@ -659,7 +661,8 @@
       "collapse": "Collapse",
       "expand": "Expand",
       "rename": "Rename Folder",
-      "renameTitle": "Rename {folder}"
+      "renameTitle": "Rename {folder}",
+      "tooDeep": "Too deep: Foundry keeps folders at most {n} levels down."
     },
     "export": {
       "hint": "Export the cards in view as a JSON file (their words, no pictures)",

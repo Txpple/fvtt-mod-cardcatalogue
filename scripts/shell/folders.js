@@ -8,6 +8,7 @@
  */
 
 import { t } from "../common.js";
+import { nestAs } from "./pick.js";
 
 const esc = s => foundry.utils.escapeHTML?.(String(s ?? "")) ?? String(s ?? "");
 
@@ -75,4 +76,59 @@ export function folderMenu(element) {
     ],
     { jQuery: false, fixed: true }
   );
+}
+
+/** The folder being dragged in a rail, one at a time. */
+let draggingFolder = null;
+
+/**
+ * A rail's folders dragged onto one another, for the GM (the user: "drag and drop folders in the
+ * rail"): a folder dropped on another goes inside it, on Unfiled to the top, as the stock directory's
+ * own drop writes it (the folder's `folder`). Never into itself or a folder under it, never past
+ * Foundry's depth (`nestAs`). Wired on every draw; the cards' own drops on the same rows ignore it.
+ */
+export function wireFolderDrag(root, type) {
+  if (!game.user.isGM) return;
+  const tree = () => new Map(game.folders.filter(f => f.type === type).map(f => [f.id, { parent: f.folder?.id ?? null }]));
+  const verdict = row => (draggingFolder ? nestAs(draggingFolder, row.dataset.folder || null, tree(), CONST.FOLDER_MAX_DEPTH) : null);
+  for (const row of root.querySelectorAll(".cc-folderrow[data-folder]")) {
+    const id = row.dataset.folder;
+    if (id) {
+      row.draggable = true;
+      row.addEventListener("dragstart", ev => {
+        ev.stopPropagation();
+        draggingFolder = id;
+        row.classList.add("dragging");
+        ev.dataTransfer.effectAllowed = "move";
+        ev.dataTransfer.setData("text/plain", JSON.stringify({ type: "Folder", uuid: game.folders.get(id)?.uuid }));
+      });
+      row.addEventListener("dragend", () => {
+        draggingFolder = null;
+        row.classList.remove("dragging");
+        for (const el of root.querySelectorAll(".drop-ok")) el.classList.remove("drop-ok");
+      });
+    }
+    row.addEventListener("dragover", ev => {
+      if (verdict(row) !== "ok") return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      row.classList.add("drop-ok");
+    });
+    row.addEventListener("dragleave", () => row.classList.remove("drop-ok"));
+    row.addEventListener("drop", ev => {
+      const why = verdict(row);
+      if (!why) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      row.classList.remove("drop-ok");
+      const folder = game.folders.get(draggingFolder);
+      draggingFolder = null;
+      if (why === "deep") return void ui.notifications.warn(t("folders.tooDeep", { n: CONST.FOLDER_MAX_DEPTH }));
+      if (why !== "ok" || !folder) return;
+      const into = row.dataset.folder || null;
+      void folder.update({ folder: into }).catch(err => {
+        ui.notifications.error(err?.message ?? String(err));
+      });
+    });
+  }
 }

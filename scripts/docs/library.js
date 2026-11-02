@@ -16,10 +16,12 @@
 import { log, MODULE_ID, t as rootT } from "../common.js";
 import { collapseTree, folderTree } from "../scenes/decide.js";
 import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
-import { acts, markPicked } from "../shell/cards.js";
+import { acts, drawnKeys, extends_, markPicked } from "../shell/cards.js";
 import { entryMenu } from "../shell/entries.js";
 import { exportInView } from "../shell/export.js";
-import { folderMenu, newFolder } from "../shell/folders.js";
+import { folderMenu, newFolder, wireFolderDrag } from "../shell/folders.js";
+import { watchHost } from "../shell/host.js";
+import { dragged, pickWith } from "../shell/pick.js";
 import { byType, docEntry, inView, matchWhy, searchFields, typeCounts } from "./decide.js";
 import { createRecord } from "./memory.js";
 
@@ -91,6 +93,7 @@ export function makeCaseWindow(spec) {
         rail(_ev, target) {
           this.view = target.dataset.view;
           this.sticky = null;
+          this.picked = new Set();
           record.setPrefs({ view: this.view });
           this.render();
         },
@@ -103,8 +106,18 @@ export function makeCaseWindow(spec) {
         pick(event, target) {
           const key = target.closest("[data-key]")?.dataset.key;
           if (!key) return;
+          // Ctrl or Shift adds to the pick, to move several cards at once; a plain click picks one.
+          if (extends_(event)) {
+            const r = pickWith({ picked: this.picked, anchor: this.anchor, key, order: drawnKeys(this.element), ctrl: event.ctrlKey || event.metaKey, shift: event.shiftKey });
+            this.picked = r.picked;
+            this.anchor = r.anchor;
+            this.selected = key;
+            return markPicked(this.element, this.picked);
+          }
           // A click selects; a double click, or Enter, does the case's one thing (the user's ruling).
           this.selected = key;
+          this.picked = new Set([key]);
+          this.anchor = key;
           if (this.sticky !== key) this.sticky = null;
           if (!acts(event)) return markPicked(this.element, key);
           return this.go(key);
@@ -219,6 +232,9 @@ export function makeCaseWindow(spec) {
     size = "m";
     query = "";
     selected = null;
+    /** The cards picked together (Ctrl or Shift), and where the next Shift run starts. */
+    picked = new Set();
+    anchor = null;
     menu = null;
     menuFresh = false;
     sticky = null;
@@ -316,7 +332,7 @@ export function makeCaseWindow(spec) {
         badge: card.badge ?? null,
         badgeCls: card.badgeCls ?? "",
         icons: card.icons ?? [],
-        selected: this.selected === card.key,
+        selected: this.picked.has(card.key) || this.selected === card.key,
         folderId: card.folders[0] ?? ""
       };
     }
@@ -403,14 +419,16 @@ export function makeCaseWindow(spec) {
     _onFirstRender(context, options) {
       super._onFirstRender(context, options);
       folderMenu(this.element);
-      // A right-click selects the card and opens the stock directory's own menu for it.
+      watchHost(this);
+      // A right-click selects the card (keeping the pick it is in) and opens the stock directory's own menu for it.
       entryMenu(
         this.element,
         () => spec.directory?.() ?? spec.collection().directory,
         key => {
           this.selected = key;
+          if (!this.picked.has(key)) this.picked = new Set([key]);
           if (this.sticky !== key) this.sticky = null;
-          markPicked(this.element, key);
+          markPicked(this.element, this.picked);
         },
         spec.row
       );
@@ -450,6 +468,7 @@ export function makeCaseWindow(spec) {
         if (ev.target === ev.currentTarget) this.closeMenu();
       });
       this.#wireDrag(root);
+      wireFolderDrag(root, spec.documentName);
       this.#filter();
       this.#restoreFocus(options, context);
     }
@@ -521,7 +540,10 @@ export function makeCaseWindow(spec) {
     #wireDrag(root) {
       for (const card of root.querySelectorAll(".cc-card[data-key]")) {
         card.addEventListener("dragstart", ev => {
-          CaseWindow.#dragging = { key: card.dataset.key, folder: card.dataset.folder || "" };
+          // A picked card carries every picked card with it; one not picked drops alone.
+          const keys = dragged(this.picked, card.dataset.key);
+          const folderOf = k => root.querySelector(`.cc-card[data-key="${CSS.escape(k)}"]`)?.dataset.folder ?? "";
+          CaseWindow.#dragging = { key: card.dataset.key, keys, folders: keys.map(folderOf) };
           card.classList.add("dragging");
           ev.dataTransfer.effectAllowed = "copyMove";
           // Foundry's own drag: an actor dropped on the canvas makes a token, an item on a sheet a copy.
@@ -538,7 +560,7 @@ export function makeCaseWindow(spec) {
       for (const row of root.querySelectorAll("[data-drop]")) {
         row.addEventListener("dragover", ev => {
           const d = CaseWindow.#dragging;
-          if (!d || d.folder === row.dataset.folder) return;
+          if (!d || d.folders.every(f => f === row.dataset.folder)) return;
           ev.preventDefault();
           ev.stopPropagation();
           row.classList.add("drop-ok");
@@ -546,14 +568,17 @@ export function makeCaseWindow(spec) {
         row.addEventListener("dragleave", () => row.classList.remove("drop-ok"));
         row.addEventListener("drop", ev => {
           const d = CaseWindow.#dragging;
-          if (!d || d.folder === row.dataset.folder) return;
+          if (!d || d.folders.every(f => f === row.dataset.folder)) return;
           ev.preventDefault();
           ev.stopPropagation();
           row.classList.remove("drop-ok");
-          const doc = resolve(d.key);
-          // The stock directory's own drop: the entry's folder.
+          // The stock directory's own drop, once per card: the entry's folder.
           const folder = row.dataset.folder || null;
-          if (doc) void Promise.resolve(spec.file ? spec.file(doc, folder) : doc.update({ folder })).catch(err => log.error("filing failed", err));
+          for (const [i, key] of d.keys.entries()) {
+            if (d.folders[i] === row.dataset.folder) continue;
+            const doc = resolve(key);
+            if (doc) void Promise.resolve(spec.file ? spec.file(doc, folder) : doc.update({ folder })).catch(err => log.error("filing failed", err));
+          }
         });
       }
     }

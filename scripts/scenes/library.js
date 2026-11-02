@@ -11,10 +11,12 @@ import { activateAs, collapseTree, folderTree, inView, matchWhy, sceneEntry, sea
 import * as memory from "./memory.js";
 import * as scenes from "./scenes.js";
 import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
-import { acts, markPicked } from "../shell/cards.js";
+import { acts, drawnKeys, extends_, markPicked } from "../shell/cards.js";
 import { entryMenu } from "../shell/entries.js";
 import { exportInView } from "../shell/export.js";
-import { folderMenu, newFolder } from "../shell/folders.js";
+import { folderMenu, newFolder, wireFolderDrag } from "../shell/folders.js";
+import { watchHost } from "../shell/host.js";
+import { dragged, pickWith } from "../shell/pick.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -146,6 +148,9 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
   #size = "m";
   #query = "";
   #selected = null;
+  /** The scenes picked together (Ctrl or Shift), and where the next Shift run starts. */
+  #picked = new Set();
+  #anchor = null;
   /** The key of the card whose chevron is open. */
   #menu = null;
   #menuFresh = false;
@@ -239,7 +244,7 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       nav: card.nav || card.active,
       playlist: card.playlist,
       notes: card.notes,
-      selected: this.#selected === card.key,
+      selected: this.#picked.has(card.key) || this.#selected === card.key,
       // The card's one button is View (the user's ruling); on the scene this client is on, it says so.
       goLabel: card.viewed ? t("badge.here") : t("menu.look"),
       goHint: card.viewed ? t("menu.lookHere") : t("menu.lookHint")
@@ -297,11 +302,13 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
   _onFirstRender(context, options) {
     super._onFirstRender(context, options);
     folderMenu(this.element);
-    // A right-click selects the card and opens the stock Scenes directory's own menu for it.
+    watchHost(this);
+    // A right-click selects the card (keeping the pick it is in) and opens the stock Scenes directory's own menu for it.
     entryMenu(this.element, () => ui.scenes, key => {
       this.#selected = key;
+      if (!this.#picked.has(key)) this.#picked = new Set([key]);
       if (this.#sticky !== key) this.#sticky = null;
-      markPicked(this.element, key);
+      markPicked(this.element, this.#picked);
     });
     this.element.addEventListener("keydown", ev => {
       if (this.#menu && ev.key === "Escape") {
@@ -344,6 +351,7 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       }
     });
     this.#wireDrag(root);
+    wireFolderDrag(root, "Scene");
     root.querySelector(".cc-veil")?.addEventListener("click", ev => {
       if (ev.target === ev.currentTarget) this.#closeMenu();
     });
@@ -427,7 +435,10 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
   #wireDrag(root) {
     for (const card of root.querySelectorAll(".cc-card[data-key]")) {
       card.addEventListener("dragstart", ev => {
-        ScenesWindow.#dragging = { key: card.dataset.key, folder: card.dataset.folder || "" };
+        // A picked scene carries every picked scene with it; one not picked drops alone.
+        const keys = dragged(this.#picked, card.dataset.key);
+        const folderOf = k => root.querySelector(`.cc-card[data-key="${CSS.escape(k)}"]`)?.dataset.folder ?? "";
+        ScenesWindow.#dragging = { key: card.dataset.key, keys, folders: keys.map(folderOf) };
         card.classList.add("dragging");
         ev.dataTransfer.effectAllowed = "copyMove";
         // A scene drags as Foundry's own scene drag (a journal or chat makes a link of it).
@@ -442,7 +453,7 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     for (const row of root.querySelectorAll("[data-drop]")) {
       row.addEventListener("dragover", ev => {
         const d = ScenesWindow.#dragging;
-        if (!d || d.folder === row.dataset.folder) return;
+        if (!d || d.folders.every(f => f === row.dataset.folder)) return;
         ev.preventDefault();
         ev.stopPropagation();
         row.classList.add("drop-ok");
@@ -450,22 +461,24 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       row.addEventListener("dragleave", () => row.classList.remove("drop-ok"));
       row.addEventListener("drop", ev => {
         const d = ScenesWindow.#dragging;
-        if (!d || d.folder === row.dataset.folder) return;
+        if (!d || d.folders.every(f => f === row.dataset.folder)) return;
         ev.preventDefault();
         ev.stopPropagation();
         row.classList.remove("drop-ok");
-        void this.#dropped(d.key, row.dataset.folder);
+        void this.#dropped(d.keys.filter((_, i) => d.folders[i] !== row.dataset.folder), row.dataset.folder);
       });
     }
   }
 
-  async #dropped(key, folderId) {
-    const scene = fromUuidSync(key);
-    if (!isScene(scene)) return;
-    const done = await scenes.guarded("filing the scene", () => scenes.setFolder(scene, folderId));
-    if (!done) return;
+  async #dropped(keys, folderId) {
+    const list = keys.map(k => fromUuidSync(k)).filter(isScene);
+    let filed = 0;
+    for (const scene of list) if (await scenes.guarded("filing the scene", () => scenes.setFolder(scene, folderId))) filed++;
+    if (!filed) return;
     const folder = folderId ? game.folders.get(folderId)?.name : null;
-    ui.notifications.info(folder ? t("drop.filed", { name: scene.name, folder }) : t("drop.unfiled", { name: scene.name }));
+    if (filed > 1) return ui.notifications.info(folder ? t("drop.filedMany", { n: filed, folder }) : t("drop.unfiledMany", { n: filed }));
+    const name = list[0].name;
+    ui.notifications.info(folder ? t("drop.filed", { name, folder }) : t("drop.unfiled", { name }));
   }
 
   /** The scene a key names, or the picked one. */
@@ -512,7 +525,17 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
   static #onPick(event, target) {
     const key = target.closest("[data-key]")?.dataset.key;
     if (!key) return;
+    // Ctrl or Shift adds to the pick, to move several scenes at once; a plain click picks one.
+    if (extends_(event)) {
+      const r = pickWith({ picked: this.#picked, anchor: this.#anchor, key, order: drawnKeys(this.element), ctrl: event.ctrlKey || event.metaKey, shift: event.shiftKey });
+      this.#picked = r.picked;
+      this.#anchor = r.anchor;
+      this.#selected = key;
+      return markPicked(this.element, this.#picked);
+    }
     this.#selected = key;
+    this.#picked = new Set([key]);
+    this.#anchor = key;
     if (this.#sticky !== key) this.#sticky = null;
     if (!acts(event)) return markPicked(this.element, key);
     const scene = fromUuidSync(key);

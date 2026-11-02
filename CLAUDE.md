@@ -103,9 +103,9 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   "i just want the folders"), seen (`canSee`), dragged (`dragData`), filed
   (`file`: `setFolder`, the stock drop) and right-clicked (`row`: the stand-in's `data-pack`); a document case says
   none of it.
-- **The sidebar's button size is the client's** (`tabScale`: Foundry's own, 1.5, 2, 3 or 4 times; the user's "gate it behind
+- **The sidebar's button size is the client's** (`tabScale`: Foundry's own, then 1.25 to 2 times by quarters, 2 the most (the user's word); the user's "gate it behind
   a client setting"): Foundry gives each `.ui-control` its own `--control-size`, so the strip's buttons alone are
-  scaled, under the body's `cardcatalogue-tab-scale`; a strip taller than the screen (4 times is 1,624px) scrolls
+  scaled, under the body's `cardcatalogue-tab-scale`; a strip taller than the screen (2 times is 888px) scrolls
   under the wheel, no bar, rather than lose its last buttons.
 - **A picture shown from actors or items** (`shell/art.js`) goes through the journal case's Show (the same Reader on
   the players' screens) while the journal case is on, else Foundry's own image share.

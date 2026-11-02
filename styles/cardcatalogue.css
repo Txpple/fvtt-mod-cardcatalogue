@@ -1705,7 +1705,7 @@ body.cardcatalogue-tab-scale #sidebar-tabs .ui-control {
   font-size: calc(var(--font-size-16) * var(--cc-tab-scale, 1));
 }
 
-/* A big strip can outgrow the screen: it scrolls (the wheel, no bar) rather than lose its last buttons. */
+/* A big strip can outgrow a short screen: it scrolls (the wheel, no bar) rather than lose its last buttons. */
 body.cardcatalogue-tab-scale #sidebar-tabs > menu {
   max-height: calc(100vh - 32px);
   overflow-y: auto;

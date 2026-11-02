@@ -86,11 +86,11 @@
         "name": "Sidebar button size",
         "hint": "On this client, how big the sidebar's buttons are drawn. Bigger is easier to hit and to read; the strip grows with them.",
         "choices": {
-          "1": "Foundry's own",
-          "1_5": "1.5 times",
-          "2": "Twice",
-          "3": "Three times",
-          "4": "Four times"
+          "1_00": "Foundry's own",
+          "1_25": "1.25 times",
+          "1_50": "1.5 times",
+          "1_75": "1.75 times",
+          "2_00": "Twice"
         }
       },
       "gmSidebarTabs": {

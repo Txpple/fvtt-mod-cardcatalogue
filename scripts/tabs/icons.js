@@ -17,9 +17,10 @@ export const SCALE_ID = "tabScale";
 /** The class the stylesheet keys the pictures on. */
 const CLASS = "cardcatalogue-tab-icons";
 
-/** The class and the variable the stylesheet scales the strip by. */
+/** The class and the variable the stylesheet scales the strip by. Two decimals each, so no key reads
+    as a whole number (an object lists those first, and the choices would fall out of order). */
 const SCALE_CLASS = "cardcatalogue-tab-scale";
-const SCALES = ["1", "1.5", "2", "3", "4"];
+const SCALES = ["1.00", "1.25", "1.50", "1.75", "2.00"];
 
 /** The tabs with a picture, each `styles/icons/tabs/<tab>.webp`. */
 export const PICTURED = [
@@ -49,7 +50,7 @@ export function applyTabScale() {
   const body = document.body;
   if (!body) return;
   const scale = String(game.settings.get(MODULE_ID, SCALE_ID));
-  const on = SCALES.includes(scale) && scale !== "1";
+  const on = SCALES.includes(scale) && scale !== "1.00";
   body.classList.toggle(SCALE_CLASS, on);
   if (on) body.style.setProperty("--cc-tab-scale", scale);
   else body.style.removeProperty("--cc-tab-scale");
@@ -73,7 +74,7 @@ export function registerSettings() {
     config: true,
     type: String,
     choices: Object.fromEntries(SCALES.map(s => [s, `${MODULE_ID}.settings.${SCALE_ID}.choices.${s.replace(".", "_")}`])),
-    default: "1",
+    default: "1.00",
     onChange: applyTabScale
   });
 }

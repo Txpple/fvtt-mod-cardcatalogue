@@ -94,7 +94,6 @@ try {
       return null;
     };
     for (const app of [...foundry.applications.instances.values()]) if (app.id?.startsWith("cardcatalogue-")) await app.close();
-    const before = ui.sidebar.tabGroups.primary;
     document.querySelector('#sidebar-tabs [data-tab="actors"]')?.click();
     const win = await wait(() => foundry.applications.instances.get("cardcatalogue-actors-library")?.rendered && foundry.applications.instances.get("cardcatalogue-actors-library"));
     const el = win?.element;
@@ -133,10 +132,10 @@ try {
     el.querySelector(`.cc-card[data-key="${pc.uuid}"] .cc-acts .go`)?.click();
     const sheet = !!(await wait(() => pc.sheet?.rendered));
     await pc.sheet?.close();
-    return { before, after: ui.sidebar.tabGroups.primary, clickSheet, noPanel, inOrder, cards, total: game.actors.size, strip, types, pcName: pc.name, foundPc: found.includes(pc.uuid), sheet };
+    return { after: ui.sidebar.tabGroups.primary, expanded: ui.sidebar.expanded, clickSheet, noPanel, inOrder, cards, total: game.actors.size, strip, types, pcName: pc.name, foundPc: found.includes(pc.uuid), sheet };
   });
   assert(A.cards === A.total && A.cards > 0, `a card per actor (${A.cards} of ${A.total})`);
-  assert(A.before === A.after, "the sidebar did not switch tabs");
+  assert(A.after === "actors" && A.expanded, "the Actors tab is lit and open behind the window");
   assert(A.clickSheet && A.noPanel, "a click selects an actor card, a double click opens its sheet; no side panel");
   assert(A.inOrder, "All runs by type (characters, NPCs, groups), then by name");
   assert(["journal", "scenes", "actors", "items"].every(c => A.strip.includes(c)), `the strip holds the four cases (${A.strip.join(", ")})`);

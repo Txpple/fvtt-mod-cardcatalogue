@@ -4,10 +4,10 @@
  * sidebar tab, its icon, how to open it and who sees it); this file imports none of them, so
  * nothing here can be caught in an import cycle.
  *
- * A sidebar button is intercepted, never patched: a listener on the button itself stops a click
- * before it reaches the sidebar's own handler, unless the case is off or in Classic Mode on this
- * client; if the case fails to open, the stock tab opens instead. A right-click is still the
- * sidebar's (its popout). In Classic Mode, the stock directory carries one button back.
+ * A sidebar button is listened to, never patched: a click opens the case's window (unless the case
+ * is off or in Classic Mode on this client) and still reaches the sidebar's own handler, so the
+ * button lights as the active tab and the stock directory opens behind the window. A right-click is
+ * still the sidebar's (its popout). In Classic Mode, the stock directory carries one button back.
  */
 
 import { log, MODULE_ID, setting, switchKey, t } from "../common.js";
@@ -71,8 +71,9 @@ export async function setClassic(id, on) {
 }
 
 /**
- * The sidebar's buttons: each case's tab button opens the case. The sidebar acts on `click` and on
- * a middle button's `auxclick` alike; a right-click is its popout and is left to it.
+ * The sidebar's buttons: each case's tab button opens the case, and the sidebar changes to the tab
+ * as it always does. It acts on `click` and on a middle button's `auxclick` alike; a right-click is
+ * its popout and is left to it.
  */
 Hooks.on("renderSidebar", app => {
   for (const def of CASES.values()) {
@@ -82,14 +83,13 @@ Hooks.on("renderSidebar", app => {
       button.dataset.cardcatalogue = def.id;
       const open = ev => {
         if (!takesOver(def.id) || (ev.type === "click" ? ev.button !== 0 : ev.button !== 1)) return;
-        ev.preventDefault();
-        ev.stopPropagation();
-        // Fail open: whatever goes wrong in the window, the stock directory still opens.
+        // A click goes on to the sidebar, so whatever goes wrong in the window, the stock directory
+        // opens; the sidebar changes tabs only for the left button, so a middle click changes it here.
+        if (ev.type === "auxclick") openClassic(def.id);
         try {
           def.open();
         } catch (err) {
-          log.error(`the ${def.id} case failed to open; Foundry's directory opens instead`, err);
-          openClassic(def.id);
+          log.error(`the ${def.id} case failed to open; Foundry's directory is open behind it`, err);
         }
       };
       button.addEventListener("click", open);

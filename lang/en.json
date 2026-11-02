@@ -69,6 +69,10 @@
         "name": "Players see only the sidebar tabs they use",
         "hint": "Players lose the Combat, Placeables, Items, Rollable Tables, Cards and Macros tabs: no button, open or collapsed, and no way to switch or pop one out. Chat, Actors, Journal, Playlists, Compendium Packs, Settings and any tab a module adds stay. A GM's tabs are the rule below's. Turning it off brings the tabs back when each client reloads."
       },
+      "tabIcons": {
+        "name": "Painted sidebar icons",
+        "hint": "Each sidebar button wears a painted picture in place of its glyph, so players find the tab they want. Off: Foundry's own glyphs."
+      },
       "gmSidebarTabs": {
         "name": "GMs see only the sidebar tabs they use",
         "hint": "GMs lose the Combat, Rollable Tables, Cards and Macros tabs: no button, and no way to switch or pop one out. Chat, Scenes, Placeables, Actors, Items, Journal, Playlists, Compendium Packs, Settings and any tab a module adds stay. Players' tabs are the rule above's. Turning it off brings the tabs back when each client reloads."
@@ -243,9 +247,6 @@
           "journal": "No pages here."
         },
         "searchHere": "Nothing in this view matches “{q}”."
-      },
-      "detail": {
-        "openJournal": "Open in journal"
       },
       "keep": {
         "button": "Add to the Handouts journal",

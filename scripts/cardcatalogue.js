@@ -17,6 +17,7 @@ import * as scenes from "./scenes/case.js";
 import { hasCase, setClassic } from "./shell/cases.js";
 import { migrateClient, migrateWorld } from "./shell/migrate.js";
 import * as tabs from "./tabs/apply.js";
+import * as tabIcons from "./tabs/icons.js";
 
 const CASES = { journal, scenes, actors, items };
 
@@ -57,6 +58,8 @@ Hooks.once("init", () => {
   }
   journal.registerSettings();
   tabs.registerSettings();
+  tabIcons.registerSettings();
+  tabIcons.applyTabIcons();
 
   const load = foundry.applications?.handlebars?.loadTemplates ?? loadTemplates;
   const docs = ["library.hbs", "finder.hbs"].map(f => `modules/${MODULE_ID}/templates/docs/${f}`);

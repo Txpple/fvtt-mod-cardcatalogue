@@ -1,6 +1,7 @@
 /*
  * Card Catalogue: every case's window, the finders, the Reader, the directories' way back. Scoped
- * to the module's own classes; nothing here reaches a stock sheet, a directory or the sidebar. The
+ * to the module's own classes; nothing here reaches a stock sheet or a directory, and the sidebar
+ * only through its tab buttons' pictures (last, under the body's `cardcatalogue-tab-icons`). The
  * base is Scroll Case's look, the family's (Clue Board copies it from here); each case's own rules
  * follow it, scoped to that case's window.
  */
@@ -1256,14 +1257,6 @@
   color: var(--cc-ink-3);
 }
 
-.cc-reader-foot {
-  display: flex;
-  justify-content: flex-end;
-  flex: none;
-  padding: 0.5rem 0.75rem;
-  border-top: 1px solid var(--cc-line);
-}
-
 /* Last, so no later image rule outranks it: a page no player can see, dimmed for the GM. */
 .cc-card.dim .cc-thumb img {
   opacity: 0.6;
@@ -1664,4 +1657,22 @@ button.cc-folder:hover {
 button.cc-folder > .cc-caret {
   width: 1rem;
   height: auto;
+}
+
+/* -------------------------------------------------- */
+/*  The painted sidebar icons (scripts/tabs/icons.js)  */
+/* -------------------------------------------------- */
+
+/* The glyph's ::before carries the picture instead. The script marks each button that has one and
+   sets its URL as the button's `--cc-tab-icon`, so the path holds however Foundry bundles this
+   sheet; a button with no picture keeps its glyph. */
+body.cardcatalogue-tab-icons #sidebar-tabs .cc-tab-icon {
+  position: relative;
+}
+
+body.cardcatalogue-tab-icons #sidebar-tabs .cc-tab-icon::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  background: var(--cc-tab-icon) center / contain no-repeat;
 }

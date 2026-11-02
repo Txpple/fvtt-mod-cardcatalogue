@@ -12,6 +12,7 @@ import { log, MODULE_ID, t as rootT } from "../common.js";
 import { collapseTree, folderTree } from "../scenes/decide.js";
 import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
 import { acts, markPicked } from "../shell/cards.js";
+import { entryMenu } from "../shell/entries.js";
 import { exportInView } from "../shell/export.js";
 import { folderMenu, newFolder } from "../shell/folders.js";
 import { byType, docEntry, inView, matchWhy, searchFields, typeCounts } from "./decide.js";
@@ -392,6 +393,12 @@ export function makeCaseWindow(spec) {
     _onFirstRender(context, options) {
       super._onFirstRender(context, options);
       folderMenu(this.element);
+      // A right-click selects the card and opens the stock directory's own menu for it.
+      entryMenu(this.element, () => spec.collection().directory, key => {
+        this.selected = key;
+        if (this.sticky !== key) this.sticky = null;
+        markPicked(this.element, key);
+      });
       this.element.addEventListener("keydown", ev => {
         if (this.menu && ev.key === "Escape") {
           ev.preventDefault();

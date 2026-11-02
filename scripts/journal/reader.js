@@ -26,8 +26,7 @@ export class Reader extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     classes: ["cardcatalogue", "cardcatalogue-journal-reader"],
     window: { icon: "fa-solid fa-book-open-reader", resizable: true },
-    position: { width: 680, height: "auto" },
-    actions: { openJournal: Reader.#onOpenJournal }
+    position: { width: 680, height: "auto" }
   };
 
   static PARTS = {
@@ -87,18 +86,15 @@ export class Reader extends HandlebarsApplicationMixin(ApplicationV2) {
     const context = await super._prepareContext(options);
     const page = this.page;
     const picture = this.options.picture;
-    context.isGM = game.user.isGM;
     context.showName = this.options.showName !== false;
     // Just a picture: a page's (with its name) or a file on no page.
     if (picture) {
       Object.assign(context, { name: page?.name ?? this.options.name, isImage: true, src: picture, caption: "" });
-      context.canOpen = context.isGM && !!page;
       return context;
     }
     if (!page) return { ...context, empty: true };
     const kind = kindOf(page.type);
     context.name = page.name;
-    context.canOpen = context.isGM;
     context.isImage = kind === "image" && !!page.src;
     context.isVideo = kind === "video" && !!page.src;
     context.src = page.src;
@@ -114,12 +110,5 @@ export class Reader extends HandlebarsApplicationMixin(ApplicationV2) {
     }
     context.empty = !context.isImage && !context.isVideo && !context.html;
     return context;
-  }
-
-  static #onOpenJournal() {
-    const page = this.page;
-    if (!page) return;
-    void this.close();
-    page.parent.sheet.render({ force: true, pageId: page.id });
   }
 }

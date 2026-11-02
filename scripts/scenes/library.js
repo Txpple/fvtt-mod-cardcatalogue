@@ -12,6 +12,7 @@ import * as memory from "./memory.js";
 import * as scenes from "./scenes.js";
 import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
 import { acts, markPicked } from "../shell/cards.js";
+import { entryMenu } from "../shell/entries.js";
 import { exportInView } from "../shell/export.js";
 import { folderMenu, newFolder } from "../shell/folders.js";
 
@@ -296,6 +297,12 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
   _onFirstRender(context, options) {
     super._onFirstRender(context, options);
     folderMenu(this.element);
+    // A right-click selects the card and opens the stock Scenes directory's own menu for it.
+    entryMenu(this.element, () => ui.scenes, key => {
+      this.#selected = key;
+      if (this.#sticky !== key) this.#sticky = null;
+      markPicked(this.element, key);
+    });
     this.element.addEventListener("keydown", ev => {
       if (this.#menu && ev.key === "Escape") {
         ev.preventDefault();

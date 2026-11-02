@@ -148,7 +148,7 @@ try {
   assert(!A.activeName || A.active === A.activeName, `the active scene wears the active edge (${A.active})`);
   assert(A.goLabel.otherAction === "look" && /View/.test(A.goLabel.other ?? ""), `a card's one button is View (${A.goLabel.other})`);
   assert(A.goLabel.here === null || (A.goLabel.hereDisabled && /here/.test(A.goLabel.here)), `on the scene this client is on, it says so and does nothing (${A.goLabel.here})`);
-  assert(A.before.tab === A.after.tab && A.before.expanded === A.after.expanded, "the sidebar did not switch or expand");
+  assert(A.after.tab === "scenes" && A.after.expanded, "the Scenes tab is lit and open behind the window");
   assert(A.mid, "a middle click opens the scenes case too");
   assert(A.probe === "column", "the stylesheet is in the cascade");
   assert(A.api === "function", "module.api.open is there");

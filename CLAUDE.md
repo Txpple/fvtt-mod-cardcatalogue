@@ -7,7 +7,7 @@ sidebar showing only the tabs the table uses (the two rules carried over from Ho
 Foundry's own directories. Part of Open Roll 5e (the suite repo is `..`, its CLAUDE.md has the family's conventions;
 the plan is `../docs/plans/cardcatalogue.md`). Plain ES modules, no build step, no libWrapper, no socketlib, MIT.
 
-**State (2026-10-31).** 1.0.7 (the journal's export named as the other cases', `cardcatalogue-journal-<view>-<date>.json`, format `fvtt-mod-cardcatalogue/journal`, no longer Scroll Case's) released and on prod; 1.0.6 (the journal's *Not in a journal* row and the scenes' *On the players' bar* and *Off the bar* rows gone from the rails) released and on prod; 1.0.5 (Export of the cards in view in the scenes, actors and items cases, as the journal's, `shell/export.js`; the journal's folder headings laid from the left) released and on prod; 1.0.4 (a folder's caret is its own button beside the row: inside it, a real click picked
+**State (2026-11-01).** Unreleased on `main` (the user: "ok go put on sandbox", then "Commit both"): the Reader's *Open in journal* gone (Classic Mode is the way to the stock sheet); painted pictures on every sidebar tab button (`tabIcons`, world, on; Clue Board's button follows the body's class); a case's button lights its tab with the stock directory behind the window; a right-click on a scenes, actors or items card selects it and opens the stock directory's own entry menu. Deployed `--local` (the sandbox world had neither Card Catalogue nor Clue Board enabled after the cut-over mirror: both enabled, the world restarted); `verify` green (137 tests); `docs-check` and `scenes-check` GREEN; `journal-check --walk` red only on "portraits ysolde", which 1.0.7 fails the same way (the sandbox's data). 1.0.7 (the journal's export named as the other cases', `cardcatalogue-journal-<view>-<date>.json`, format `fvtt-mod-cardcatalogue/journal`, no longer Scroll Case's) released and on prod; 1.0.6 (the journal's *Not in a journal* row and the scenes' *On the players' bar* and *Off the bar* rows gone from the rails) released and on prod; 1.0.5 (Export of the cards in view in the scenes, actors and items cases, as the journal's, `shell/export.js`; the journal's folder headings laid from the left) released and on prod; 1.0.4 (a folder's caret is its own button beside the row: inside it, a real click picked
 the folder; walked with the real mouse) released and on prod before it; 1.0.3 (a click selects a card, a double click or Enter does its one thing; the rail's
 folders collapse by a caret, the journal's folder headings collapse their journals, each browser remembering)
 released, never on prod; 1.0.2 (the top level is *Unfiled*; *+ Create New Folder* a gold pill as Clue Board's New
@@ -34,8 +34,9 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
 - **The cases are registered, the shell is shared** (`shell/cases.js`): each case registers its id, sidebar tab,
   icon, who sees it, how it opens, and `aside()` (the module it replaces is still active: Scroll Case for the
   journal, Map Case for scenes; the case stays out of the way so two windows never answer one button). The shell
-  intercepts each tab button (click and middle click, failing open to the stock tab), adds Classic Mode's way back
-  to each stock directory, draws the strip (the sidebar's order: Scenes, Actors, Items, Journal; none when only one
+  listens on each tab button (a click opens the case and still reaches the sidebar, which lights the tab and opens
+  the stock directory behind the window; a middle click, which the sidebar ignores, changes the tab itself), adds
+  Classic Mode's way back to each stock directory, draws the strip (the sidebar's order: Scenes, Actors, Items, Journal; none when only one
   case is on) and switches cases in place (the other window opens where this one stands, this one closes).
 - **Each case has its two switches**: `<case>Enabled` (world, reload) and `<case>Classic` (client). A case's own
   files read them as `enabled` and `classic` through its `common.js` (`caseScope`), and its strings under `<case>.`,
@@ -72,6 +73,17 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   as Scroll Case did. **One finder per case** (the user's
   ruling): the journal's Ctrl+Shift+H (Enter shows), the scenes' Ctrl+Shift+M (Enter views), the actors' and items'
   unbound (Enter opens; Ctrl+Enter shows the art, or posts the item to chat).
+- **A card's right-click is the stock directory's** (the user: "the same choices that i get ... in classic mode"),
+  scenes, actors and items (`shell/entries.js`): the entries come from the directory's `_getEntryContextOptions`
+  and its `get<Document>ContextOptions` hook, each run against a stand-in `li.directory-item` carrying the
+  document's id, so the system's and modules' entries work as in the sidebar; one that throws on the stand-in is
+  left out. The right-click selects the card. The journal has none: its cards are pages, which the stock Journal
+  tab has no menu for.
+- **The painted sidebar icons** (`tabs/icons.js`, `styles/icons/tabs/<tab>.webp`, the user's picks from imagegen):
+  each stock tab and Dice So Nice's wears a picture in its glyph's `::before`, its URL a variable the script sets on
+  the button (the path holds however v14 bundles the sheet), drawn only under the body's `cardcatalogue-tab-icons`
+  (the world switch `tabIcons`). Clue Board draws its own button's picture under the same class, so neither
+  module needs the other. A tab with no picture keeps its glyph.
 - **The sidebar-tabs rules** (`tabs/rules.js` pure and tested, `tabs/apply.js` the writes) are House Rules 1.3.0's,
   whole: players lose Combat, Placeables, Items, Rollable Tables, Cards and Macros; GMs lose Combat, Rollable
   Tables, Cards and Macros. **While House Rules still registers its own two switches, both step aside**, so either
@@ -94,14 +106,15 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   settings, the templates at `init`; the stylesheet probe, the migration, the cases' `ready`, `module.api` (one key
   per case, `classic`, `hasCase`).
 - `scripts/common.js`: the id, the logger, `t`, `setting`, `switchKey`, `caseScope`.
-- `scripts/shell/`: `cases.js` (registry, takeover, strip, switching, Classic Mode), `migrate.js`, `art.js`.
+- `scripts/shell/`: `cases.js` (registry, takeover, strip, switching, Classic Mode), `entries.js` (a card's
+  right-click), `migrate.js`, `art.js`.
 - `scripts/journal/`: Scroll Case 1.0.4's files (`decide.js` was `decide/scrollcase.js`, `journal.js` its entry
   point's journal part); ids `cardcatalogue-journal-*`, the hook `cardcatalogue.shown`, the socket channel
   `module.fvtt-mod-cardcatalogue`.
 - `scripts/scenes/`: Map Case 0.1.0's files (`case.js` its entry point's part); the hook `cardcatalogue.activated`.
 - `scripts/actors/case.js`, `scripts/items/case.js`: the specs. `scripts/docs/`: their shared window, finder,
   record and pure decisions.
-- `scripts/tabs/`: the sidebar-tabs rules.
+- `scripts/tabs/`: the sidebar-tabs rules; `icons.js`, the painted icons (`styles/icons/tabs/`).
 - `templates/{journal,scenes,docs}/`, `styles/cardcatalogue.css`, `lang/en.json` (root keys, then one block per case).
 - `tests/`: `journal.test.js`, `scenes.test.js`, `docs.test.js`, `tabs.test.js`, the kit's.
 - `tools/journal-check.mjs`, `tools/scenes-check.mjs`, `tools/docs-check.mjs`: the sandbox walks

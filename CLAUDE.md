@@ -78,8 +78,10 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   scenes, actors and items (`shell/entries.js`): the entries come from the directory's `_getEntryContextOptions`
   and its `get<Document>ContextOptions` hook, each run against a stand-in `li.directory-item` carrying the
   document's id, so the system's and modules' entries work as in the sidebar; one that throws on the stand-in is
-  left out. The right-click selects the card. The journal has none: its cards are pages, which the stock Journal
-  tab has no menu for.
+  left out. The right-click selects the card. The stock entries place what they open for the sidebar (Delete's
+  confirmation at the screen's right edge); the first window an entry opens is centred instead (the user: "center
+  it, its appearing on the top right"). The journal has none: its cards are pages, which the stock Journal tab has
+  no menu for.
 - **The painted sidebar icons** (`tabs/icons.js`, `styles/icons/tabs/<tab>.webp`, the user's picks from imagegen):
   each stock tab and Dice So Nice's wears a picture in its glyph's `::before`, its URL a variable the script sets on
   the button (the path holds however v14 bundles the sheet), drawn only under the body's `cardcatalogue-tab-icons`

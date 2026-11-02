@@ -18,7 +18,7 @@ import { collapseTree, folderTree } from "../scenes/decide.js";
 import { openClassic, setClassic, stripContext, switchCase } from "../shell/cases.js";
 import { acts, drawnKeys, extends_, markPicked } from "../shell/cards.js";
 import { entryMenu } from "../shell/entries.js";
-import { exportInView } from "../shell/export.js";
+import { exportInView, wholeOf } from "../shell/export.js";
 import { folderMenu, newFolder, wireFolderDrag } from "../shell/folders.js";
 import { watchHost } from "../shell/host.js";
 import { dragged, pickWith } from "../shell/pick.js";
@@ -161,7 +161,15 @@ export function makeCaseWindow(spec) {
             caseId: spec.id,
             heading: this.#heading(this.view),
             search: this.query,
-            entryOf: key => (cards.has(key) ? docEntry(cards.get(key), spec.fields) : null)
+            // An actor or an item goes whole, as its sheet exports it; a pack is no document.
+            entryOf: key => {
+              const card = cards.get(key);
+              if (!card) return null;
+              const entry = docEntry(card, spec.fields);
+              const whole = spec.wholeExport ? wholeOf(card.doc) : null;
+              return whole ? { ...entry, document: whole } : entry;
+            },
+            only: this.picked.size > 1 ? this.picked : null
           });
         },
         /** A new folder, inside the one in view when it can be; the rail then shows it, to drop cards on. */

@@ -18,6 +18,8 @@ thing you came for a click away.
   folder, Rename and Remove.
 - **Many at once**: Ctrl+click or Shift+click picks several cards; drag one and they all go to the folder. Drag a
   folder onto another in the rail to put it inside, or onto Unfiled to bring it to the top.
+- **Export**: the cards in view (or the cards picked) as one JSON file; an actor or an item goes whole, as its
+  sheet's Export Data writes it.
 - **Detached windows**: detach a case into its own window and what it opens (a sheet, a confirmation) opens there.
 - **Painted sidebar icons**: every tab button wears a picture in place of its glyph, so players find the tab they
   want. Each player can also draw the sidebar's buttons bigger (up to twice), on their own client.

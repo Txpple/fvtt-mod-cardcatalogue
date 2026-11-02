@@ -40,6 +40,8 @@ const spec = {
   documentName: "Actor",
   icon: "fa-users",
   t,
+  // Export carries each card's whole document, as the sheet's Export Data writes it.
+  wholeExport: true,
   collection: () => game.actors,
   fields: ["name", "kind", "details", "owners", "folder", "text"],
   typeOrder: ["character", "npc", "group", "encounter", "vehicle"],

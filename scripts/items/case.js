@@ -62,6 +62,8 @@ const spec = {
   icon: "fa-suitcase",
   iconCards: true,
   t,
+  // Export carries each card's whole document, as the sheet's Export Data writes it.
+  wholeExport: true,
   collection: () => game.items,
   fields: ["name", "kind", "rarity", "folder", "source", "text"],
   typeOrder: ["weapon", "equipment", "consumable", "tool", "loot", "container", "spell", "feat", "background", "race", "class", "subclass"],

@@ -124,6 +124,21 @@ describe("the folder tree", () => {
     ]);
   });
 
+  it("orders by name where Foundry's directory sorts by name, at the top and inside a folder", () => {
+    expect(folderTree(folders, cards, undefined, { rootSorting: "a" }).map(f => f.id)).toEqual([
+      "b",
+      "c",
+      "t"
+    ]);
+    const manual = [
+      { id: "p", name: "Pear", parent: null, sort: 1, sorting: "a" },
+      { id: "z", name: "Zed", parent: "p", sort: 1 },
+      { id: "y", name: "Yew", parent: "p", sort: 2 }
+    ];
+    const inside = [{ folders: ["z", "p"] }, { folders: ["y", "p"] }];
+    expect(folderTree(manual, inside).map(f => f.id)).toEqual(["p", "y", "z"]);
+  });
+
   it("leaves out a folder with no scene", () => {
     expect(folderTree(folders, cards).some(f => f.id === "e")).toBe(false);
   });

@@ -287,8 +287,8 @@ export function makeCaseWindow(spec) {
 
       const folders = game.folders
         .filter(f => f.type === spec.documentName && (gm || f.visible !== false))
-        .map(f => ({ id: f.id, name: f.name, parent: f.folder?.id ?? null, sort: f.sort }));
-      const tree = folderTree(folders, all, byName, { keepEmpty: gm });
+        .map(f => ({ id: f.id, name: f.name, parent: f.folder?.id ?? null, sort: f.sort, sorting: f.sorting }));
+      const tree = folderTree(folders, all, byName, { keepEmpty: gm, rootSorting: spec.collection().sortingMode });
       const loose = all.filter(c => !c.folders.length).length;
 
       context.cases = stripContext(spec.id);

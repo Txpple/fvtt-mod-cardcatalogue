@@ -210,8 +210,8 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     this.#fields = new Map(all.map(c => [c.key, searchFields(c)]));
     this.#inView = new Set(list.map(c => c.key));
 
-    const folders = game.folders.filter(f => f.type === "Scene").map(f => ({ id: f.id, name: f.name, parent: f.folder?.id ?? null, sort: f.sort }));
-    const tree = folderTree(folders, all, byName, { keepEmpty: true });
+    const folders = game.folders.filter(f => f.type === "Scene").map(f => ({ id: f.id, name: f.name, parent: f.folder?.id ?? null, sort: f.sort, sorting: f.sorting }));
+    const tree = folderTree(folders, all, byName, { keepEmpty: true, rootSorting: game.scenes.sortingMode });
     const loose = all.filter(c => !c.folders.length).length;
 
     context.cases = stripContext("scenes");

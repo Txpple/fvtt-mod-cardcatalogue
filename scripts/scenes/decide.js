@@ -83,13 +83,15 @@ export function inView(card, view) {
 /**
  * The folders as the rail draws them: a tree flattened in order, each with its depth and the count
  * of cards in it and under it; a folder with none is left out unless `keepEmpty` (the GM's rail, where
- * a new folder is somewhere to drop cards).
- * @param {{ id: string, name: string, parent: string | null, sort?: number }[]} folders
+ * a new folder is somewhere to drop cards). Each level is ordered as Foundry's own directory orders it:
+ * the top by the directory's sorting mode (`rootSorting`), a folder's children by that folder's own
+ * `sorting`; "a" is by name, "m" (or none given) by the folders' `sort`, then by name.
+ * @param {{ id: string, name: string, parent: string | null, sort?: number, sorting?: string }[]} folders
  * @param {{ folders: string[] }[]} cards
  * @param {(a: string, b: string) => number} [byName]
- * @param {{ keepEmpty?: boolean }} [options]
+ * @param {{ keepEmpty?: boolean, rootSorting?: string }} [options]
  */
-export function folderTree(folders, cards, byName = (a, b) => a.localeCompare(b), { keepEmpty = false } = {}) {
+export function folderTree(folders, cards, byName = (a, b) => a.localeCompare(b), { keepEmpty = false, rootSorting = "m" } = {}) {
   const count = new Map();
   for (const c of cards) for (const id of c.folders) count.set(id, (count.get(id) ?? 0) + 1);
   const kids = new Map();
@@ -99,8 +101,12 @@ export function folderTree(folders, cards, byName = (a, b) => a.localeCompare(b)
     kids.get(p).push(f);
   }
   const out = [];
+  const sortingOf = new Map(folders.map(f => [f.id, f.sorting]));
   const walk = (parent, depth) => {
-    const list = (kids.get(parent) ?? []).slice().sort((a, b) => (a.sort ?? 0) - (b.sort ?? 0) || byName(a.name, b.name));
+    const alpha = (parent ? sortingOf.get(parent) : rootSorting) === "a";
+    const list = (kids.get(parent) ?? [])
+      .slice()
+      .sort((a, b) => (alpha ? byName(a.name, b.name) : (a.sort ?? 0) - (b.sort ?? 0) || byName(a.name, b.name)));
     for (const f of list) {
       const n = count.get(f.id) ?? 0;
       if (!n && !keepEmpty) continue;

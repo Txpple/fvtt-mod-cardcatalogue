@@ -48,9 +48,10 @@ export const templates = ["library.hbs", "finder.hbs", "reader.hbs"].map(f => `m
 /** The case's own settings, registered at init. */
 export function registerSettings() {
   const reg = (key, data) => game.settings.register(MODULE_ID, key, { name: `${MODULE_ID}.settings.${key}.name`, hint: `${MODULE_ID}.settings.${key}.hint`, ...data });
-  reg("showKeeps", { scope: "world", config: true, type: Boolean, default: true });
-  reg("assetFolders", { scope: "world", config: true, type: String, default: "" });
-  reg("handoutsJournal", { scope: "world", config: true, type: String, default: "Handouts" });
+  // Out of the menu (the user's audit): each keeps the value it has.
+  reg("showKeeps", { scope: "world", config: false, type: Boolean, default: true });
+  reg("assetFolders", { scope: "world", config: false, type: String, default: "" });
+  reg("handoutsJournal", { scope: "world", config: false, type: String, default: "Handouts" });
 }
 
 export const openFinder = () => Finder.toggle();

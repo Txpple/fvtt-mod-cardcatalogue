@@ -16,9 +16,10 @@ thing you came for a click away.
 - **One window**: each sidebar button opens its case, with its stock tab open behind it, and the strip across the
   top switches cases in place. A right-click on a scene, actor, item or pack card gives Foundry's own menu for it.
 - **Painted sidebar icons**: every tab button wears a picture in place of its glyph, so players find the tab they
-  want. One switch. Each player can also draw the sidebar's buttons bigger (up to twice), on their own client.
+  want. Each player can also draw the sidebar's buttons bigger (up to twice), on their own client.
 - **The sidebar shows only the tabs the table uses**: players lose Combat, Placeables, Items, Rollable Tables, Cards
-  and Macros; GMs lose Combat, Rollable Tables, Cards and Macros. Each its own switch.
+  and Macros; GMs lose Combat, Rollable Tables, Cards and Macros.
+- **Six settings**: *Enabled for …?* for each case (all on to begin with) and the sidebar's button size.
 - **A skin, nothing more.** It writes only what Foundry's own directories write; history lives in your
   browser. Classic Mode puts any directory back, per case, per client.
 

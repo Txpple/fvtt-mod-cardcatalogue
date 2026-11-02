@@ -38,6 +38,12 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   the stock directory behind the window; a middle click, which the sidebar ignores, changes the tab itself), adds
   Classic Mode's way back to each stock directory, draws the strip (the sidebar's order: Scenes, Actors, Items, Journal, Compendium; none when only one
   case is on) and switches cases in place (the other window opens where this one stands, this one closes).
+- **The settings menu is six lines** (the user's audit: "there should just be 'Enabled for Scenes?' and they should
+  all default to yes. default the buttons to 1.25x"): *Enabled for <Case>?* for each case, in the strip's order,
+  all on by default, and the client's *Sidebar button size* (1.25 by default; a value no longer offered draws at
+  it). Everything else is registered `config: false` and keeps its value: each Classic Mode (the windows' own
+  button and the directories' way back), the journal's three (`showKeeps`, `assetFolders`, `handoutsJournal`), the
+  two sidebar-tabs rules and `tabIcons`.
 - **Each case has its two switches**: `<case>Enabled` (world, reload) and `<case>Classic` (client). A case's own
   files read them as `enabled` and `classic` through its `common.js` (`caseScope`), and its strings under `<case>.`,
   so the code carried over from Scroll Case and Map Case reads as it did there.

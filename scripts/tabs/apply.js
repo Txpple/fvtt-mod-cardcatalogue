@@ -75,14 +75,14 @@ export function applyGmSidebarTabs() {
   removeHiddenTabs(rules.hiddenFor(user), user);
 }
 
-/** The two switches, registered at init. */
+/** The two switches, registered at init; out of the menu (the user's audit), each keeps its value. */
 export function registerSettings() {
   const reg = (key, onChange) =>
     game.settings.register(MODULE_ID, key, {
       name: `${MODULE_ID}.settings.${key}.name`,
       hint: `${MODULE_ID}.settings.${key}.hint`,
       scope: "world",
-      config: true,
+      config: false,
       type: Boolean,
       default: true,
       requiresReload: true,

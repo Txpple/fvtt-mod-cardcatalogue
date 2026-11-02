@@ -21,6 +21,7 @@ const CLASS = "cardcatalogue-tab-icons";
     as a whole number (an object lists those first, and the choices would fall out of order). */
 const SCALE_CLASS = "cardcatalogue-tab-scale";
 const SCALES = ["1.00", "1.25", "1.50", "1.75", "2.00"];
+const DEFAULT_SCALE = "1.25";
 
 /** The tabs with a picture, each `styles/icons/tabs/<tab>.webp`. */
 export const PICTURED = [
@@ -49,8 +50,10 @@ export function applyTabIcons() {
 export function applyTabScale() {
   const body = document.body;
   if (!body) return;
-  const scale = String(game.settings.get(MODULE_ID, SCALE_ID));
-  const on = SCALES.includes(scale) && scale !== "1.00";
+  // A value no longer offered (an older choice) draws at the default.
+  let scale = String(game.settings.get(MODULE_ID, SCALE_ID));
+  if (!SCALES.includes(scale)) scale = DEFAULT_SCALE;
+  const on = scale !== "1.00";
   body.classList.toggle(SCALE_CLASS, on);
   if (on) body.style.setProperty("--cc-tab-scale", scale);
   else body.style.removeProperty("--cc-tab-scale");
@@ -62,7 +65,7 @@ export function registerSettings() {
     name: `${MODULE_ID}.settings.${ID}.name`,
     hint: `${MODULE_ID}.settings.${ID}.hint`,
     scope: "world",
-    config: true,
+    config: false,
     type: Boolean,
     default: true,
     onChange: applyTabIcons
@@ -74,7 +77,7 @@ export function registerSettings() {
     config: true,
     type: String,
     choices: Object.fromEntries(SCALES.map(s => [s, `${MODULE_ID}.settings.${SCALE_ID}.choices.${s.replace(".", "_")}`])),
-    default: "1.00",
+    default: DEFAULT_SCALE,
     onChange: applyTabScale
   });
 }

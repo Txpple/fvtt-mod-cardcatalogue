@@ -20,7 +20,8 @@ import { migrateClient, migrateWorld } from "./shell/migrate.js";
 import * as tabs from "./tabs/apply.js";
 import * as tabIcons from "./tabs/icons.js";
 
-const CASES = { journal, scenes, actors, items, compendium };
+/** The cases, in the strip's order, which is also the settings menu's. */
+const CASES = { scenes, actors, items, journal, compendium };
 
 /** The directory each case stands for, redrawn when its Classic Mode changes. */
 const DIRECTORY = { journal: "journal", scenes: "scenes", actors: "actors", items: "items", compendium: "compendium" };
@@ -34,13 +35,16 @@ const KEYS = {
   compendium: []
 };
 
+// The settings menu holds only what a table changes: each case's switch and the sidebar's size (the
+// user's audit). Every other setting keeps working, out of the menu: Classic Mode is the windows'
+// own button, and the journal's and the sidebar's rules keep the values they have.
 Hooks.once("init", () => {
   const reg = (key, data) => game.settings.register(MODULE_ID, key, { name: `${MODULE_ID}.settings.${key}.name`, hint: `${MODULE_ID}.settings.${key}.hint`, ...data });
   for (const id of Object.keys(CASES)) {
     reg(switchKey(id, "enabled"), { scope: "world", config: true, type: Boolean, default: true, requiresReload: true });
     reg(switchKey(id, "classic"), {
       scope: "client",
-      config: true,
+      config: false,
       type: Boolean,
       default: false,
       onChange: () => ui[DIRECTORY[id]]?.render()

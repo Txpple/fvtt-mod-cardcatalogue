@@ -23,40 +23,40 @@
     },
     "settings": {
       "journalEnabled": {
-        "name": "Journal case",
-        "hint": "The Journal button opens the journal as cards (what Scroll Case was). Off: the stock Journal tab, and nothing of the case is drawn."
+        "name": "Enabled for Journal?",
+        "hint": "The Journal button opens every page as a card, Show one click away. No: Foundry's own Journal tab."
       },
       "journalClassic": {
         "name": "Journal: Classic Mode",
         "hint": "On this client, the Journal button opens Foundry's own Journal tab. The tab carries a Card Catalogue button to come back."
       },
       "scenesEnabled": {
-        "name": "Scenes case",
-        "hint": "The Scenes button opens the scenes as wide cards, one-click Activate with an Undo. GM only. Off: the stock Scenes tab."
+        "name": "Enabled for Scenes?",
+        "hint": "The Scenes button opens the scenes as cards (GM only). No: Foundry's own Scenes tab."
       },
       "scenesClassic": {
         "name": "Scenes: Classic Mode",
         "hint": "On this client, the Scenes button opens Foundry's own Scenes tab."
       },
       "actorsEnabled": {
-        "name": "Actors case",
-        "hint": "The Actors button opens the actors as portrait cards; Open is one click. Off: the stock Actors tab."
+        "name": "Enabled for Actors?",
+        "hint": "The Actors button opens the actors as cards. No: Foundry's own Actors tab."
       },
       "actorsClassic": {
         "name": "Actors: Classic Mode",
         "hint": "On this client, the Actors button opens Foundry's own Actors tab."
       },
       "itemsEnabled": {
-        "name": "Items case",
-        "hint": "The Items button opens the items as cards; Open is one click. Off: the stock Items tab."
+        "name": "Enabled for Items?",
+        "hint": "The Items button opens the items as cards. No: Foundry's own Items tab."
       },
       "itemsClassic": {
         "name": "Items: Classic Mode",
         "hint": "On this client, the Items button opens Foundry's own Items tab."
       },
       "compendiumEnabled": {
-        "name": "Compendium case",
-        "hint": "The Compendium Packs button opens the packs as cards, each with its banner; Open is one click. Off: the stock Compendium Packs tab."
+        "name": "Enabled for Compendium?",
+        "hint": "The Compendium Packs button opens the packs as cards. No: Foundry's own Compendium Packs tab."
       },
       "compendiumClassic": {
         "name": "Compendium: Classic Mode",
@@ -84,7 +84,7 @@
       },
       "tabScale": {
         "name": "Sidebar button size",
-        "hint": "On this client, how big the sidebar's buttons are drawn. Bigger is easier to hit and to read; the strip grows with them.",
+        "hint": "On this client, how big the sidebar's buttons are drawn.",
         "choices": {
           "1_00": "Foundry's own",
           "1_25": "1.25 times",

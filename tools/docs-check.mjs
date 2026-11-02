@@ -1,11 +1,13 @@
-// The live check of the actors and items cases, the case strip and the cut-over, on the sandbox: a
+// The live check of the actors, items and compendium cases, the case strip and the cut-over, on the sandbox: a
 // GM page (the bridge user) and a temporary player page, every fact read from the world.
 //
 //   FOUNDRY_HOST=local node tools/docs-check.mjs [--shots <dir>]
 //
 // The GM page opens the actors case from the sidebar's button, searches, opens a sheet with the
 // card's one button, places a token on a scratch scene from the chevron, switches to the items
-// case in place, reads the items' cards and the chevron's Give to…, and reads the settings carried
+// case in place, reads the items' cards and the chevron's Give to…, opens the compendium case from
+// its button (a card per pack, each with its banner, the folders on the rail, the stock pack menu on
+// a right-click, a double click opening the pack), and reads the settings carried
 // over from Scroll Case and House Rules. A temporary player connects: their actors case lists the
 // actors they can see, their own in Mine, no chevron. The scratch scene, its token and the temp
 // user go in `finally`.
@@ -302,6 +304,61 @@ try {
   assert(["art", "post", "give"].every(r => C.rows.includes(r)), `the item chevron: Show the art, Post to chat, Give to… (${C.rows.join(", ")})`);
   assert(C.recipients > 0, `Give to… names the party and its characters (${C.recipients})`);
   await shot(f.page, "11-items");
+
+  // --- C2. the compendium case --------------------------------------------------------------
+  console.log("# C2. the Compendium button opens the compendium case");
+  const C2 = await f.evaluate(async () => {
+    const wait = async (fn, n = 50) => {
+      for (let i = 0; i < n; i++) {
+        const v = fn();
+        if (v) return v;
+        await new Promise(r => setTimeout(r, 100));
+      }
+      return null;
+    };
+    for (const app of [...foundry.applications.instances.values()]) if (app.id?.startsWith("cardcatalogue-")) await app.close();
+    ui.sidebar.changeTab("chat", "primary");
+    document.querySelector('#sidebar-tabs [data-tab="compendium"]')?.click();
+    const win = await wait(() => foundry.applications.instances.get("cardcatalogue-compendium-library")?.rendered && foundry.applications.instances.get("cardcatalogue-compendium-library"));
+    const el = win?.element;
+    const cards = [...(el?.querySelectorAll(".cc-card[data-key]") ?? [])];
+    const topFolders = game.folders.filter(fo => fo.type === "Compendium" && !fo.folder).map(fo => fo.id);
+    const railFolders = new Set([...(el?.querySelectorAll('.cc-rail [data-view^="f:"]') ?? [])].map(b => b.dataset.view.slice(2)));
+    const card = cards[0];
+    let labels = [];
+    let selected = false;
+    if (card) {
+      const r = card.getBoundingClientRect();
+      card.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: r.x + 30, clientY: r.y + 30, button: 2 }));
+      const menu = await wait(() => document.querySelector("#context-menu .context-items"));
+      labels = [...(menu?.querySelectorAll(".context-item") ?? [])].map(li => li.textContent.trim());
+      selected = card.classList.contains("on");
+      document.querySelector("#context-menu")?.remove();
+    }
+    const key = card?.dataset.key;
+    card?.querySelector("[data-action=pick]")?.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 2 }));
+    const opened = await wait(() => [...foundry.applications.instances.values()].find(a => a.collection?.collection === key && a.rendered), 40);
+    await opened?.close();
+    await win?.close();
+    return {
+      tab: ui.sidebar.tabGroups.primary,
+      cards: cards.length,
+      packs: game.packs.size,
+      pictures: cards.filter(c => c.querySelector(".cc-thumb img")).length,
+      foldersOnRail: topFolders.every(id => railFolders.has(id)),
+      topFolders: topFolders.length,
+      selected,
+      ownership: labels.includes(game.i18n.localize("OWNERSHIP.Configure")),
+      labels,
+      opened: !!opened
+    };
+  });
+  assert(C2.cards === C2.packs && C2.cards > 0, `a card per pack (${C2.cards} of ${C2.packs})`);
+  assert(C2.pictures === C2.cards, `every pack card wears its banner (${C2.pictures} of ${C2.cards})`);
+  assert(C2.tab === "compendium", "the Compendium tab is lit and open behind the window");
+  assert(C2.foldersOnRail, `the rail holds the packs' folders (${C2.topFolders} at the top)`);
+  assert(C2.selected && C2.ownership, `a right-click selects the card and gives the stock pack menu (${C2.labels.join(", ")})`);
+  assert(C2.opened, "a double click opens the pack");
 
   // --- D. the settings carried over ---------------------------------------------------------
   console.log("# D. the cut-over");

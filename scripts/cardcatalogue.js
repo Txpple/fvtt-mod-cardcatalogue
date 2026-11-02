@@ -2,7 +2,7 @@
  * Open Roll 5e: Card Catalogue — the entry point (module.json's `esmodules`).
  *
  * Every directory the table uses as a case of cards: the journal (Scroll Case, carried over whole),
- * the scenes (Map Case), the actors and the items, each opened by its own sidebar button and
+ * the scenes (Map Case), the actors, the items and the compendium packs, each opened by its own sidebar button and
  * switched between in place; and the sidebar itself showing only the tabs the table uses (the two
  * rules carried over from House Rules). A skin over Foundry's own directories: every world write is
  * one the stock directory or sheet makes, and what only the module needs lives in the browser.
@@ -10,6 +10,7 @@
  */
 
 import * as actors from "./actors/case.js";
+import * as compendium from "./compendium/case.js";
 import { log, MODULE_ID, setting, switchKey } from "./common.js";
 import * as items from "./items/case.js";
 import * as journal from "./journal/journal.js";
@@ -19,17 +20,18 @@ import { migrateClient, migrateWorld } from "./shell/migrate.js";
 import * as tabs from "./tabs/apply.js";
 import * as tabIcons from "./tabs/icons.js";
 
-const CASES = { journal, scenes, actors, items };
+const CASES = { journal, scenes, actors, items, compendium };
 
 /** The directory each case stands for, redrawn when its Classic Mode changes. */
-const DIRECTORY = { journal: "journal", scenes: "scenes", actors: "actors", items: "items" };
+const DIRECTORY = { journal: "journal", scenes: "scenes", actors: "actors", items: "items", compendium: "compendium" };
 
-/** Each case's finder key: Scroll Case's and Map Case's as they were; actors and items unbound. */
+/** Each case's finder key: Scroll Case's and Map Case's as they were; actors, items and compendium unbound. */
 const KEYS = {
   journal: [{ key: "KeyH", modifiers: ["Control", "Shift"] }],
   scenes: [{ key: "KeyM", modifiers: ["Control", "Shift"] }],
   actors: [],
-  items: []
+  items: [],
+  compendium: []
 };
 
 Hooks.once("init", () => {
@@ -60,6 +62,7 @@ Hooks.once("init", () => {
   tabs.registerSettings();
   tabIcons.registerSettings();
   tabIcons.applyTabIcons();
+  tabIcons.applyTabScale();
 
   const load = foundry.applications?.handlebars?.loadTemplates ?? loadTemplates;
   const docs = ["library.hbs", "finder.hbs"].map(f => `modules/${MODULE_ID}/templates/docs/${f}`);
@@ -99,6 +102,7 @@ Hooks.once("ready", () => {
       scenes: scenes.api,
       actors: actors.api,
       items: items.api,
+      compendium: compendium.api,
       classic: (id, on = true) => setClassic(id, on),
       hasCase,
       setting

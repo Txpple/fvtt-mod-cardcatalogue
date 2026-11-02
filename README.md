@@ -11,10 +11,12 @@ thing you came for a click away.
 - **Actors**: portrait cards; Open is one click. Show the art, place a token where you are looking, ownership
   behind the chevron. Players see theirs.
 - **Items**: Open is one click; show the art, post to chat, or give a copy to the party behind the chevron.
+- **Compendium**: every pack a wide card wearing its banner, filed in its folders; Open is one click. Lock and
+  ownership behind the chevron. Players see the packs they can.
 - **One window**: each sidebar button opens its case, with its stock tab open behind it, and the strip across the
-  top switches cases in place. A right-click on a scene, actor or item card gives Foundry's own menu for it.
+  top switches cases in place. A right-click on a scene, actor, item or pack card gives Foundry's own menu for it.
 - **Painted sidebar icons**: every tab button wears a picture in place of its glyph, so players find the tab they
-  want. One switch.
+  want. One switch. Each player can also draw the sidebar's buttons bigger (1.5 or 2 times), on their own client.
 - **The sidebar shows only the tabs the table uses**: players lose Combat, Placeables, Items, Rollable Tables, Cards
   and Macros; GMs lose Combat, Rollable Tables, Cards and Macros. Each its own switch.
 - **A skin, nothing more.** It writes only what Foundry's own directories write; history lives in your

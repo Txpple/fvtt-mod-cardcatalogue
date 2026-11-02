@@ -3,17 +3,22 @@
  * shows (Foundry's, the system's and every module's through the directory's own hook), on any card
  * keyed by a document's UUID. Nothing is copied: the entries come from the directory each time the
  * window is first drawn, and each runs against a stand-in of the directory's row (`li.directory-item`
- * carrying the document's id), so an entry that looks for the row finds what it would in the sidebar.
+ * carrying the document's id, or what a case's `row` puts on it: a pack's `data-pack`), so an entry
+ * that looks for the row finds what it would in the sidebar.
  * The right-click also selects the card, as a click does.
  */
 
 import { log } from "../common.js";
 
-/** A row as the stock directory draws it, for the document behind a card. */
-function standIn(card) {
-  const doc = fromUuidSync(card.dataset.key);
+/** A row as the stock directory draws it, for the entry behind a card. */
+function standIn(card, row) {
   const li = document.createElement("li");
   li.className = "directory-item entry document";
+  if (row) {
+    row(li, card.dataset.key);
+    return li;
+  }
+  const doc = fromUuidSync(card.dataset.key);
   if (doc?.id) {
     li.dataset.entryId = doc.id;
     li.dataset.documentId = doc.id;
@@ -23,9 +28,10 @@ function standIn(card) {
 
 /**
  * Bind the menu once on a window's element (it outlives every redraw). `directory()` is the stock
- * directory the cards belong to (`ui.items`, `ui.actors`, `ui.scenes`); `select(key)` marks the card.
+ * directory the cards belong to (`ui.items`, `ui.actors`, `ui.scenes`, `ui.compendium`); `select(key)`
+ * marks the card; `row(li, key)`, when given, makes the stand-in row instead of a document's id.
  */
-export function entryMenu(element, directory, select) {
+export function entryMenu(element, directory, select, row) {
   try {
     const app = directory();
     if (!app?._getEntryContextOptions) return;
@@ -36,11 +42,11 @@ export function entryMenu(element, directory, select) {
     });
     if (!entries?.length) return;
     const rows = new WeakMap();
-    const row = card => {
-      if (!rows.has(card)) rows.set(card, standIn(card));
+    const rowFor = card => {
+      if (!rows.has(card)) rows.set(card, standIn(card, row));
       return rows.get(card);
     };
-    const swap = args => args.map(a => (a instanceof HTMLElement && a.matches(".cc-card[data-key]") ? row(a) : a));
+    const swap = args => args.map(a => (a instanceof HTMLElement && a.matches(".cc-card[data-key]") ? rowFor(a) : a));
     // An entry that throws on the stand-in is left out, never the whole menu.
     const wrapped = entries.map(entry => {
       const e = { ...entry };

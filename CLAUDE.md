@@ -1,13 +1,13 @@
 # fvtt-mod-cardcatalogue — working notes for sessions in this repo
 
 **What this is.** Open Roll 5e: Card Catalogue, a Foundry VTT module: every directory the table uses as a case of
-cards. The journal (Scroll Case 1.0.4, carried over whole), the scenes (the Map Case prototype), the actors and the
-items, each opened by its own sidebar button and switched between in place by a strip across the top; and the
+cards. The journal (Scroll Case 1.0.4, carried over whole), the scenes (the Map Case prototype), the actors, the
+items and the compendium packs, each opened by its own sidebar button and switched between in place by a strip across the top; and the
 sidebar showing only the tabs the table uses (the two rules carried over from House Rules 1.3.0). A skin over
 Foundry's own directories. Part of Open Roll 5e (the suite repo is `..`, its CLAUDE.md has the family's conventions;
 the plan is `../docs/plans/cardcatalogue.md`). Plain ES modules, no build step, no libWrapper, no socketlib, MIT.
 
-**State (2026-11-01).** Unreleased on `main` (the user: "ok go put on sandbox", then "Commit both"): the Reader's *Open in journal* gone (Classic Mode is the way to the stock sheet); painted pictures on every sidebar tab button (`tabIcons`, world, on; Clue Board's button follows the body's class); a case's button lights its tab with the stock directory behind the window; a right-click on a scenes, actors or items card selects it and opens the stock directory's own entry menu. Deployed `--local` (the sandbox world had neither Card Catalogue nor Clue Board enabled after the cut-over mirror: both enabled, the world restarted); `verify` green (137 tests); `docs-check` and `scenes-check` GREEN; `journal-check --walk` red only on "portraits ysolde", which 1.0.7 fails the same way (the sandbox's data). 1.0.7 (the journal's export named as the other cases', `cardcatalogue-journal-<view>-<date>.json`, format `fvtt-mod-cardcatalogue/journal`, no longer Scroll Case's) released and on prod; 1.0.6 (the journal's *Not in a journal* row and the scenes' *On the players' bar* and *Off the bar* rows gone from the rails) released and on prod; 1.0.5 (Export of the cards in view in the scenes, actors and items cases, as the journal's, `shell/export.js`; the journal's folder headings laid from the left) released and on prod; 1.0.4 (a folder's caret is its own button beside the row: inside it, a real click picked
+**State (2026-11-01).** Unreleased: the compendium case (the user: "i want compendiums added just like we have the others ... folders of compendiums ... in the rail ... RMBs ... thumbnails are used for the cards"), the packs as wide banner cards on the shared docs window, and the client's sidebar button size (`tabScale`, "lets start with 2x scale"); deployed `--local`, `verify` green, `docs-check` GREEN with its compendium step; committed and pushed ("Commit and push"). Before it, on `main` (the user: "ok go put on sandbox", then "Commit both"): the Reader's *Open in journal* gone (Classic Mode is the way to the stock sheet); painted pictures on every sidebar tab button (`tabIcons`, world, on; Clue Board's button follows the body's class); a case's button lights its tab with the stock directory behind the window; a right-click on a scenes, actors or items card selects it and opens the stock directory's own entry menu. Deployed `--local` (the sandbox world had neither Card Catalogue nor Clue Board enabled after the cut-over mirror: both enabled, the world restarted); `verify` green (137 tests); `docs-check` and `scenes-check` GREEN; `journal-check --walk` red only on "portraits ysolde", which 1.0.7 fails the same way (the sandbox's data). 1.0.7 (the journal's export named as the other cases', `cardcatalogue-journal-<view>-<date>.json`, format `fvtt-mod-cardcatalogue/journal`, no longer Scroll Case's) released and on prod; 1.0.6 (the journal's *Not in a journal* row and the scenes' *On the players' bar* and *Off the bar* rows gone from the rails) released and on prod; 1.0.5 (Export of the cards in view in the scenes, actors and items cases, as the journal's, `shell/export.js`; the journal's folder headings laid from the left) released and on prod; 1.0.4 (a folder's caret is its own button beside the row: inside it, a real click picked
 the folder; walked with the real mouse) released and on prod before it; 1.0.3 (a click selects a card, a double click or Enter does its one thing; the rail's
 folders collapse by a caret, the journal's folder headings collapse their journals, each browser remembering)
 released, never on prod; 1.0.2 (the top level is *Unfiled*; *+ Create New Folder* a gold pill as Clue Board's New
@@ -36,7 +36,7 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   journal, Map Case for scenes; the case stays out of the way so two windows never answer one button). The shell
   listens on each tab button (a click opens the case and still reaches the sidebar, which lights the tab and opens
   the stock directory behind the window; a middle click, which the sidebar ignores, changes the tab itself), adds
-  Classic Mode's way back to each stock directory, draws the strip (the sidebar's order: Scenes, Actors, Items, Journal; none when only one
+  Classic Mode's way back to each stock directory, draws the strip (the sidebar's order: Scenes, Actors, Items, Journal, Compendium; none when only one
   case is on) and switches cases in place (the other window opens where this one stands, this one closes).
 - **Each case has its two switches**: `<case>Enabled` (world, reload) and `<case>Classic` (client). A case's own
   files read them as `enabled` and `classic` through its `common.js` (`caseScope`), and its strings under `<case>.`,
@@ -45,7 +45,8 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   actor dnd5e marks as its own copy of a summon (`isSummonCopy`: `flags.dnd5e.isAutoImported`, or `summonedCopy`),
   though its owner keeps the token and the stock directory still lists it. The GM sees them all.
 - **Who sees which case**: the journal and actors every user; scenes GMs (the tab is GM only); items GMs, and a
-  player only while the sidebar keeps their Items tab (`gmOnly` on `CONFIG.ui.sidebar.TABS.items`).
+  player only while the sidebar keeps their Items tab (`gmOnly` on `CONFIG.ui.sidebar.TABS.items`); the compendium
+  every user, a player the packs they can observe (the stock directory's rule).
 - **No side panel, no pins** (the user's rulings: "the actions i need are in that little yellow chevron"). **A click
   selects a card, a double click (or Enter) does the case's one thing** (the user's ruling, every case and every
   user alike): the journal opens the page to read (the Reader; a picture on no page, to look at), scenes view,
@@ -94,9 +95,16 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   the journal's record falls back to Scroll Case's key the first time it has none.
 - **The look is Scroll Case's**, the family's, in `styles/cardcatalogue.css` under the `cc-` prefix and the
   `cardcatalogue` window class; each case's own rules follow, scoped to its window. Clue Board copies it from here.
-- **Actors and items share one window** (`docs/library.js`, `docs/finder.js`, `templates/docs/`), each configured by
-  a spec in its `case.js`: its collection, its search fields (`docs/decide.js` matches over them), how a document
-  becomes a card, its views, its one action and its chevron.
+- **Actors, items and the compendium share one window** (`docs/library.js`, `docs/finder.js`, `templates/docs/`),
+  each configured by a spec in its `case.js`: its collection, its search fields (`docs/decide.js` matches over
+  them), how an entry becomes a card, its views, its one action and its chevron. A pack is no document, so the
+  compendium spec says how its cards are keyed (`keyOf`: the pack's collection id; `resolve`), named, pictured (the
+  pack's `banner`, Foundry's 290 × 70 strip, so its cards are wide), seen (`canSee`), dragged (`dragData`), filed
+  (`file`: `setFolder`, the stock drop) and right-clicked (`row`: the stand-in's `data-pack`); a document case says
+  none of it.
+- **The sidebar's button size is the client's** (`tabScale`: Foundry's own, 1.5 or 2 times; the user's "gate it behind
+  a client setting"): Foundry gives each `.ui-control` its own `--control-size`, so the strip's buttons alone are
+  scaled, under the body's `cardcatalogue-tab-scale`.
 - **A picture shown from actors or items** (`shell/art.js`) goes through the journal case's Show (the same Reader on
   the players' screens) while the journal case is on, else Foundry's own image share.
 
@@ -112,9 +120,9 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   point's journal part); ids `cardcatalogue-journal-*`, the hook `cardcatalogue.shown`, the socket channel
   `module.fvtt-mod-cardcatalogue`.
 - `scripts/scenes/`: Map Case 0.1.0's files (`case.js` its entry point's part); the hook `cardcatalogue.activated`.
-- `scripts/actors/case.js`, `scripts/items/case.js`: the specs. `scripts/docs/`: their shared window, finder,
-  record and pure decisions.
-- `scripts/tabs/`: the sidebar-tabs rules; `icons.js`, the painted icons (`styles/icons/tabs/`).
+- `scripts/actors/case.js`, `scripts/items/case.js`, `scripts/compendium/case.js`: the specs. `scripts/docs/`:
+  their shared window, finder, record and pure decisions.
+- `scripts/tabs/`: the sidebar-tabs rules; `icons.js`, the painted icons (`styles/icons/tabs/`) and the button size.
 - `templates/{journal,scenes,docs}/`, `styles/cardcatalogue.css`, `lang/en.json` (root keys, then one block per case).
 - `tests/`: `journal.test.js`, `scenes.test.js`, `docs.test.js`, `tabs.test.js`, the kit's.
 - `tools/journal-check.mjs`, `tools/scenes-check.mjs`, `tools/docs-check.mjs`: the sandbox walks

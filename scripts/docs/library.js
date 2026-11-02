@@ -1,11 +1,16 @@
 /**
- * The window the actors and items cases share: a collection's documents as cards, in the journal
- * case's look and with its habits. A rail (the case's views, its types, its folders), the cards
+ * The window the actors, items and compendium cases share: a collection's entries as cards, in the
+ * journal case's look and with its habits. A rail (the case's views, its types, its folders), the cards
  * (each with the case's one button and a chevron of the rest; a click does the one thing), a search that
  * filters the drawn cards and never redraws. Each case gives a spec (actors.js, items.js): its
  * collection, its fields, how a document becomes a card, its one action and its chevron. The
  * window writes nothing itself: every write is a spec's action, each one the stock directory or
  * sheet makes. What only it needs (opened lately, the view, the size) lives in the browser.
+ *
+ * An entry is a document by default: keyed by its UUID, its `img` its picture, filed by its `folder`.
+ * A spec whose entries are not documents (the compendium case's packs) says how instead: `keyOf`,
+ * `resolve`, `nameOf`, `pictureOf`, `canSee`, `dragData`, `file`, `directory` and `row` (its
+ * right-click's stand-in row).
  */
 
 import { log, MODULE_ID, t as rootT } from "../common.js";
@@ -37,18 +42,19 @@ function chainOf(folder) {
  * `card(doc)` adds the case's own fields.
  */
 export function casesCards(spec, user = game.user) {
+  const canSee = spec.canSee ?? ((doc, u) => u.isGM || doc.testUserPermission(u, "LIMITED"));
   return spec
     .collection()
-    .contents.filter(doc => (user.isGM || doc.testUserPermission(user, "LIMITED")) && !spec.hidden?.(doc, user))
+    .contents.filter(doc => canSee(doc, user) && !spec.hidden?.(doc, user))
     .map(doc => {
       const chain = chainOf(doc.folder);
       // A player is not told the name of a folder the stock directory hides from them.
       const folders = user.isGM ? chain : chain.filter(f => f.visible !== false);
       return {
-        key: doc.uuid,
+        key: spec.keyOf ? spec.keyOf(doc) : doc.uuid,
         doc,
-        name: doc.name,
-        picture: doc.img || null,
+        name: spec.nameOf ? spec.nameOf(doc) : doc.name,
+        picture: (spec.pictureOf ? spec.pictureOf(doc) : doc.img) || null,
         folder: folders
           .map(f => f.name)
           .reverse()
@@ -60,9 +66,13 @@ export function casesCards(spec, user = game.user) {
     .sort(spec.order === "type" ? byType(spec.typeOrder, byName) : (a, b) => byName(a.folder, b.folder) || byName(a.name, b.name));
 }
 
+/** A card's entry from its key: a document by its UUID, unless the spec resolves its own. */
+export const resolveOf = spec => key => (spec.resolve ? spec.resolve(key) : fromUuidSync(key));
+
 /** Build a case's window class from its spec. */
 export function makeCaseWindow(spec) {
   const record = createRecord(spec.id);
+  const resolve = resolveOf(spec);
   const { t } = spec;
   const counted = (n, base) => t(n === 1 ? `${base}One` : base, { n });
 
@@ -333,7 +343,7 @@ export function makeCaseWindow(spec) {
     /** The case's one thing: the spec's primary action, noted as opened lately. */
     async go(key) {
       if (this.#busy.has(key)) return;
-      const doc = fromUuidSync(key);
+      const doc = resolve(key);
       if (!doc) return;
       this.#busy.add(key);
       try {
@@ -350,7 +360,7 @@ export function makeCaseWindow(spec) {
     /** A chevron or panel action by name: the chevron closes first, focus goes back to its card. */
     async act(name, arg, target) {
       const key = target?.closest?.("[data-key]")?.dataset.key ?? this.menu ?? this.selected;
-      const doc = key ? fromUuidSync(key) : null;
+      const doc = key ? resolve(key) : null;
       if (this.menu) {
         this.#returnTo = this.menu;
         this.menu = null;
@@ -394,11 +404,16 @@ export function makeCaseWindow(spec) {
       super._onFirstRender(context, options);
       folderMenu(this.element);
       // A right-click selects the card and opens the stock directory's own menu for it.
-      entryMenu(this.element, () => spec.collection().directory, key => {
-        this.selected = key;
-        if (this.sticky !== key) this.sticky = null;
-        markPicked(this.element, key);
-      });
+      entryMenu(
+        this.element,
+        () => spec.directory?.() ?? spec.collection().directory,
+        key => {
+          this.selected = key;
+          if (this.sticky !== key) this.sticky = null;
+          markPicked(this.element, key);
+        },
+        spec.row
+      );
       this.element.addEventListener("keydown", ev => {
         if (this.menu && ev.key === "Escape") {
           ev.preventDefault();
@@ -510,7 +525,8 @@ export function makeCaseWindow(spec) {
           card.classList.add("dragging");
           ev.dataTransfer.effectAllowed = "copyMove";
           // Foundry's own drag: an actor dropped on the canvas makes a token, an item on a sheet a copy.
-          ev.dataTransfer.setData("text/plain", JSON.stringify({ type: spec.documentName, uuid: card.dataset.key }));
+          const data = spec.dragData ? spec.dragData(card.dataset.key) : { type: spec.documentName, uuid: card.dataset.key };
+          ev.dataTransfer.setData("text/plain", JSON.stringify(data));
         });
         card.addEventListener("dragend", () => {
           CaseWindow.#dragging = null;
@@ -534,9 +550,10 @@ export function makeCaseWindow(spec) {
           ev.preventDefault();
           ev.stopPropagation();
           row.classList.remove("drop-ok");
-          const doc = fromUuidSync(d.key);
-          // The stock directory's own drop: the document's folder.
-          if (doc) void doc.update({ folder: row.dataset.folder || null }).catch(err => log.error("filing failed", err));
+          const doc = resolve(d.key);
+          // The stock directory's own drop: the entry's folder.
+          const folder = row.dataset.folder || null;
+          if (doc) void Promise.resolve(spec.file ? spec.file(doc, folder) : doc.update({ folder })).catch(err => log.error("filing failed", err));
         });
       }
     }

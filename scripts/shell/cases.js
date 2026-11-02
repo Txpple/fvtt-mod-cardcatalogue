@@ -24,8 +24,8 @@ export function registerCase(def) {
   CASES.set(def.id, def);
 }
 
-/** The strip's order: the sidebar's own (Scenes, Actors, Items, Journal). */
-const ORDER = ["scenes", "actors", "items", "journal"];
+/** The strip's order: the sidebar's own (Scenes, Actors, Items, Journal, Compendium). */
+const ORDER = ["scenes", "actors", "items", "journal", "compendium"];
 const ordered = () => [...CASES.values()].sort((a, b) => ORDER.indexOf(a.id) - ORDER.indexOf(b.id));
 
 /** Whether this user has a case: on for the world and for them. */

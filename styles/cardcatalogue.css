@@ -1660,6 +1660,27 @@ button.cc-folder > .cc-caret {
 }
 
 /* -------------------------------------------------- */
+/*  The compendium case: wide cards for the banners    */
+/* -------------------------------------------------- */
+
+/* A pack's banner is Foundry's 290 × 70 strip, so the cards are wide and the banner shown whole. */
+.cardcatalogue-compendium-library .cc-cards {
+  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+}
+
+.cardcatalogue-compendium-library .cc-cards.cc-size-s {
+  grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
+}
+
+.cardcatalogue-compendium-library .cc-cards.cc-size-l {
+  grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
+}
+
+.cardcatalogue-compendium-library .cc-thumb {
+  aspect-ratio: 29 / 7;
+}
+
+/* -------------------------------------------------- */
 /*  The painted sidebar icons (scripts/tabs/icons.js)  */
 /* -------------------------------------------------- */
 
@@ -1675,4 +1696,11 @@ body.cardcatalogue-tab-icons #sidebar-tabs .cc-tab-icon::before {
   position: absolute;
   inset: 1px;
   background: var(--cc-tab-icon) center / contain no-repeat;
+}
+
+/* The strip's size, this client's choice: Foundry gives each button its --control-size (32px), so the
+   strip's buttons alone scale it, and their glyphs with it. */
+body.cardcatalogue-tab-scale #sidebar-tabs .ui-control {
+  --control-size: calc(32px * var(--cc-tab-scale, 1));
+  font-size: calc(var(--font-size-16) * var(--cc-tab-scale, 1));
 }

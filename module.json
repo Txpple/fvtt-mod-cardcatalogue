@@ -1,7 +1,7 @@
 {
   "id": "fvtt-mod-cardcatalogue",
   "title": "Open Roll 5e: Card Catalogue",
-  "description": "Every directory the table uses as a case of cards: the journal (find a handout in a keystroke, show it in one click), the scenes (activate in one click, with an Undo), the actors and the items, each found by any word. The sidebar shows only the tabs the table uses. A skin over Foundry's own directories; Classic Mode is a click away for each.",
+  "description": "Every directory the table uses as a case of cards: the journal (find a handout in a keystroke, show it in one click), the scenes (activate in one click, with an Undo), the actors, the items and the compendium packs, each found by any word. The sidebar shows only the tabs the table uses, each with a painted icon. A skin over Foundry's own directories; Classic Mode is a click away for each.",
   "version": "1.0.7",
   "authors": [
     {

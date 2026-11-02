@@ -5,7 +5,8 @@
       "journal": "Journal",
       "scenes": "Scenes",
       "actors": "Actors",
-      "items": "Items"
+      "items": "Items",
+      "compendium": "Compendium"
     },
     "classic": {
       "on": "Classic Mode for {case}: its sidebar button opens Foundry's own directory on this client. Its Card Catalogue button brings the case back.",
@@ -53,6 +54,14 @@
         "name": "Items: Classic Mode",
         "hint": "On this client, the Items button opens Foundry's own Items tab."
       },
+      "compendiumEnabled": {
+        "name": "Compendium case",
+        "hint": "The Compendium Packs button opens the packs as cards, each with its banner; Open is one click. Off: the stock Compendium Packs tab."
+      },
+      "compendiumClassic": {
+        "name": "Compendium: Classic Mode",
+        "hint": "On this client, the Compendium Packs button opens Foundry's own Compendium Packs tab."
+      },
       "showKeeps": {
         "name": "Journal: Show keeps it visible",
         "hint": "When the GM shows a page, it is also made visible to the players it was shown to, so they can open it again from their journal case. Off: Show only flashes it. The Show options choose either way each time."
@@ -72,6 +81,15 @@
       "tabIcons": {
         "name": "Painted sidebar icons",
         "hint": "Each sidebar button wears a painted picture in place of its glyph, so players find the tab they want. Off: Foundry's own glyphs."
+      },
+      "tabScale": {
+        "name": "Sidebar button size",
+        "hint": "On this client, how big the sidebar's buttons are drawn. Bigger is easier to hit and to read; the strip grows with them.",
+        "choices": {
+          "1": "Foundry's own",
+          "1_5": "1.5 times",
+          "2": "Twice"
+        }
       },
       "gmSidebarTabs": {
         "name": "GMs see only the sidebar tabs they use",
@@ -94,6 +112,10 @@
       "items": {
         "name": "Find an item",
         "hint": "The items case's finder: Enter opens the sheet, Ctrl+Enter posts it to chat (GM)."
+      },
+      "compendium": {
+        "name": "Find a compendium pack",
+        "hint": "The compendium case's finder: Enter opens the pack."
       }
     },
     "tabs": {
@@ -574,6 +596,56 @@
         "attunement": "Requires attunement",
         "spellLevel": "Level {n}",
         "cantrip": "Cantrip"
+      }
+    },
+    "compendium": {
+      "library": {
+        "title": "Compendium"
+      },
+      "go": "Open",
+      "classic": {
+        "hint": "Foundry's own Compendium Packs directory, on this client. It then has a Card Catalogue button to come back."
+      },
+      "search": {
+        "placeholder": "A pack's name, its type, where it comes from, a folder"
+      },
+      "rail": {
+        "label": "Compendium packs and folders",
+        "key": "Packs",
+        "noFolder": "Unfiled"
+      },
+      "view": {
+        "all": "All"
+      },
+      "empty": {
+        "all": "No compendium packs you can see.",
+        "folder": "No packs here.",
+        "type": "No packs of this type.",
+        "search": "No pack by that name, type, source or folder."
+      },
+      "count": {
+        "cards": "{n} packs",
+        "cardsOne": "{n} pack"
+      },
+      "why": {
+        "kind": "in type",
+        "package": "in source",
+        "folder": "in folder"
+      },
+      "finder": {
+        "title": "Find a compendium pack",
+        "placeholder": "A pack's name, its type, where it comes from, a folder"
+      },
+      "menu": {
+        "label": "More for this pack",
+        "lock": "Lock",
+        "unlock": "Unlock",
+        "lockHint": "Locked, nobody can change what is in it",
+        "ownership": "Configure ownership",
+        "ownershipHint": "Who can see the pack, and who can change it"
+      },
+      "card": {
+        "locked": "Locked"
       }
     },
     "folders": {

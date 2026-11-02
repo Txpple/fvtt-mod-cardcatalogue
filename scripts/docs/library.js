@@ -10,7 +10,7 @@
  * An entry is a document by default: keyed by its UUID, its `img` its picture, filed by its `folder`.
  * A spec whose entries are not documents (the compendium case's packs) says how instead: `keyOf`,
  * `resolve`, `nameOf`, `pictureOf`, `canSee`, `dragData`, `file`, `directory` and `row` (its
- * right-click's stand-in row).
+ * right-click's stand-in row). `noTypes` keeps the types off the rail (the folders are the view).
  */
 
 import { log, MODULE_ID, t as rootT } from "../common.js";
@@ -263,7 +263,7 @@ export function makeCaseWindow(spec) {
       const all = casesCards(spec);
       const fixed = ["all", ...spec.views(game.user)];
       const types = typeCounts(all, spec.typeOrder);
-      if (!this.#validView(this.view, fixed, types.map(x => x.type))) this.view = "all";
+      if (!this.#validView(this.view, fixed, spec.noTypes ? [] : types.map(x => x.type))) this.view = "all";
       const view = this.view;
       const list = all.filter(c => c.key === this.sticky || inView(c, view));
       this.#fields = new Map(all.map(c => [c.key, searchFields(c, spec.fields)]));
@@ -285,7 +285,7 @@ export function makeCaseWindow(spec) {
       context.railKey = t("rail.key");
       context.sizes = SIZES.map(id => ({ id, label: rootT(`size.${id}`), aria: rootT(`size.${id}Aria`), on: this.size === id }));
       context.views = fixed.map(id => ({ id, label: t(`view.${id}`), n: all.filter(c => inView(c, id)).length, on: view === id }));
-      context.types = types.length > 1 ? types.map(x => ({ id: `t:${x.type}`, label: spec.typeLabel(x.type, true), n: x.n, on: view === `t:${x.type}` })) : [];
+      context.types = types.length > 1 && !spec.noTypes ? types.map(x => ({ id: `t:${x.type}`, label: spec.typeLabel(x.type, true), n: x.n, on: view === `t:${x.type}` })) : [];
       context.folders = collapseTree(tree, new Set(record.load().collapsed)).map(f => ({ ...f, on: view === `f:${f.id}`, indent: f.depth }));
       // For the GM, Unfiled stays a drop target while there are folders, even with nothing in it.
       context.loose = tree.length && (loose || gm) ? { n: loose, on: view === "f:", label: t("rail.noFolder") } : null;

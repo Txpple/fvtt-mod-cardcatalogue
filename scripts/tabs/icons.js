@@ -19,7 +19,7 @@ const CLASS = "cardcatalogue-tab-icons";
 
 /** The class and the variable the stylesheet scales the strip by. */
 const SCALE_CLASS = "cardcatalogue-tab-scale";
-const SCALES = ["1", "1.5", "2"];
+const SCALES = ["1", "1.5", "2", "3", "4"];
 
 /** The tabs with a picture, each `styles/icons/tabs/<tab>.webp`. */
 export const PICTURED = [

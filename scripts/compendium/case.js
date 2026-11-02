@@ -47,6 +47,8 @@ const spec = {
   fields: ["name", "kind", "package", "folder"],
   typeOrder: ["Actor", "Item", "JournalEntry", "Scene", "RollTable", "Adventure", "Cards", "Macro", "Playlist"],
   typeLabel,
+  // The rail is the folders alone (the user's ruling); the type stays on each card and in the search.
+  noTypes: true,
   views: () => [],
   card(pack) {
     const kind = typeLabel(pack.metadata.type);

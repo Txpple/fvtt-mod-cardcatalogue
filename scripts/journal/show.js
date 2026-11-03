@@ -2,9 +2,10 @@
  * The module's only writes to the world, each one the stock journal makes itself: a page's
  * ownership (the Show dialog's and the ownership dialog's write), a page's section, a new section,
  * a new image page for a kept file, a page moved to another journal (the stock sheet's copy on a
- * drop, the original deleted, its map notes and links repointed as the note and text editors would). Showing is a message on the module's own socket channel (not
- * data: nothing is stored): each player's client it is for opens it in the Reader, or, in Classic
- * Mode or for a PDF, as Foundry's own Show would (journal.js, `receiveShow`).
+ * drop, the original deleted, what named it repointed as its own sheet or config would write it).
+ * Showing is a message on the module's own socket channel (not data: nothing is stored): each
+ * player's client it is for opens it in the Reader, or, in Classic Mode or for a PDF, as Foundry's
+ * own Show would (journal.js, `receiveShow`).
  *
  * Ownership writes on one page run one after another, each reading the page as the last one left
  * it, so two quick toggles never build on the same stale map. A Show that reveals a page records
@@ -13,7 +14,7 @@
  */
 
 import { log, MODULE_ID, setting, t } from "./common.js";
-import { kindOf, LEVEL, prettyName, relinkMoved, visibilityWrite, whoSees } from "./decide.js";
+import { kindOf, LEVEL, prettyName, relinkFields, relinkMoved, visibilityWrite, whoSees } from "./decide.js";
 import * as memory from "./memory.js";
 import { Reader } from "./reader.js";
 
@@ -213,15 +214,42 @@ export async function setSection(page, categoryId) {
   return true;
 }
 
+/** The world's documents that may name a page by its uuid, besides the journals; never chat, which is history. */
+const NAMING = ["actors", "items", "scenes", "tables", "macros", "cards", "playlists"];
+
+/**
+ * A document's fields mended by `mend` where its source holds one of `hints`, then its embedded
+ * documents' (an actor's items, their effects, a scene's notes), each as its sheet would write
+ * it. A token's own changes to its actor (its delta) are left. Returns how many were written.
+ */
+async function relinkDoc(doc, mend, hints) {
+  const json = JSON.stringify(doc._source);
+  if (!hints.some(h => json.includes(h))) return 0;
+  const embedded = Object.values(doc.constructor.metadata.embedded ?? {});
+  const changes = relinkFields(doc._source, mend, ["_id", "_stats", ...embedded]);
+  let n = 0;
+  if (Object.keys(changes).length) {
+    await doc.update(changes);
+    n++;
+  }
+  for (const key of embedded) {
+    if (!(doc[key] instanceof foundry.utils.Collection)) continue;
+    for (const child of doc[key]) n += await relinkDoc(child, mend, hints);
+  }
+  return n;
+}
+
 /**
  * Move a page to another journal, under one of its sections or none: the stock sheet's copy of a
  * page dropped on it (the same id when free, at the end), then the original deleted, as Foundry has
- * no move. What named it by its old uuid follows: a map note pinned to it, and a link in any world
- * journal's text (`relinkMoved`); a link in an actor's or an item's text is left as it is. The copy
- * comes first, so a failure leaves the page where it was, or in both journals. Returns the new page.
+ * no move. What named it follows: by id, a map note pinned to it and a scene's linked page; by its
+ * uuid, any field of any world journal page (`relinkMoved`, a relative `@UUID[.<id>]` too), actor,
+ * item, scene, table, macro, card stack or playlist (`relinkFields`). The copy comes first, so a
+ * failure leaves the page where it was, or in both journals. Returns the new page.
  */
 export async function movePage(page, entry, categoryId = null) {
   const from = page.parent;
+  const was = page.uuid;
   const data = page.toObject();
   if (entry.pages.has(page.id)) delete data._id;
   data.category = categoryId || null;
@@ -230,19 +258,19 @@ export async function movePage(page, entry, categoryId = null) {
   for (const scene of game.scenes) {
     const notes = scene.notes.filter(n => n.entryId === from.id && n.pageId === page.id);
     if (notes.length) await scene.updateEmbeddedDocuments("Note", notes.map(n => ({ _id: n.id, entryId: entry.id, pageId: moved.id })));
+    if (scene._source.journal === from.id && scene._source.journalEntryPage === page.id) {
+      await scene.update({ journal: entry.id, journalEntryPage: moved.id });
+    }
   }
   for (const journal of game.journal) {
-    const updates = [];
     for (const p of journal.pages) {
       if (journal.id === from.id && p.id === page.id) continue;
       const home = journal.id === entry.id && p.id === moved.id ? "moved" : journal.id === from.id ? "left" : null;
-      const html = p.text?.content;
-      if (!html || !(html.includes(page.id) || (home === "moved" && html.includes("@UUID[.")))) continue;
-      const mended = relinkMoved(html, page.uuid, moved.uuid, home);
-      if (mended !== html) updates.push({ _id: p.id, "text.content": mended });
+      await relinkDoc(p, text => relinkMoved(text, was, moved.uuid, home), home === "moved" ? [page.id, "@UUID[."] : [page.id]);
     }
-    if (updates.length) await journal.updateEmbeddedDocuments("JournalEntryPage", updates);
   }
+  const mend = text => relinkMoved(text, was, moved.uuid);
+  for (const name of NAMING) for (const doc of game[name] ?? []) await relinkDoc(doc, mend, [was]);
   await page.delete();
   return moved;
 }

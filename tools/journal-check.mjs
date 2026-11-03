@@ -1,8 +1,8 @@
 // The live check on a real world (the local sandbox): a GM page (the bridge user) and a temporary
 // player page, every fact read from the world. Clue Board's in shape.
 //
-//   FOUNDRY_HOST=local node tools/live-check.mjs                 # the takeover and the window, nothing written
-//   FOUNDRY_HOST=local node tools/live-check.mjs --walk [--shots <dir>]
+//   FOUNDRY_HOST=local node tools/journal-check.mjs               # the takeover and the window, nothing written
+//   FOUNDRY_HOST=local node tools/journal-check.mjs --walk [--shots <dir>]
 //
 // With --walk, the GM page makes a scratch journal (an image page and a text page, GM only), sets
 // who can see the image page three ways and reads the ownership back, files the text page under a
@@ -10,7 +10,9 @@
 // the run), and has a temporary player connect: the player's window lists only what they can see,
 // the GM's Show reaches the player in the Reader, is recorded as shown and listed in their All, not
 // marked New. Classic Mode is switched on and off through the Journal button and the directory's way
-// back. The scratch journals, the temp user and the settings go back in `finally`.
+// back. A page dragged onto another journal moves there, an actor, an owned item, a world item, a map
+// note and a scene's linked page following it. The scratch journals, actor, item and scene, the temp
+// user and the settings go back in `finally`.
 import { Foundry, foundryConfig, loadEnv } from "fvtt-mcp-dnd5e/client";
 
 if (process.env.FOUNDRY_HOST !== "local") {
@@ -23,6 +25,7 @@ const MODULE_ID = "fvtt-mod-cardcatalogue";
 const TEMP_USER = "ZZ-HDT Player";
 const SCRATCH = "ZZ-HDT Scratch";
 const SCRATCH_KEEP = "ZZ-HDT Handouts";
+const SCRATCH_MOVE = "ZZ-HDT Move";
 
 const arg = n => {
   const i = process.argv.indexOf(`--${n}`);
@@ -72,8 +75,9 @@ cleanup = async () => {
   if (fp) await fp.disconnect?.().catch(() => {});
   await f
     .evaluate(
-      async ({ id, scratch, keep, userName, prior }) => {
-        for (const j of game.journal.filter(j => j.name === scratch || j.name === keep)) await j.delete();
+      async ({ id, scratch, keep, move, userName, prior }) => {
+        for (const j of game.journal.filter(j => j.name === scratch || j.name === keep || j.name.startsWith(move))) await j.delete();
+        for (const docs of [game.actors, game.items, game.scenes]) for (const d of docs.filter(d => d.name.startsWith(move))) await d.delete();
         for (const u of game.users.filter(u => u.name === userName)) await u.delete();
         if (prior) {
           await game.settings.set(id, "handoutsJournal", prior.handoutsJournal);
@@ -83,7 +87,7 @@ cleanup = async () => {
           if (["cardcatalogue-journal-library", "cardcatalogue-journal-finder"].includes(app.id) || app.id?.startsWith("cardcatalogue-journal-reader-") || app.constructor.name === "ImagePopout") await app.close();
         }
       },
-      { id: MODULE_ID, scratch: SCRATCH, keep: SCRATCH_KEEP, userName: TEMP_USER, prior }
+      { id: MODULE_ID, scratch: SCRATCH, keep: SCRATCH_KEEP, move: SCRATCH_MOVE, userName: TEMP_USER, prior }
     )
     .catch(err => console.log(`  cleanup: ${err?.message ?? err}`));
   await f.disconnect?.().catch(() => {});
@@ -504,11 +508,135 @@ try {
     assert(F.focused, "the finder opens with the caret in its box");
     assert(F.rows.includes("ZZ-HDT Picture"), `typing finds the page (${F.rows.join(", ")})`);
     assert(F.cleared && F.closed, "Escape clears, then closes");
+
+    // --- G. a page dragged onto another journal moves there ---------------------------------
+    console.log("# G. a page dragged onto another journal moves there (scratch journals, actor, item, scene)");
+    const G = await f.evaluate(
+      async ({ id, move }) => {
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+        const wait = async (fn, n = 150) => {
+          for (let i = 0; i < n; i++) {
+            const v = fn();
+            if (v) return v;
+            await sleep(100);
+          }
+          return null;
+        };
+        // A real drag: whether the row lit under it (a row lights only for a drop it takes).
+        const drag = (card, row) => {
+          const dt = new DataTransfer();
+          card.dispatchEvent(new DragEvent("dragstart", { bubbles: true, dataTransfer: dt }));
+          row.dispatchEvent(new DragEvent("dragover", { bubbles: true, cancelable: true, dataTransfer: dt }));
+          const lit = row.classList.contains("drop-ok");
+          row.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt }));
+          card.dispatchEvent(new DragEvent("dragend", { bubbles: true, dataTransfer: dt }));
+          return lit;
+        };
+        // The toasts, read as they are posted (the screen keeps only a few at a time).
+        const toasts = [];
+        const info = ui.notifications.info;
+        ui.notifications.info = function (message, ...rest) {
+          toasts.push(String(message));
+          return info.call(this, message, ...rest);
+        };
+        const out = {};
+        try {
+          await game.settings.set(id, "journalClassic", false);
+          const [A, B] = await CONFIG.JournalEntry.documentClass.create([{ name: `${move} A` }, { name: `${move} B` }]);
+          const [sec] = await B.createEmbeddedDocuments("JournalEntryCategory", [{ name: "Sec B" }]);
+          await B.createEmbeddedDocuments("JournalEntryPage", [{ name: "B first", type: "text", text: { content: "<p>b</p>" } }]);
+          const [p1, p2] = await A.createEmbeddedDocuments("JournalEntryPage", [
+            { name: "Moved Shoes", type: "text", text: { content: "<p>shoes</p>" } },
+            { name: "Moved Plums", type: "text", text: { content: "<p>plums</p>" } }
+          ]);
+          await p1.update({ "text.content": `<p>see @UUID[.${p2.id}]{plums}</p>` });
+          const old = p1.uuid;
+          const link = `<p>@UUID[${old}]{shoes}</p>`;
+          const [actor] = await Actor.implementation.create([
+            {
+              name: `${move} Actor`,
+              type: "npc",
+              system: { details: { biography: { value: link } } },
+              items: [{ name: `${move} Gear`, type: "loot", system: { description: { value: link } } }]
+            }
+          ]);
+          const [item] = await Item.implementation.create([{ name: `${move} Item`, type: "loot", system: { description: { value: link } } }]);
+          const [scene] = await Scene.implementation.create([
+            { name: `${move} Scene`, width: 1000, height: 1000, journal: A.id, journalEntryPage: p1.id, notes: [{ entryId: A.id, pageId: p1.id, x: 100, y: 100 }] }
+          ]);
+          const ids = { p1: p1.id, p2: p2.id };
+
+          for (const app of [...foundry.applications.instances.values()]) if (app.id === "cardcatalogue-journal-library") await app.close();
+          game.modules.get(id).api.journal.open();
+          const win = await wait(() => {
+            const w = foundry.applications.instances.get("cardcatalogue-journal-library");
+            return w?.rendered ? w : null;
+          });
+          await wait(() => !win.element.querySelector(".cc-loading"));
+          const view = async (key, uuid) => {
+            win.element.querySelector(`.cc-rail [data-view="${key}"]`)?.click();
+            return wait(() => win.element.querySelector(`.cc-card[data-key="${uuid}"]`));
+          };
+          const rowOf = (entryId, cat = null) =>
+            win.element.querySelector(cat ? `.cc-rail [data-drop="cat"][data-entry="${entryId}"][data-cat="${cat}"]` : `.cc-rail [data-drop="journal"][data-entry="${entryId}"]`);
+
+          // On its own journal's row, unfiled: nothing to do, the row unlit.
+          let card = await view(`j:${A.id}`, p1.uuid);
+          out.ownRowRefused = !!card && !drag(card, rowOf(A.id)) && A.pages.has(ids.p1);
+
+          // On another journal's row: it moves, its id kept, unfiled, and what named it follows.
+          card = await view(`j:${A.id}`, p1.uuid);
+          out.otherRowLit = !!card && drag(card, rowOf(B.id));
+          out.moved = !!(await wait(() => B.pages.has(ids.p1) && !A.pages.has(ids.p1)));
+          const now = B.pages.get(ids.p1);
+          out.unfiled = now?.category === null;
+          out.toastMoved = !!(await wait(() => toasts.some(t => t.includes(`moved to ${move} B.`))));
+          out.siblingFull = !!now?.text.content.includes(`JournalEntry.${A.id}.JournalEntryPage.${ids.p2}`);
+          const named = text => !!now && !!text?.includes(now.uuid) && !text.includes(old);
+          out.actor = named(actor.system.details.biography.value);
+          out.owned = named(actor.items.contents[0]?.system.description.value);
+          out.item = named(item.system.description.value);
+          const note = scene.notes.contents[0];
+          out.note = note?.entryId === B.id && note?.pageId === ids.p1;
+          out.sceneLink = scene._source.journal === B.id && scene._source.journalEntryPage === ids.p1;
+          out.leftView = !!(await wait(() => !win.element.querySelector(`.cc-card[data-key="${old}"]`) && win.element.querySelector(`.cc-card[data-key="${p2.uuid}"]`)));
+
+          // On another journal's section: it moves and is filed there.
+          card = await view(`j:${A.id}`, p2.uuid);
+          const secRow = rowOf(B.id, sec.id);
+          out.secLit = !!(card && secRow) && drag(card, secRow);
+          out.movedFiled = !!(await wait(() => B.pages.get(ids.p2)?.category === sec.id && !A.pages.has(ids.p2)));
+          out.toastFiled = !!(await wait(() => toasts.some(t => t.includes(`moved to ${move} B, under Sec B.`))));
+
+          // Within one journal, a section still files it.
+          card = await view(`j:${B.id}`, now.uuid);
+          out.fileLit = !!card && drag(card, rowOf(B.id, sec.id));
+          out.filedInPlace = !!(await wait(() => B.pages.get(ids.p1)?.category === sec.id));
+          await win.close();
+        } catch (err) {
+          out.error = String(err?.stack ?? err);
+        } finally {
+          ui.notifications.info = info;
+        }
+        return out;
+      },
+      { id: MODULE_ID, move: SCRATCH_MOVE }
+    );
+    if (G.error) console.log(`  ${G.error}`);
+    assert(G.ownRowRefused, "a page on its own journal's row, unfiled: refused, the row unlit, the page stays");
+    assert(G.otherRowLit && G.moved && G.unfiled, "on another journal's row: the row lights, the page moves there, its id kept, unfiled");
+    assert(G.toastMoved, "the toast says where it went");
+    assert(G.siblingFull, "its link to a page it left names that page in full");
+    assert(G.actor && G.owned && G.item, "an actor's biography, its item's description and a world item's name the new page");
+    assert(G.note && G.sceneLink, "a map note pinned to it and a scene's linked page follow it");
+    assert(G.leftView, "the journal it left no longer draws it");
+    assert(G.secLit && G.movedFiled && G.toastFiled, "on another journal's section: moved and filed there, the toast naming both");
+    assert(G.fileLit && G.filedInPlace, "within one journal, a section still files it");
   }
 
-  // --- G. screenshots --------------------------------------------------------------------
+  // --- H. screenshots --------------------------------------------------------------------
   if (shots) {
-    console.log(`# G. screenshots into ${shots}`);
+    console.log(`# H. screenshots into ${shots}`);
     const { mkdirSync } = await import("node:fs");
     mkdirSync(shots, { recursive: true });
     const shot = async (name, fn, arg) => {

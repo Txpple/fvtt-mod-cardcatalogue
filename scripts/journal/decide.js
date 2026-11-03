@@ -397,6 +397,38 @@ export function relinkMoved(html, from, to, home = null) {
 }
 
 /**
+ * A document's source mended by `mend` (a string in, a string out), as an update: each string it
+ * changed at its dotted path, and an array that holds one whole, since an update replaces an
+ * array. The keys in `skip` (the id, the stats, the embedded collections) are left out; empty when
+ * nothing changed.
+ * @param {object} source
+ * @param {(text: string) => string} mend
+ * @param {string[]} [skip]
+ */
+export function relinkFields(source, mend, skip = []) {
+  const deep = v => {
+    if (typeof v === "string") return mend(v);
+    if (Array.isArray(v)) return v.map(deep);
+    if (v && typeof v === "object") return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, deep(x)]));
+    return v;
+  };
+  const out = {};
+  const walk = (v, path) => {
+    if (typeof v === "string") {
+      const m = mend(v);
+      if (m !== v) out[path] = m;
+    } else if (Array.isArray(v)) {
+      const m = deep(v);
+      if (JSON.stringify(m) !== JSON.stringify(v)) out[path] = m;
+    } else if (v && typeof v === "object") {
+      for (const [k, x] of Object.entries(v)) walk(x, `${path}.${k}`);
+    }
+  };
+  for (const [k, v] of Object.entries(source ?? {})) if (!skip.includes(k)) walk(v, k);
+  return out;
+}
+
+/**
  * The body classes Foundry's server wrote for an address with a query: it names the view class
  * from the whole address (`game?page=…`), so every `body.game` rule misses. What to take out and
  * put in; nothing when the classes are right.

@@ -1,8 +1,8 @@
 // The live check on a real world (the local sandbox): a GM page (the bridge user), every fact read
 // from the world. Scroll Case's in shape.
 //
-//   FOUNDRY_HOST=local node tools/live-check.mjs                 # the takeover, the search, the rail; nothing written
-//   FOUNDRY_HOST=local node tools/live-check.mjs --walk [--shots <dir>]
+//   FOUNDRY_HOST=local node tools/scenes-check.mjs                # the takeover, the search, the rail; nothing written
+//   FOUNDRY_HOST=local node tools/scenes-check.mjs --walk [--shots <dir>]
 //
 // With --walk, the GM page makes a scratch scene and a scratch folder, activates the scratch scene
 // from its card and reads the active scene back, takes it back with Undo, puts it on and off the

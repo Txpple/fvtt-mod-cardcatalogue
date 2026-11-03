@@ -21,6 +21,7 @@ import {
   pictureOf,
   plainText,
   prettyName,
+  relinkFields,
   relinkMoved,
   remember,
   sameIds,
@@ -431,6 +432,57 @@ describe("relinkMoved", () => {
   it("leaves text that names neither", () => {
     expect(relinkMoved("<p>Nothing here.</p>", from, to, "left")).toBe("<p>Nothing here.</p>");
     expect(relinkMoved(null, from, to)).toBe("");
+  });
+});
+
+describe("relinkFields", () => {
+  const from = "JournalEntry.AAAAAAAAAAAAAAAA.JournalEntryPage.PPPPPPPPPPPPPPPP";
+  const to = "JournalEntry.BBBBBBBBBBBBBBBB.JournalEntryPage.PPPPPPPPPPPPPPPP";
+  const mend = text => relinkMoved(text, from, to);
+
+  it("writes each changed string at its dotted path", () => {
+    const source = {
+      name: "Smith",
+      system: {
+        details: { biography: { value: `<p>@UUID[${from}]{shoes}</p>`, public: "<p>plain</p>" } },
+        activities: { abc: { description: { chatFlavor: `see ${from}` } } }
+      },
+      flags: { other: { page: from } }
+    };
+    expect(relinkFields(source, mend)).toEqual({
+      "system.details.biography.value": `<p>@UUID[${to}]{shoes}</p>`,
+      "system.activities.abc.description.chatFlavor": `see ${to}`,
+      "flags.other.page": to
+    });
+  });
+
+  it("writes an array that holds one whole", () => {
+    const source = {
+      system: {
+        links: [
+          { uuid: from, label: "a" },
+          { uuid: "x", label: "b" }
+        ]
+      }
+    };
+    expect(relinkFields(source, mend)).toEqual({
+      "system.links": [
+        { uuid: to, label: "a" },
+        { uuid: "x", label: "b" }
+      ]
+    });
+  });
+
+  it("leaves out the skipped keys, and writes nothing when nothing names the page", () => {
+    const source = {
+      _id: "x",
+      _stats: { duplicateSource: from },
+      items: [{ text: from }],
+      name: from
+    };
+    expect(relinkFields(source, mend, ["_id", "_stats", "items"])).toEqual({ name: to });
+    expect(relinkFields({ name: "a", n: 3, none: null, list: [1, "b"] }, mend)).toEqual({});
+    expect(relinkFields(null, mend)).toEqual({});
   });
 });
 

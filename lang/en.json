@@ -306,7 +306,9 @@
       },
       "drop": {
         "filed": "{name} filed under {section}.",
-        "unfiled": "{name} taken out of its section."
+        "unfiled": "{name} taken out of its section.",
+        "moved": "{name} moved to {journal}.",
+        "movedFiled": "{name} moved to {journal}, under {section}."
       },
       "why": {
         "caption": "in caption",

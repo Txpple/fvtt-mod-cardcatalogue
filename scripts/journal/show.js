@@ -1,7 +1,8 @@
 /**
  * The module's only writes to the world, each one the stock journal makes itself: a page's
  * ownership (the Show dialog's and the ownership dialog's write), a page's section, a new section,
- * a new image page for a kept file. Showing is a message on the module's own socket channel (not
+ * a new image page for a kept file, a page moved to another journal (the stock sheet's copy on a
+ * drop, the original deleted, its map notes and links repointed as the note and text editors would). Showing is a message on the module's own socket channel (not
  * data: nothing is stored): each player's client it is for opens it in the Reader, or, in Classic
  * Mode or for a PDF, as Foundry's own Show would (journal.js, `receiveShow`).
  *
@@ -12,7 +13,7 @@
  */
 
 import { log, MODULE_ID, setting, t } from "./common.js";
-import { kindOf, LEVEL, prettyName, visibilityWrite, whoSees } from "./decide.js";
+import { kindOf, LEVEL, prettyName, relinkMoved, visibilityWrite, whoSees } from "./decide.js";
 import * as memory from "./memory.js";
 import { Reader } from "./reader.js";
 
@@ -210,6 +211,40 @@ export async function setSection(page, categoryId) {
   if ((page.category ?? null) === next) return false;
   await page.update({ category: next });
   return true;
+}
+
+/**
+ * Move a page to another journal, under one of its sections or none: the stock sheet's copy of a
+ * page dropped on it (the same id when free, at the end), then the original deleted, as Foundry has
+ * no move. What named it by its old uuid follows: a map note pinned to it, and a link in any world
+ * journal's text (`relinkMoved`); a link in an actor's or an item's text is left as it is. The copy
+ * comes first, so a failure leaves the page where it was, or in both journals. Returns the new page.
+ */
+export async function movePage(page, entry, categoryId = null) {
+  const from = page.parent;
+  const data = page.toObject();
+  if (entry.pages.has(page.id)) delete data._id;
+  data.category = categoryId || null;
+  data.sort = entry.pages.reduce((max, p) => Math.max(max, p.sort), -CONST.SORT_INTEGER_DENSITY) + CONST.SORT_INTEGER_DENSITY;
+  const [moved] = await entry.createEmbeddedDocuments("JournalEntryPage", [data], { keepId: true });
+  for (const scene of game.scenes) {
+    const notes = scene.notes.filter(n => n.entryId === from.id && n.pageId === page.id);
+    if (notes.length) await scene.updateEmbeddedDocuments("Note", notes.map(n => ({ _id: n.id, entryId: entry.id, pageId: moved.id })));
+  }
+  for (const journal of game.journal) {
+    const updates = [];
+    for (const p of journal.pages) {
+      if (journal.id === from.id && p.id === page.id) continue;
+      const home = journal.id === entry.id && p.id === moved.id ? "moved" : journal.id === from.id ? "left" : null;
+      const html = p.text?.content;
+      if (!html || !(html.includes(page.id) || (home === "moved" && html.includes("@UUID[.")))) continue;
+      const mended = relinkMoved(html, page.uuid, moved.uuid, home);
+      if (mended !== html) updates.push({ _id: p.id, "text.content": mended });
+    }
+    if (updates.length) await journal.updateEmbeddedDocuments("JournalEntryPage", updates);
+  }
+  await page.delete();
+  return moved;
 }
 
 /** Open a page in the stock journal sheet, on that page. */

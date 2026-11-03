@@ -12,6 +12,7 @@
 import { log, MODULE_ID, setting, t } from "./common.js";
 import {
   allImages,
+  dropAs,
   excerptOf,
   exportName,
   exportOf,
@@ -786,19 +787,24 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     }
   }
 
-  /** Whether the card being dragged can land on this row: a section takes only its own journal's pages. */
+  /** Whether the card being dragged can land on this row (`dropAs`). */
   #accepts(where) {
-    const d = JournalWindow.#dragging;
-    if (!d) return false;
-    if (d.loose || d.entry !== where.entry) return false;
-    if (where.drop === "cat") return d.category !== where.cat;
-    return where.drop === "journal" && !!d.category;
+    return dropAs(JournalWindow.#dragging, where) !== null;
   }
 
   async #dropped(d, where) {
     try {
       const page = fromUuidSync(d.key);
       if (!isPage(page)) return;
+      if (dropAs(d, where) === "move") {
+        const entry = game.journal.get(where.entry);
+        if (!entry) return;
+        const name = page.name;
+        const moved = await show.movePage(page, entry, where.drop === "cat" ? where.cat : null);
+        const cat = moved.category ? entry.categories.get(moved.category)?.name : null;
+        ui.notifications.info(cat ? t("drop.movedFiled", { name, journal: entry.name, section: cat }) : t("drop.moved", { name, journal: entry.name }));
+        return;
+      }
       await show.setSection(page, where.drop === "cat" ? where.cat : null);
       const cat = where.drop === "cat" ? page.parent.categories.get(where.cat)?.name : null;
       ui.notifications.info(cat ? t("drop.filed", { name: page.name, section: cat }) : t("drop.unfiled", { name: page.name }));

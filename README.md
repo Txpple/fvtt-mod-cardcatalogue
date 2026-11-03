@@ -5,7 +5,8 @@ table uses into a case of cards: every handout, map, portrait and item at a glan
 thing you came for a click away.
 
 - **Journal**: every page as a card; Show puts it on the players' screens in a plain Reader, in one click. Players
-  get their own case of what they have been shown.
+  get their own case of what they have been shown. Drag a page onto another journal in the rail, or one of its
+  sections, to move it there; its map pins and the links to it in your journals follow it.
 - **Scenes**: wide cards from Foundry's own thumbnails; Activate is one click, with *Back to …* to undo it. View,
   Edit, Preload and the players' bar behind the chevron. GM only.
 - **Actors**: portrait cards; Open is one click. Show the art, place a token where you are looking, ownership

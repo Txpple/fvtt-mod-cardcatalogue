@@ -357,6 +357,46 @@ export function withoutLink(href) {
 }
 
 /**
+ * What a page card dropped on a row of the GM's rail does: on another journal, or one of its
+ * sections, the page moves there ("move"); on another section of its own journal it is filed there
+ * ("file"); on its own journal's row it leaves its section ("unfile"); null when the drop does
+ * nothing. A picture on no page is never dropped.
+ * @param {{ entry: string | null, category: string | null, loose: boolean } | null} drag the card dragged
+ * @param {{ drop?: string, entry?: string, cat?: string }} row the row's dataset
+ */
+export function dropAs(drag, row) {
+  if (!drag || drag.loose || !drag.entry) return null;
+  if (row.drop !== "journal" && row.drop !== "cat") return null;
+  if (row.entry !== drag.entry) return "move";
+  if (row.drop === "cat") return drag.category !== row.cat ? "file" : null;
+  return drag.category ? "unfile" : null;
+}
+
+/**
+ * A text's links mended after a page moved to another journal (`from` its old uuid, `to` its new,
+ * each `JournalEntry.<id>.JournalEntryPage.<id>`): a link naming the old uuid names the new one, an
+ * anchor and a label kept, a compendium's copy of it left alone. A link relative to the text's own
+ * page (`@UUID[.<id>]`, a sibling in the same journal) is mended by `home`: in a page of the journal
+ * the page left ("left"), one naming the page names its new uuid; in the moved page itself
+ * ("moved"), one naming a page it left behind names that page in full.
+ * @param {string} html
+ * @param {string} from
+ * @param {string} to
+ * @param {"left" | "moved" | null} [home]
+ */
+export function relinkMoved(html, from, to, home = null) {
+  const [, oldEntry, , oldId] = from.split(".");
+  const escaped = from.replaceAll(".", "\\.");
+  let out = String(html ?? "").replace(new RegExp(`(?<![\\w.])${escaped}(?!\\w)`, "g"), to);
+  const relative = /@UUID\[\.([A-Za-z0-9]{16})(?=[\]#])/g;
+  if (home === "left") out = out.replace(relative, (m, id) => (id === oldId ? `@UUID[${to}` : m));
+  if (home === "moved") {
+    out = out.replace(relative, (_m, id) => (id === oldId ? `@UUID[${to}` : `@UUID[JournalEntry.${oldEntry}.JournalEntryPage.${id}`));
+  }
+  return out;
+}
+
+/**
  * The body classes Foundry's server wrote for an address with a query: it names the view class
  * from the whole address (`game?page=…`), so every `body.game` rule misses. What to take out and
  * put in; nothing when the classes are right.

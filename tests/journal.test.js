@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   allImages,
+  dropAs,
   excerptOf,
   exportName,
   exportOf,
@@ -20,6 +21,7 @@ import {
   pictureOf,
   plainText,
   prettyName,
+  relinkMoved,
   remember,
   sameIds,
   samePath,
@@ -360,6 +362,75 @@ describe("page links", () => {
     expect(withoutLink(`https://example.test/game?a=1&page=${uuid}#x`)).toBe(
       "https://example.test/game?a=1#x"
     );
+  });
+});
+
+describe("dropAs", () => {
+  const drag = { entry: "J1", category: null, loose: false };
+  const filed = { entry: "J1", category: "C1", loose: false };
+
+  it("moves a page dropped on another journal or one of its sections", () => {
+    expect(dropAs(drag, { drop: "journal", entry: "J2" })).toBe("move");
+    expect(dropAs(filed, { drop: "journal", entry: "J2" })).toBe("move");
+    expect(dropAs(drag, { drop: "cat", entry: "J2", cat: "C9" })).toBe("move");
+  });
+
+  it("files within its own journal, and takes a filed page out of its section", () => {
+    expect(dropAs(drag, { drop: "cat", entry: "J1", cat: "C1" })).toBe("file");
+    expect(dropAs(filed, { drop: "cat", entry: "J1", cat: "C2" })).toBe("file");
+    expect(dropAs(filed, { drop: "journal", entry: "J1" })).toBe("unfile");
+  });
+
+  it("does nothing where the page already is, for a picture on no page, or off the journals", () => {
+    expect(dropAs(drag, { drop: "journal", entry: "J1" })).toBeNull();
+    expect(dropAs(filed, { drop: "cat", entry: "J1", cat: "C1" })).toBeNull();
+    expect(
+      dropAs({ entry: null, category: null, loose: true }, { drop: "journal", entry: "J2" })
+    ).toBeNull();
+    expect(dropAs(drag, { drop: "folder", entry: "J2" })).toBeNull();
+    expect(dropAs(null, { drop: "journal", entry: "J2" })).toBeNull();
+  });
+});
+
+describe("relinkMoved", () => {
+  const from = "JournalEntry.AAAAAAAAAAAAAAAA.JournalEntryPage.PPPPPPPPPPPPPPPP";
+  const to = "JournalEntry.BBBBBBBBBBBBBBBB.JournalEntryPage.PPPPPPPPPPPPPPPP";
+  const sib = "SSSSSSSSSSSSSSSS";
+
+  it("names the new uuid wherever the old one was, anchor and label kept", () => {
+    expect(relinkMoved(`<p>@UUID[${from}]{The Shoes} and @UUID[${from}#forge]</p>`, from, to)).toBe(
+      `<p>@UUID[${to}]{The Shoes} and @UUID[${to}#forge]</p>`
+    );
+    expect(relinkMoved(`<a data-uuid="${from}">x</a>`, from, to)).toBe(
+      `<a data-uuid="${to}">x</a>`
+    );
+  });
+
+  it("leaves a compendium's copy and a longer id alone", () => {
+    const pack = `@UUID[Compendium.world.lore.${from}]`;
+    expect(relinkMoved(pack, from, to)).toBe(pack);
+    expect(relinkMoved(`@UUID[${from}X]`, from, to)).toBe(`@UUID[${from}X]`);
+  });
+
+  it("mends a sibling's relative link in the journal the page left", () => {
+    const html =
+      "@UUID[.PPPPPPPPPPPPPPPP]{Shoes} @UUID[.PPPPPPPPPPPPPPPP#forge] @UUID[.SSSSSSSSSSSSSSSS]";
+    expect(relinkMoved(html, from, to, "left")).toBe(
+      `@UUID[${to}]{Shoes} @UUID[${to}#forge] @UUID[.${sib}]`
+    );
+    expect(relinkMoved(html, from, to)).toBe(html);
+  });
+
+  it("names in full the pages the moved page linked as siblings", () => {
+    const html = `@UUID[.${sib}]{Apples} @UUID[.${sib}#tree] @UUID[.PPPPPPPPPPPPPPPP]`;
+    expect(relinkMoved(html, from, to, "moved")).toBe(
+      `@UUID[JournalEntry.AAAAAAAAAAAAAAAA.JournalEntryPage.${sib}]{Apples} @UUID[JournalEntry.AAAAAAAAAAAAAAAA.JournalEntryPage.${sib}#tree] @UUID[${to}]`
+    );
+  });
+
+  it("leaves text that names neither", () => {
+    expect(relinkMoved("<p>Nothing here.</p>", from, to, "left")).toBe("<p>Nothing here.</p>");
+    expect(relinkMoved(null, from, to)).toBe("");
   });
 });
 

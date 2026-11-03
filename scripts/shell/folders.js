@@ -2,13 +2,18 @@
  * A case's folders, for the GM, as the stock directory makes and removes them. Create: the name asked
  * in Foundry's own small dialog, inside the folder in view when Foundry's depth allows it, else at the
  * top; cards are then filed by dropping them on its row in the rail. A right-click on a folder's row:
- * Rename (the name asked again, the folder's own `name` written, as the stock folder sheet writes it)
- * and the stock Remove Folder, its own words and its own write, the folder deleted and whatever was
- * in it (cards and subfolders) moved up to its parent.
+ * Rename (the name asked again, the folder's own `name` written, as the stock folder sheet writes it),
+ * the stock Configure Ownership (Foundry's folder dialog, which writes each document directly in the
+ * folder) and the stock Remove Folder, its own words and its own write, the folder deleted and whatever
+ * was in it (cards and subfolders) moved up to its parent.
  */
 
 import { t } from "../common.js";
+import { centreNext } from "./host.js";
 import { nestAs } from "./pick.js";
+
+/** The folders whose stock directory leaves Configure Ownership out of their menu. */
+const NO_OWNERSHIP = new Set(["Scene", "Compendium"]);
 
 const esc = s => foundry.utils.escapeHTML?.(String(s ?? "")) ?? String(s ?? "");
 
@@ -46,8 +51,9 @@ export async function renameFolder(folder) {
 }
 
 /**
- * The right-click menu on a folder's row in a case's rail (the GM's): Rename Folder and Remove Folder. Bound once on the
- * window's element; Foundry's menu finds the row under the click, so every redraw is covered.
+ * The right-click menu on a folder's row in a case's rail (the GM's): Rename Folder, Configure Ownership (where the
+ * stock directory offers it) and Remove Folder. Bound once on the window's element; Foundry's menu finds the row under
+ * the click, so every redraw is covered.
  */
 export function folderMenu(element) {
   if (!game.user.isGM) return;
@@ -60,6 +66,20 @@ export function folderMenu(element) {
         label: t("folders.rename"),
         icon: "fa-solid fa-pen",
         onClick: (_event, row) => renameFolder(game.folders.get(row.dataset.folder))
+      },
+      {
+        label: "OWNERSHIP.Configure",
+        icon: "fa-solid fa-user-lock",
+        visible: row => {
+          const folder = game.folders.get(row.dataset.folder);
+          return !!folder && !NO_OWNERSHIP.has(folder.type);
+        },
+        onClick: (_event, row) => {
+          const folder = game.folders.get(row.dataset.folder);
+          if (!folder) return;
+          centreNext();
+          return new foundry.applications.apps.DocumentOwnershipConfig({ document: folder }).render({ force: true });
+        }
       },
       {
         label: "FOLDER.Remove",

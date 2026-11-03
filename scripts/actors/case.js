@@ -2,8 +2,10 @@
  * The actors case: the Actors directory as portrait cards. The card's one button opens the sheet
  * (the user's ruling); the chevron, for the GM, shows the art or the token art to everyone, places a
  * token on the viewed scene, and opens the stock ownership dialog. A player sees the actors the stock
- * directory shows them, their own first in Mine. Every write is a stock one: a token placed, the
- * ownership dialog's own.
+ * directory shows them (Limited and up), their own first in Mine; one they only have Limited on says
+ * its kind and is searched by its public biography, as dnd5e's limited sheet shows it. The GM's card
+ * marks one players see without owning. Every write is a stock one: a token placed, the ownership
+ * dialog's own.
  */
 
 import { makeCaseFinder } from "../docs/finder.js";
@@ -54,26 +56,36 @@ const spec = {
   hidden: (actor, user) => !user.isGM && isSummonCopy(actor),
   card(actor, user) {
     const kind = typeLabel(actor.type);
-    const lines = stats(actor);
     const owners = players().filter(u => actor.testUserPermission(u, "OWNER"));
     const d = actor.system?.details ?? {};
-    const classes = Object.values(actor.classes ?? {}).map(c => c.name);
-    const species = actor.itemTypes?.race?.[0]?.name ?? "";
+    // A player who only has Limited reads what dnd5e's limited sheet shows: the picture, the name
+    // and the public biography. The card says the actor's kind and no more.
     const canRead = user.isGM || actor.testUserPermission(user, "OBSERVER");
+    const lines = canRead ? stats(actor) : [];
+    const classes = canRead ? Object.values(actor.classes ?? {}).map(c => c.name) : [];
+    const species = canRead ? (actor.itemTypes?.race?.[0]?.name ?? "") : "";
+    const bio = [canRead ? d.biography?.value : "", d.biography?.public].map(html => plainText(html ?? "")).filter(Boolean);
     const here = !!canvas?.scene?.tokens?.some(tk => tk.actorId === actor.id);
+    const icons = [];
+    if (user.isGM) {
+      // The players who see the card without owning it, by Limited or Observer.
+      const seers = players().filter(u => !owners.includes(u) && actor.testUserPermission(u, "LIMITED"));
+      if (here) icons.push({ icon: "fa-location-dot", tip: t("card.here") });
+      if (seers.length) icons.push({ icon: "fa-eye", tip: t("card.seen", { names: seers.map(u => u.name).join(", ") }) });
+    }
     return {
       type: actor.type,
       kind,
       kindLine: [kind, ...lines].join(" · "),
       sub: [kind, ...lines].join(" · "),
-      details: [...classes, species, ...lines].join(" "),
+      details: [...classes, species, ...lines].filter(Boolean).join(" "),
       owners: user.isGM ? owners.map(u => u.name).join(", ") : "",
-      text: canRead ? plainText(d.biography?.value ?? "").slice(0, 4000) : "",
+      text: bio.join("\n").slice(0, 4000),
       mine: !user.isGM && actor.isOwner,
       here,
       badge: user.isGM && owners.length ? owners.map(u => u.name).join(", ") : null,
       badgeCls: "some",
-      icons: here && user.isGM ? [{ icon: "fa-location-dot", tip: t("card.here") }] : []
+      icons
     };
   },
   primary: {

@@ -8,9 +8,12 @@
 // case in place, reads the items' cards and the chevron's Give to…, opens the compendium case from
 // its button (a card per pack, each with its banner, the folders on the rail, the stock pack menu on
 // a right-click, a double click opening the pack), and reads the settings carried
-// over from Scroll Case and House Rules. A temporary player connects: their actors case lists the
-// actors they can see, their own in Mine, no chevron. The scratch scene, its token and the temp
-// user go in `finally`.
+// over from Scroll Case and House Rules. A rail folder's right-click opens Foundry's ownership
+// dialog for it (a pack folder's has none). A temporary player connects: their actors case lists the
+// actors they can see, their own in Mine, no chevron; a scratch NPC they only have Limited on says
+// its kind alone, is found by its public biography and not its private one, and opens dnd5e's
+// limited sheet, while the GM's card for it wears the eye. The scratch scene, its token, the scratch
+// NPC and the temp user go in `finally`.
 import { Foundry, foundryConfig, loadEnv } from "fvtt-mcp-dnd5e/client";
 
 if (process.env.FOUNDRY_HOST !== "local") {
@@ -22,6 +25,7 @@ const env = loadEnv();
 const MODULE_ID = "fvtt-mod-cardcatalogue";
 const SCRATCH = "ZZ-CC Scratch";
 const TEMP_USER = "ZZ-CC Player";
+const LIMITED = "ZZ-CC Limited";
 
 const arg = n => {
   const i = process.argv.indexOf(`--${n}`);
@@ -66,16 +70,17 @@ cleanup = async () => {
   if (fp) await fp.disconnect?.().catch(() => {});
   await f
     .evaluate(
-      async ({ scratch, userName, prior }) => {
+      async ({ scratch, userName, limitedName, prior }) => {
         if (prior?.viewedId && canvas.scene?.id !== prior.viewedId) await game.scenes.get(prior.viewedId)?.view();
         for (const s of game.scenes.filter(s => s.name === scratch)) await s.delete();
+        for (const a of game.actors.filter(a => a.name === limitedName)) await a.delete();
         for (const fo of game.folders.filter(fo => fo.type === "Actor" && fo.name === "ZZ-CC Folder")) await fo.delete();
         for (const u of game.users.filter(u => u.name === userName)) await u.delete();
         for (const app of [...foundry.applications.instances.values()]) {
           if (app.id?.startsWith("cardcatalogue-") || app.document?.documentName === "Actor" || app.document?.documentName === "Item") await app.close();
         }
       },
-      { scratch: SCRATCH, userName: TEMP_USER, prior }
+      { scratch: SCRATCH, userName: TEMP_USER, limitedName: LIMITED, prior }
     )
     .catch(err => console.log(`  cleanup: ${err?.message ?? err}`));
   await f.disconnect?.().catch(() => {});
@@ -230,6 +235,19 @@ try {
       const npcCard = await wait(() => win.view === "all" && win.element.querySelector(`.cc-card[data-key="${npc.uuid}"]`));
       if (made && npcCard) drag(npcCard, win.element.querySelector(`.cc-rail [data-folder="${made.id}"]`));
       const dropped = !!(made && (await wait(() => npc.folder?.id === made.id)));
+      // A right-click on its row: Configure Ownership opens Foundry's own dialog for that folder.
+      let ownership = false;
+      if (made) {
+        const row = win.element.querySelector(`.cc-rail [data-folder="${made.id}"]`);
+        const r = row.getBoundingClientRect();
+        row.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: r.left + 10, clientY: r.top + 5, button: 2 }));
+        const label = game.i18n.localize("OWNERSHIP.Configure");
+        const item = await wait(() => [...document.querySelectorAll("#context-menu li, .context-menu li")].find(li => li.textContent.trim() === label));
+        item?.click();
+        const dialog = await wait(() => [...foundry.applications.instances.values()].find(a => a instanceof foundry.applications.apps.DocumentOwnershipConfig && a.document === made && a.rendered));
+        ownership = !!dialog;
+        await dialog?.close();
+      }
       // A right-click on its row: Remove Folder, Foundry's own confirm; the folder goes, the NPC moves up a level.
       let removed = false;
       if (made && dropped) {
@@ -243,7 +261,7 @@ try {
         removed = !!(await wait(() => !game.folders.get(made.id))) && !!(await wait(() => npc.folder === null || npc.folder === undefined));
       }
       await npc.update({ folder: was });
-      return { rows, placed, closed, here: here.length === 1 && here[0] === npc.uuid, npc: npc.name, made: !!made, inView, madeRow, dropped, removed };
+      return { rows, placed, closed, here: here.length === 1 && here[0] === npc.uuid, npc: npc.name, made: !!made, inView, madeRow, dropped, ownership, removed };
     },
     { scratch: SCRATCH }
   );
@@ -252,6 +270,7 @@ try {
   assert(B.here, "On this scene lists the actor with a token there, and only it");
   assert(B.made && B.inView && B.madeRow, "New Folder asks a name, makes the folder and shows it, empty, in the rail");
   assert(B.dropped, "an actor card dragged onto the new folder is filed there");
+  assert(B.ownership, "a right-click's Configure Ownership opens Foundry's own ownership dialog for the folder");
   assert(B.removed, "a right-click's Remove Folder removes the folder and moves what was in it up a level");
 
   // --- C. switching in place, the items case ------------------------------------------------
@@ -325,6 +344,16 @@ try {
     const cards = [...(el?.querySelectorAll(".cc-card[data-key]") ?? [])];
     const topFolders = game.folders.filter(fo => fo.type === "Compendium" && !fo.folder).map(fo => fo.id);
     const railFolders = new Set([...(el?.querySelectorAll('.cc-rail [data-view^="f:"]') ?? [])].map(b => b.dataset.view.slice(2)));
+    // A pack folder's right-click, as the stock Compendium directory's: no Configure Ownership.
+    let folderLabels = [];
+    const folderRow = el?.querySelector('.cc-rail .cc-folderrow[data-folder]:not([data-folder=""])');
+    if (folderRow) {
+      const r = folderRow.getBoundingClientRect();
+      folderRow.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: r.left + 10, clientY: r.top + 5, button: 2 }));
+      const menu = await wait(() => document.querySelector("#context-menu .context-items"));
+      folderLabels = [...(menu?.querySelectorAll(".context-item") ?? [])].map(li => li.textContent.trim());
+      document.querySelector("#context-menu")?.remove();
+    }
     const card = cards[0];
     let labels = [];
     let selected = false;
@@ -351,6 +380,9 @@ try {
       selected,
       ownership: labels.includes(game.i18n.localize("OWNERSHIP.Configure")),
       labels,
+      folderRow: !!folderRow,
+      folderLabels,
+      folderOwnership: folderLabels.includes(game.i18n.localize("OWNERSHIP.Configure")),
       opened: !!opened
     };
   });
@@ -359,6 +391,7 @@ try {
   assert(C2.tab === "chat", "the sidebar stayed on chat");
   assert(C2.foldersOnRail, `the rail holds the packs' folders (${C2.topFolders} at the top)`);
   assert(C2.selected && C2.ownership, `a right-click selects the card and gives the stock pack menu (${C2.labels.join(", ")})`);
+  assert(C2.folderRow && C2.folderLabels.length && !C2.folderOwnership, `a pack folder's right-click has no Configure Ownership, as the stock directory's (${C2.folderLabels.join(", ")})`);
   assert(C2.opened, "a double click opens the pack");
 
   // --- D. the settings carried over ---------------------------------------------------------
@@ -395,22 +428,55 @@ try {
 
   // --- E. a player's actors case ------------------------------------------------------------
   console.log("# E. a player's actors case");
-  const temp = await f.evaluate(async ({ userName }) => {
+  const temp = await f.evaluate(async ({ userName, limitedName, moduleId }) => {
+    const wait = async (fn, n = 60) => {
+      for (let i = 0; i < n; i++) {
+        const v = fn();
+        if (v) return v;
+        await new Promise(r => setTimeout(r, 100));
+      }
+      return null;
+    };
     const user = game.users.find(u => u.name === userName) ?? (await User.implementation.create({ name: userName, role: CONST.USER_ROLES.PLAYER }));
     const pc = game.actors.find(a => a.type === "character");
     await pc.update({ [`ownership.${user.id}`]: CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER });
     // A summoned creature they own too (dnd5e's own copy): never a card of theirs.
     const summon = game.actors.find(a => a.flags?.dnd5e?.isAutoImported || a.flags?.dnd5e?.summonedCopy);
     if (summon) await summon.update({ [`ownership.${user.id}`]: CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER });
+    // A scratch NPC they have Limited on, a word in each biography.
+    for (const a of game.actors.filter(a => a.name === limitedName)) await a.delete();
+    const L = CONST.DOCUMENT_OWNERSHIP_LEVELS;
+    const limited = await Actor.implementation.create({
+      name: limitedName,
+      type: "npc",
+      ownership: { default: L.NONE, [user.id]: L.LIMITED },
+      system: { details: { cr: 5, type: { value: "humanoid" }, biography: { value: "<p>zzccprivate</p>", public: "<p>zzccpublic</p>" } } }
+    });
+    // The GM's card for it wears the eye, naming the player.
+    game.modules.get(moduleId).api.actors.open({ key: limited.uuid });
+    const eye = await wait(() => document.querySelector(`#cardcatalogue-actors-library .cc-card[data-key="${limited.uuid}"] .cc-icons .fa-eye`));
+    const eyeTip = eye?.dataset.tooltip ?? "";
+    await foundry.applications.instances.get("cardcatalogue-actors-library")?.close();
     const isSummon = a => !!(a.flags?.dnd5e?.isAutoImported || a.flags?.dnd5e?.summonedCopy);
     const visible = game.actors.filter(a => a.testUserPermission(user, "LIMITED") && !isSummon(a)).length;
-    return { userId: user.id, pcId: pc.id, pcName: pc.name, summonId: summon?.id ?? null, summonUuid: summon?.uuid ?? null, summonName: summon?.name ?? null, visible };
-  }, { userName: TEMP_USER });
+    return {
+      userId: user.id,
+      pcId: pc.id,
+      pcName: pc.name,
+      summonId: summon?.id ?? null,
+      summonUuid: summon?.uuid ?? null,
+      summonName: summon?.name ?? null,
+      limitedUuid: limited.uuid,
+      eyeTip,
+      visible
+    };
+  }, { userName: TEMP_USER, limitedName: LIMITED, moduleId: MODULE_ID });
+  assert(temp.eyeTip.includes(TEMP_USER), `the GM's card for an actor a player only sees wears the eye, naming them ("${temp.eyeTip}")`);
   fp = new Foundry({ ...foundryConfig(env), user: TEMP_USER, password: "" });
   await fp.connect();
   watch(fp, "player");
   await fp.page.setViewportSize?.({ width: 1600, height: 1000 }).catch(() => {});
-  const E = await fp.evaluate(async () => {
+  const E = await fp.evaluate(async ({ limitedUuid }) => {
     const wait = async (fn, n = 60) => {
       for (let i = 0; i < n; i++) {
         const v = fn();
@@ -425,25 +491,70 @@ try {
     const cards = el?.querySelectorAll(".cc-card[data-key]").length ?? 0;
     const strip = [...(el?.querySelectorAll(".cc-case") ?? [])].map(b => b.dataset.case);
     el?.querySelector('.cc-rail [data-view="mine"]')?.click();
-    await wait(() => win.view === "mine" && el.querySelector(".cc-card[data-key]"));
+    // The redraw is async: wait for the rail to mark Mine, so the cards read are Mine's, not All's.
+    await wait(() => win.view === "mine" && el.querySelector('.cc-rail [data-view="mine"].on') && el.querySelector(".cc-card[data-key]"));
     const mine = [...el.querySelectorAll(".cc-card[data-key]")].map(c => ({ name: c.querySelector(".cc-nm span")?.textContent, owned: !!fromUuidSync(c.dataset.key)?.isOwner }));
     const chevron = !!el.querySelector('.cc-card [data-action="openMenu"]');
     el.querySelector('.cc-rail [data-view="all"]')?.click();
     await wait(() => win.view === "all");
     await new Promise(r => setTimeout(r, 300));
     const drawn = [...el.querySelectorAll(".cc-card[data-key]")].map(c => c.dataset.key);
-    return { opened: !!win, cards, strip, mine, chevron, drawn, itemsTab: !!document.querySelector('#sidebar-tabs [data-tab="items"]') };
-  });
+    // The NPC they only have Limited on: its kind alone on the card, found by its public biography,
+    // never by the private one; a double click opens dnd5e's limited sheet.
+    const lim = () => win.element.querySelector(`.cc-card[data-key="${limitedUuid}"]`);
+    const search = async q => {
+      const input = win.element.querySelector("input[name=search]");
+      input.value = q;
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      await new Promise(r => setTimeout(r, 50));
+      return { shown: !!lim() && !lim().hidden, why: lim()?.querySelector(".cc-why")?.textContent ?? "" };
+    };
+    const limitedLine = lim()?.querySelector(".cc-where")?.textContent ?? null;
+    const byPublic = await search("zzccpublic");
+    const byPrivate = await search("zzccprivate");
+    await search("");
+    lim()?.querySelector("[data-action=pick]")?.dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 2 }));
+    const actor = fromUuidSync(limitedUuid);
+    const sheet = await wait(() => actor?.sheet?.rendered && actor.sheet);
+    const limitedSheet = !!sheet?.element?.classList.contains("limited");
+    await sheet?.close();
+    return {
+      opened: !!win,
+      cards,
+      strip,
+      mine,
+      chevron,
+      drawn,
+      itemsTab: !!document.querySelector('#sidebar-tabs [data-tab="items"]'),
+      npcKind: game.i18n.localize(CONFIG.Actor.typeLabels.npc),
+      limitedLine,
+      byPublic,
+      byPrivate,
+      limitedSheet
+    };
+  }, { limitedUuid: temp.limitedUuid });
   assert(E.opened, "the player's Actors button opens their actors case");
   assert(E.cards === temp.visible, `the player sees the actors they can see (${E.cards} of ${temp.visible})`);
   assert(E.mine.some(m => m.name === temp.pcName) && E.mine.every(m => m.owned), `Mine holds their character and only what they own (${E.mine.map(m => m.name).join(", ")})`);
   assert(!E.chevron, "no chevron for a player");
   assert(!temp.summonUuid || !E.drawn.includes(temp.summonUuid), `a summoned creature they own is no card of theirs (${temp.summonName ?? "none in this world"})`);
   assert(!E.strip.includes("scenes") && !E.strip.includes("items") && !E.itemsTab, `the player's strip has no Scenes or Items, and no Items tab (${E.strip.join(", ")})`);
+  assert(E.drawn.includes(temp.limitedUuid), "an actor they only have Limited on is a card of theirs");
+  assert(E.limitedLine === E.npcKind, `its card says its kind and no more ("${E.limitedLine}")`);
+  assert(E.byPublic.shown && E.byPublic.why && !E.byPrivate.shown, `the search finds it by its public biography (${E.byPublic.why}), never by the private one`);
+  assert(E.limitedSheet, "a double click opens dnd5e's limited sheet");
   await shot(fp.page, "12-player-actors");
-  await f.evaluate(async ({ pcId, summonId, userId }) => {
-    for (const id of [pcId, summonId]) if (id) await game.actors.get(id)?.update({ [`ownership.-=${userId}`]: null });
-  }, temp);
+  await f.evaluate(async ({ pcId, summonId, userId, limitedName }) => {
+    // The whole map, replaced: a deletion operator inside ownership fails its validation on 14.
+    for (const id of [pcId, summonId]) {
+      const actor = id ? game.actors.get(id) : null;
+      if (!actor || !(userId in actor.ownership)) continue;
+      const ownership = { ...actor.ownership };
+      delete ownership[userId];
+      await actor.update({ ownership }, { recursive: false, diff: false });
+    }
+    for (const a of game.actors.filter(a => a.name === limitedName)) await a.delete();
+  }, { ...temp, limitedName: LIMITED });
 
   const errors = lines.filter(l => /error|pageerror/.test(l) && /cardcatalogue|card catalogue/i.test(l));
   assert(!errors.length, `no Card Catalogue error on either page${errors.length ? `:\n    ${errors.join("\n    ")}` : ""}`);

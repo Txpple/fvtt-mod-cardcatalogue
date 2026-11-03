@@ -541,7 +541,8 @@
       "card": {
         "level": "Level {n}",
         "cr": "CR {cr}",
-        "here": "On the scene you are viewing"
+        "here": "On the scene you are viewing",
+        "seen": "Players see it without owning it: {names}"
       }
     },
     "items": {

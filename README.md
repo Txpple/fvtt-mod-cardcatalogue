@@ -9,13 +9,15 @@ thing you came for a click away.
 - **Scenes**: wide cards from Foundry's own thumbnails; Activate is one click, with *Back to …* to undo it. View,
   Edit, Preload and the players' bar behind the chevron. GM only.
 - **Actors**: portrait cards; Open is one click. Show the art, place a token where you are looking, ownership
-  behind the chevron. Players see theirs.
+  behind the chevron. Players see what they own and what you share with them at Limited: a shared actor shows
+  only its portrait, its kind and its public biography, as dnd5e's limited sheet does. On your cards, an eye
+  marks the actors players can see without owning.
 - **Items**: Open is one click; show the art, post to chat, or give a copy to the party behind the chevron.
 - **Compendium**: every pack a wide card wearing its banner, the rail its folders; Open is one click. Lock and
   ownership behind the chevron. Players see the packs they can.
 - **One window**: each sidebar button opens its case, the sidebar left as it was, and the strip across the
   top switches cases in place. A right-click on a scene, actor, item or pack card gives Foundry's own menu for it; on a
-  folder, Rename and Remove.
+  folder, Rename, Configure Ownership (share a whole folder of actors with the players at once) and Remove.
 - **Many at once**: Ctrl+click or Shift+click picks several cards; drag one and they all go to the folder. Drag a
   folder onto another in the rail to put it inside, or onto Unfiled to bring it to the top.
 - **Export**: the cards in view (or the cards picked) as one JSON file; an actor or an item goes whole, as its

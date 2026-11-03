@@ -17,6 +17,7 @@ import * as journal from "./journal/journal.js";
 import * as scenes from "./scenes/case.js";
 import { hasCase, setClassic } from "./shell/cases.js";
 import { migrateClient, migrateWorld } from "./shell/migrate.js";
+import { watchOwnership } from "./shell/ownership.js";
 import * as tabs from "./tabs/apply.js";
 import * as tabIcons from "./tabs/icons.js";
 
@@ -67,6 +68,7 @@ Hooks.once("init", () => {
   tabIcons.registerSettings();
   tabIcons.applyTabIcons();
   tabIcons.applyTabScale();
+  watchOwnership();
 
   const load = foundry.applications?.handlebars?.loadTemplates ?? loadTemplates;
   const docs = ["library.hbs", "finder.hbs"].map(f => `modules/${MODULE_ID}/templates/docs/${f}`);

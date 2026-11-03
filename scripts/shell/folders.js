@@ -4,12 +4,14 @@
  * top; cards are then filed by dropping them on its row in the rail. A right-click on a folder's row:
  * Rename (the name asked again, the folder's own `name` written, as the stock folder sheet writes it),
  * the stock Configure Ownership (Foundry's folder dialog, which writes each document directly in the
- * folder) and the stock Remove Folder, its own words and its own write, the folder deleted and whatever
- * was in it (cards and subfolders) moved up to its parent.
+ * folder; its hint in the case's words, `ownership.js`) and the stock Remove Folder, its own words and
+ * its own write, the folder deleted and whatever was in it (cards and subfolders) moved up to its
+ * parent.
  */
 
 import { t } from "../common.js";
 import { centreNext } from "./host.js";
+import { configureOwnership } from "./ownership.js";
 import { nestAs } from "./pick.js";
 
 /** The folders whose stock directory leaves Configure Ownership out of their menu. */
@@ -78,7 +80,7 @@ export function folderMenu(element) {
           const folder = game.folders.get(row.dataset.folder);
           if (!folder) return;
           centreNext();
-          return new foundry.applications.apps.DocumentOwnershipConfig({ document: folder }).render({ force: true });
+          return configureOwnership(folder);
         }
       },
       {

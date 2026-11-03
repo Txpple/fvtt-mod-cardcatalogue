@@ -14,6 +14,7 @@ import { crLabel, isSummonCopy } from "../docs/decide.js";
 import { plainText } from "../journal/decide.js";
 import { showArt } from "../shell/art.js";
 import { registerCase, wayBack } from "../shell/cases.js";
+import { configureOwnership } from "../shell/ownership.js";
 import { MODULE_ID, t } from "./common.js";
 
 const players = () => game.users.filter(u => !u.isGM && u.role > CONST.USER_ROLES.NONE);
@@ -102,7 +103,7 @@ const spec = {
       { act: "art", icon: "fa-image", label: "menu.art", hint: "menu.artHint", run: a => showArt(a.img, a.name) },
       { act: "tokenArt", icon: "fa-circle-user", label: "menu.tokenArt", hint: "menu.tokenArtHint", disabled: !tokenSrc, run: a => showArt(a.prototypeToken.texture.src, a.name) },
       { act: "place", icon: "fa-location-dot", label: "menu.place", hint: canvas?.scene ? "menu.placeHint" : "menu.placeNoScene", disabled: !canvas?.scene, run: placeToken },
-      { act: "ownership", icon: "fa-lock", label: "menu.ownership", hint: "menu.ownershipHint", run: a => new foundry.applications.apps.DocumentOwnershipConfig({ document: a }).render({ force: true }) }
+      { act: "ownership", icon: "fa-lock", label: "menu.ownership", hint: "menu.ownershipHint", run: configureOwnership }
     ];
   }
 };

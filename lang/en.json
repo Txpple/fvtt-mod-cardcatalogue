@@ -532,7 +532,8 @@
         "placeNoScene": "View a scene first",
         "placed": "“{name}” placed on {scene}.",
         "ownership": "Ownership",
-        "ownershipHint": "Foundry's own ownership dialog"
+        "ownershipHint": "Foundry's own ownership dialog",
+        "ownershipDialog": "Each player's access to {name}: None hides it, Limited shows its card and public biography, Observer the whole sheet, Owner lets them edit it."
       },
       "card": {
         "level": "Level {n}",
@@ -591,7 +592,8 @@
         "giveHint": "A copy on their sheet, as a drop there makes it",
         "giveAny": "A copy on their sheet, as a drop there makes it",
         "giveNobody": "No party and no assigned characters yet.",
-        "given": "A copy of “{name}” given to {to}."
+        "given": "A copy of “{name}” given to {to}.",
+        "ownershipDialog": "Each player's access to {name}: None hides it, Limited shows its card, Observer the whole sheet, Owner lets them edit it."
       },
       "card": {
         "attunement": "Requires attunement",
@@ -659,7 +661,11 @@
       "expand": "Expand",
       "rename": "Rename Folder",
       "renameTitle": "Rename {folder}",
-      "tooDeep": "Too deep: Foundry keeps folders at most {n} levels down."
+      "tooDeep": "Too deep: Foundry keeps folders at most {n} levels down.",
+      "ownership": {
+        "actors": "Every actor directly in {name} at once, not those in the folders under it. No Change leaves a player as they are.",
+        "items": "Every item directly in {name} at once, not those in the folders under it. No Change leaves a player as they are."
+      }
     },
     "export": {
       "hint": "Export the cards in view as a JSON file (their words, no pictures)",

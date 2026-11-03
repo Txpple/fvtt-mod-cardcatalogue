@@ -8,11 +8,13 @@
  * The right-click also selects the card, as a click does.
  *
  * The stock entries place what they open for the sidebar's row; ../shell/host.js centres it instead,
- * in whichever window the case window is in.
+ * in whichever window the case window is in. The ownership dialog Configure Ownership opens says its
+ * hint in the case's words (./ownership.js).
  */
 
 import { log } from "../common.js";
 import { centreNext } from "./host.js";
+import { noteOwnership } from "./ownership.js";
 
 /** A row as the stock directory draws it, for the entry behind a card. */
 function standIn(card, row) {
@@ -50,7 +52,8 @@ export function entryMenu(element, directory, select, row) {
       if (!rows.has(card)) rows.set(card, standIn(card, row));
       return rows.get(card);
     };
-    const swap = args => args.map(a => (a instanceof HTMLElement && a.matches(".cc-card[data-key]") ? rowFor(a) : a));
+    const isCard = a => a instanceof HTMLElement && a.matches(".cc-card[data-key]");
+    const swap = args => args.map(a => (isCard(a) ? rowFor(a) : a));
     // An entry that throws on the stand-in is left out, never the whole menu.
     const wrapped = entries.map(entry => {
       const e = { ...entry };
@@ -71,6 +74,7 @@ export function entryMenu(element, directory, select, row) {
         if (typeof fn === "function")
           e[k] = (...args) => {
             centreNext();
+            if (entry.label === "OWNERSHIP.Configure") noteOwnership(args.find(isCard)?.dataset.key);
             return fn(...swap(args));
           };
       }

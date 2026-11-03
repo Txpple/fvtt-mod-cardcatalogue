@@ -9,7 +9,9 @@
 // its button (a card per pack, each with its banner, the folders on the rail, the stock pack menu on
 // a right-click, a double click opening the pack), and reads the settings carried
 // over from Scroll Case and House Rules. A rail folder's right-click opens Foundry's ownership
-// dialog for it (a pack folder's has none). A temporary player connects: their actors case lists the
+// dialog for it (a pack folder's has none). The ownership dialog the case window opens (the chevron's,
+// a card's right-click, a rail folder's) says the case's words; opened as the stock directory opens it,
+// Foundry's. A temporary player connects: their actors case lists the
 // actors they can see, their own in Mine, no chevron; a scratch NPC they only have Limited on says
 // its kind alone, is found by its public biography and not its private one, and opens dnd5e's
 // limited sheet, while the GM's card for it wears the eye. The scratch scene, its token, the scratch
@@ -77,7 +79,7 @@ cleanup = async () => {
         for (const fo of game.folders.filter(fo => fo.type === "Actor" && fo.name === "ZZ-CC Folder")) await fo.delete();
         for (const u of game.users.filter(u => u.name === userName)) await u.delete();
         for (const app of [...foundry.applications.instances.values()]) {
-          if (app.id?.startsWith("cardcatalogue-") || app.document?.documentName === "Actor" || app.document?.documentName === "Item") await app.close();
+          if (app.id?.startsWith("cardcatalogue-") || app instanceof foundry.applications.apps.DocumentOwnershipConfig || app.document?.documentName === "Actor" || app.document?.documentName === "Item") await app.close();
         }
       },
       { scratch: SCRATCH, userName: TEMP_USER, limitedName: LIMITED, prior }
@@ -272,6 +274,86 @@ try {
   assert(B.dropped, "an actor card dragged onto the new folder is filed there");
   assert(B.ownership, "a right-click's Configure Ownership opens Foundry's own ownership dialog for the folder");
   assert(B.removed, "a right-click's Remove Folder removes the folder and moves what was in it up a level");
+
+  // --- B2. the ownership dialog in the case's words -----------------------------------------
+  console.log("# B2. the ownership dialog a case window opens says the case's words");
+  const ownershipPage = async ({ step, moduleId }) => {
+    const wait = async (fn, n = 60) => {
+      for (let i = 0; i < n; i++) {
+        const v = fn();
+        if (v) return v;
+        await new Promise(r => setTimeout(r, 100));
+      }
+      return null;
+    };
+    const Config = foundry.applications.apps.DocumentOwnershipConfig;
+    const dialogs = () => [...foundry.applications.instances.values()].filter(a => a instanceof Config);
+    const dialogFor = doc => wait(() => dialogs().find(a => a.document === doc && a.rendered));
+    const hintOf = app => app?.element?.querySelector("p.instructions")?.textContent?.trim() ?? null;
+    const closeAll = async () => {
+      for (const app of dialogs()) await app.close();
+      await wait(() => !dialogs().some(a => a.rendered));
+    };
+    const rightClick = async (el, label) => {
+      const r = el.getBoundingClientRect();
+      el.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true, clientX: r.left + 10, clientY: r.top + 5, button: 2 }));
+      const item = await wait(() => [...document.querySelectorAll("#context-menu .context-item, #context-menu li, .context-menu li")].find(li => li.textContent.trim() === label));
+      item?.click();
+      return !!item;
+    };
+    const win = foundry.applications.instances.get("cardcatalogue-actors-library");
+    const npc = game.actors.find(a => a.type === "npc");
+    const configure = game.i18n.localize("OWNERSHIP.Configure");
+    if (step === "chevron") {
+      // The chevron's Ownership, left open for the shot.
+      await closeAll();
+      win.element.querySelector('.cc-rail [data-view="all"]')?.click();
+      await wait(() => win.view === "all" && win.element.querySelector(`.cc-card[data-key="${npc.uuid}"]`));
+      win.element.querySelector(`.cc-card[data-key="${npc.uuid}"] [data-action="openMenu"]`)?.click();
+      const menu = await wait(() => win.element.querySelector(".cc-opts .cc-menu"));
+      menu?.querySelector('[data-act="ownership"]')?.click();
+      const hint = hintOf(await dialogFor(npc));
+      return { npc: npc.name, hint, want: game.i18n.format(`${moduleId}.actors.menu.ownershipDialog`, { name: npc.name }) };
+    }
+    if (step === "others") {
+      // A card's right-click, the stock entry: the same words. Then the dialog as the stock directory
+      // and the sheets open it, which keeps Foundry's. Then a folder's, left open for the shot.
+      await closeAll();
+      const card = win.element.querySelector(`.cc-card[data-key="${npc.uuid}"]`);
+      const clicked = !!card && (await rightClick(card, configure));
+      const right = hintOf(await dialogFor(npc));
+      await closeAll();
+      const stockApp = new Config({ document: npc });
+      await stockApp.render({ force: true });
+      const stock = hintOf(stockApp);
+      await closeAll();
+      for (const fo of game.folders.filter(fo => fo.type === "Actor" && fo.name === "ZZ-CC Folder")) await fo.delete();
+      const folder = await Folder.implementation.create({ name: "ZZ-CC Folder", type: "Actor" });
+      const row = await wait(() => win.element.querySelector(`.cc-rail [data-folder="${folder.id}"]`));
+      if (row) await rightClick(row, configure);
+      const folderHint = hintOf(await dialogFor(folder));
+      return {
+        clicked,
+        right,
+        stock,
+        foundryHint: game.i18n.localize("OWNERSHIP.HintDocument"),
+        folderHint,
+        folderWant: game.i18n.format(`${moduleId}.folders.ownership.actors`, { name: folder.name })
+      };
+    }
+    await closeAll();
+    for (const fo of game.folders.filter(fo => fo.type === "Actor" && fo.name === "ZZ-CC Folder")) await fo.delete();
+    return {};
+  };
+  const B2 = await f.evaluate(ownershipPage, { step: "chevron", moduleId: MODULE_ID });
+  await shot(f.page, "10b-ownership-actor");
+  const B3 = await f.evaluate(ownershipPage, { step: "others", moduleId: MODULE_ID });
+  await shot(f.page, "10c-ownership-folder");
+  await f.evaluate(ownershipPage, { step: "close", moduleId: MODULE_ID });
+  assert(B2.hint === B2.want, `the chevron's Ownership: Foundry's dialog for ${B2.npc}, its hint the case's ("${B2.hint}")`);
+  assert(B3.clicked && B3.right === B2.want, `a card's right-click Configure Ownership: the same words ("${B3.right}")`);
+  assert(B3.stock === B3.foundryHint, `opened as the stock directory and the sheets open it, Foundry's words ("${B3.stock}")`);
+  assert(B3.folderHint === B3.folderWant, `a rail folder's Configure Ownership: every actor directly in it, the case's words ("${B3.folderHint}")`);
 
   // --- C. switching in place, the items case ------------------------------------------------
   console.log("# C. the strip switches to items in place");

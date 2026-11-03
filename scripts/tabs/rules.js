@@ -1,7 +1,7 @@
 /**
  * The sidebar-tabs rule, the pure half: which sidebar tabs a player loses, and the edit to
  * Foundry's tab table that takes them away (or gives them back). No Foundry here;
- * scripts/houserules.js hands it the table and the user.
+ * tabs/apply.js hands it the table and the user.
  *
  * Foundry 14's sidebar builds its tab buttons from `Sidebar.TABS` (`CONFIG.ui.sidebar.TABS`), a
  * record of tab id to descriptor, and leaves out the button of a descriptor marked `gmOnly` on a
@@ -11,7 +11,7 @@
  * module adds (Dice So Nice's) stays.
  *
  * The GM half is its own rule and setting (GM_ID) with its own list (GM_HIDDEN). `gmOnly` never
- * hides a tab from a GM, so scripts/houserules.js takes those buttons off a GM's strip once the
+ * hides a tab from a GM, so tabs/apply.js takes those buttons off a GM's strip once the
  * sidebar draws it; with the button gone `changeTab` refuses the tab the same way.
  */
 

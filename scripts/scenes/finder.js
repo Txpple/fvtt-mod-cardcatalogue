@@ -162,7 +162,7 @@ export class Finder extends HandlebarsApplicationMixin(ApplicationV2) {
       if (how === "menu") return ScenesWindow.open({ key: card.key, menu: true });
       if (how === "activate") {
         const res = await scenes.activate(card.scene);
-        // The activation's Undo lives in the the scenes case window's strip; the toast says where.
+        // The activation's Undo lives in the scenes case window's strip; the toast says where.
         if (res === "activated") ui.notifications.info(t("activate.doneFinder", { name: card.name }));
         else if (res === "pulled") ui.notifications.info(t("activate.pulled", { name: card.name }));
         return ScenesWindow.refresh();

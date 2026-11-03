@@ -473,7 +473,7 @@ try {
       return { classic, closed, tab, back: !!back, stockTab, stayedClosed, reopened, classicAfter: game.settings.get(id, "journalClassic") };
     }, MODULE_ID);
     assert(E.classic && E.closed && E.tab === "journal", "Classic Mode closes the window and opens Foundry's Journal tab");
-    assert(E.back, "the stock directory carries Card Catalogue button");
+    assert(E.back, "the stock directory carries a Card Catalogue button");
     assert(E.stockTab === "journal" && E.stayedClosed, "in Classic Mode the Journal button is Foundry's own");
     assert(E.reopened && E.classicAfter === false, "the directory's Card Catalogue button turns Classic off and opens the window");
 

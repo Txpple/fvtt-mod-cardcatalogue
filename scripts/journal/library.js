@@ -1,5 +1,5 @@
 /**
- * The the journal case window: the journal as cards. The DM's view has a rail (the views, the journals by
+ * The journal case window: the journal as cards. The DM's view has a rail (the views, the journals by
  * folder with their sections), the cards with Show and its chevron; a player's view is what they
  * can see, newest shown first, the unopened marked New. Everything it draws is read live from
  * Foundry's journal; the only state of its own is the browser's (memory.js).
@@ -292,7 +292,7 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       return app;
     }
     app.render({ force: true, ...(position ? { position } : {}) }).catch(err => {
-      log.error("the the journal case window failed to open; Foundry's journal opens instead", err);
+      log.error("the journal case window failed to open; Foundry's journal opens instead", err);
       openClassicJournal();
     });
     return app;

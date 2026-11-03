@@ -200,7 +200,7 @@ export class Finder extends HandlebarsApplicationMixin(ApplicationV2) {
       let revealed = false;
       if (card.loose) revealed = !!(await show.showFile(card.key, { keep }));
       else revealed = !!(await show.showPage(card.page, { keep }))?.revealed;
-      // The reveal's Undo lives in the the journal case window's strip; the toast says where.
+      // The reveal's Undo lives in the journal case window's strip; the toast says where.
       if (revealed) ui.notifications.info(t("show.revealedFinder", { name: card.name }));
       if (!online) ui.notifications.warn(t("show.nobodyOnline", { name: card.name }));
       else ui.notifications.info(t("show.sent", { name: card.name, whom: t("show.everyone") }));

@@ -168,9 +168,7 @@
       },
       "classic": {
         "button": "Classic Mode",
-        "hint": "Foundry's own journal, on this client. The Journal tab then has a Card Catalogue button to come back.",
-        "on": "Classic Mode: the Journal button opens Foundry's own journal on this client. Its Card Catalogue button brings this window back.",
-        "back": "Card Catalogue"
+        "hint": "Foundry's own journal, on this client. The Journal tab then has a Card Catalogue button to come back."
       },
       "rail": {
         "label": "Views and journals",
@@ -261,7 +259,7 @@
         "search": "Nothing here matches. Try a file name, a section or a word from the text.",
         "gm": {
           "all": "This world has no journal pages yet.",
-          "visible": "No page is visible to the players yet. Show one, or light a player under Players can see.",
+          "visible": "No page is visible to the players yet. Show one with Keep it in their journal case on.",
           "gm": "Every page is visible to the players.",
           "journal": "No pages here."
         },
@@ -345,9 +343,7 @@
       },
       "classic": {
         "button": "Classic Mode",
-        "hint": "Foundry's own Scenes directory, on this client. The Scenes tab then has a Card Catalogue button to come back.",
-        "on": "Classic Mode: the Scenes button opens Foundry's own directory on this client. Its Map Case button brings this window back.",
-        "back": "Map Case"
+        "hint": "Foundry's own Scenes directory, on this client. The Scenes tab then has a Card Catalogue button to come back."
       },
       "size": {
         "label": "Card size",
@@ -422,7 +418,7 @@
           "pull": "This is the active scene: bring back anyone who wandered off on the bar"
         },
         "done": "“{name}” is now active.",
-        "doneFinder": "“{name}” is now active. Undo is in the Map Case window.",
+        "doneFinder": "“{name}” is now active. Undo is at the top of the scenes case.",
         "back": "Back to “{name}”",
         "undoHint": "Activate the scene that was active before",
         "dismiss": "Dismiss",

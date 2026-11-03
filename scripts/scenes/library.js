@@ -1,5 +1,5 @@
 /**
- * The the scenes case window: the Scenes directory as cards. A rail (the views, then the folders), the
+ * The scenes case window: the Scenes directory as cards. A rail (the views, then the folders), the
  * cards (each with View and a chevron of the other actions), the Undo strip.
  * Everything it draws is read live from Foundry's scenes; the only state of its own is the
  * browser's (memory.js). The search filters the drawn cards from a map kept here, never from the
@@ -124,7 +124,7 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
       return app;
     }
     app.render({ force: true, ...(position ? { position } : {}) }).catch(err => {
-      log.error("the the scenes case window failed to open; Foundry's Scenes directory opens instead", err);
+      log.error("the scenes case window failed to open; Foundry's Scenes directory opens instead", err);
       openClassicScenes();
     });
     return app;

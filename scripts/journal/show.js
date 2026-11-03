@@ -121,7 +121,7 @@ const toWords = ids => (ids ? ids.map(id => game.users.get(id)?.name ?? id).join
 
 /**
  * Show a page to players, now. `to` is null (everyone connected) or user ids; `keep` makes the
- * page visible to them first, so it stays in their the journal case. Their clients open it in the Reader,
+ * page visible to them first, so it stays in their journal case. Their clients open it in the Reader,
  * or, with `picture` (a src), that picture alone: then the page's ownership is never touched,
  * since the players were shown the picture and not the page.
  * @returns {Promise<{ revealed: object|null } | null>} null when the same thing was already being shown

@@ -2,7 +2,7 @@
  * The window the actors, items and compendium cases share: a collection's entries as cards, in the
  * journal case's look and with its habits. A rail (the case's views, its types, its folders), the cards
  * (each with the case's one button and a chevron of the rest; a click does the one thing), a search that
- * filters the drawn cards and never redraws. Each case gives a spec (actors.js, items.js): its
+ * filters the drawn cards and never redraws. Each case gives a spec (its `case.js`): its
  * collection, its fields, how a document becomes a card, its one action and its chevron. The
  * window writes nothing itself: every write is a spec's action, each one the stock directory or
  * sheet makes. What only it needs (opened lately, the view, the size) lives in the browser.

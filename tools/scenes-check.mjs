@@ -358,11 +358,11 @@ try {
       return { classic, tab, back: !!back, reopened, off: !game.settings.get(id, "scenesClassic") };
     }, MODULE_ID);
     assert(F.classic && F.tab, "Classic Mode opens Foundry's own Scenes tab");
-    assert(F.back && F.reopened && F.off, "the directory's the scenes case button brings the window back, Classic off");
+    assert(F.back && F.reopened && F.off, "the directory's Card Catalogue button brings the window back, Classic off");
   }
 
   const errors = lines.filter(l => /cardcatalogue|card catalogue/i.test(l) && /error|pageerror/.test(l));
-  assert(!errors.length, `no the scenes case error in the console${errors.length ? `:\n    ${errors.join("\n    ")}` : ""}`);
+  assert(!errors.length, `no scenes case error in the console${errors.length ? `:\n    ${errors.join("\n    ")}` : ""}`);
 } catch (err) {
   console.log(`  FAIL  the run threw: ${err?.stack ?? err}`);
   fails++;

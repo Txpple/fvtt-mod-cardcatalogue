@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   allImages,
@@ -336,12 +337,26 @@ describe("the export", () => {
 describe("page links", () => {
   const uuid = "JournalEntry.2JJQ4AXOd6nlYxCY.JournalEntryPage.RzASFDN5fBd2gHEl";
 
-  it("builds a link on the game's own address", () => {
+  const landing = "modules/fvtt-mod-cardcatalogue/templates/link/link.xml";
+
+  it("builds a link to the landing beside the game's address", () => {
     expect(pageLink("https://example.test/game", uuid)).toBe(
-      `https://example.test/game?page=${uuid}`
+      `https://example.test/${landing}?page=${uuid}`
     );
     expect(pageLink("https://example.test/prefix/game?x=1#chat", uuid)).toBe(
-      `https://example.test/prefix/game?page=${uuid}`
+      `https://example.test/prefix/${landing}?page=${uuid}`
+    );
+  });
+
+  it("names a landing the release ships, which forwards to the game four folders up", () => {
+    const file = new URL(
+      `../${landing.replace("modules/fvtt-mod-cardcatalogue/", "")}`,
+      import.meta.url
+    );
+    const html = readFileSync(file, "utf8");
+    expect(html).toContain('new URL("../../../../game", location.href)');
+    expect(new URL("../../../../game", `https://example.test/prefix/${landing}`).href).toBe(
+      "https://example.test/prefix/game"
     );
   });
 

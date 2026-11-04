@@ -334,11 +334,17 @@ export const LINK_PARAM = "page";
 /** A page's uuid, the only thing a link may name: a world page, or a compendium's. */
 const PAGE_UUID = /^(?:Compendium\.[\w-]+\.[\w-]+\.)?JournalEntry\.[A-Za-z0-9]{16}\.JournalEntryPage\.[A-Za-z0-9]{16}$/;
 
-/** A web link to a page: the game's own address, its search the page and nothing else. */
+/**
+ * Where a copied link lands, beside the game's address: a public page that forwards to
+ * `/game?page=`. Foundry's session cookie is SameSite=Strict, so a link clicked in another site
+ * (Gmail) reaching `/game` directly arrives without it and Foundry forgets the page; the landing's
+ * forward starts on Foundry's own site, so the cookie goes along.
+ */
+const LINK_LANDING = "modules/fvtt-mod-cardcatalogue/templates/link/link.xml";
+
+/** A web link to a page: the landing beside the game's address (a route prefix kept), its search the page. */
 export function pageLink(href, uuid) {
-  const url = new URL(href);
-  url.search = "";
-  url.hash = "";
+  const url = new URL(LINK_LANDING, new URL(href));
   url.searchParams.set(LINK_PARAM, uuid);
   return url.href;
 }

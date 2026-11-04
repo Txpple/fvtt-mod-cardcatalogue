@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  A page link's landing (Card Catalogue's Copy link). Foundry's session cookie is SameSite=Strict, so a
+  link clicked in another site (Gmail sends every click through google.com) reaches /game without it:
+  Foundry sees a stranger, sends them to /join and starts a new session, logging them out. This file is
+  public and needs no cookie; it forwards to the game from Foundry's own site, so the cookie goes along,
+  and a logged-out visitor's trip through /join keeps the page. Nothing but a page's uuid is passed on.
+
+  XHTML in an .xml file because Foundry serves Data's .html as text/plain and .svg with scripts blocked;
+  .xml comes as application/xml, which a browser runs as XHTML. Checked on Foundry 14.369.
+-->
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="robots" content="noindex" />
+<title>Opening the page…</title>
+<script><![CDATA[
+(() => {
+  const PAGE = /^(?:Compendium\.[\w-]+\.[\w-]+\.)?JournalEntry\.[A-Za-z0-9]{16}\.JournalEntryPage\.[A-Za-z0-9]{16}$/;
+  const uuid = new URLSearchParams(location.search).get("page");
+  const game = new URL("../../../../game", location.href);
+  if (uuid && PAGE.test(uuid)) game.searchParams.set("page", uuid);
+  location.replace(game.href);
+})();
+]]></script>
+</head>
+<body style="background:#1b1b1b;color:#ddd;font:16px/1.5 Georgia,serif;text-align:center;padding-top:20vh">
+<p>Opening the page… <a href="../../../../game" style="color:#e6b35a">Go to the game</a></p>
+</body>
+</html>

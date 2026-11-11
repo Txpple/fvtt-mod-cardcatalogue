@@ -1165,6 +1165,12 @@
   color: var(--cc-ink);
 }
 
+/* A page that is its own paper sheet: no dark surround round the parchment. */
+.cc-reader--sheet .cc-reader-body {
+  padding: 0.75rem;
+  background: #f4f1ea;
+}
+
 .cc-reader-title {
   margin: 0 0 0.75rem;
   padding: 0;

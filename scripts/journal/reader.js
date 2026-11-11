@@ -22,6 +22,9 @@ function idForSrc(src) {
   return `cardcatalogue-journal-reader-file-${(h >>> 0).toString(36)}`;
 }
 
+/** A text page whose content opens on its own paper sheet. */
+const SHEET_PAGE = /^\s*<div[^>]*\bclass="[^"]*\bparchment-sheet\b/;
+
 export class Reader extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     classes: ["cardcatalogue", "cardcatalogue-journal-reader"],
@@ -108,6 +111,10 @@ export class Reader extends HandlebarsApplicationMixin(ApplicationV2) {
         context.html = "";
       }
     }
+    // A page dressed as its own sheet (a session record: class "parchment-sheet" on its wrapper) carries its
+    // title and its paper; the Reader gives it a parchment surround and leaves its own heading out.
+    context.sheet = SHEET_PAGE.test(context.html ?? "");
+    if (context.sheet) context.showName = false;
     context.empty = !context.isImage && !context.isVideo && !context.html;
     return context;
   }

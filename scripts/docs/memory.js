@@ -1,6 +1,6 @@
 /**
  * What only this browser remembers for an actors or items case: what was opened lately,
- * the last view and card size. Kept in localStorage under the case, the world and the user, never in
+ * the last view. Kept in localStorage under the case, the world and the user, never in
  * the world. Every read and write is guarded, and a record of the wrong shape is mended field by
  * field; a private window or blocked storage just forgets.
  */
@@ -16,8 +16,7 @@ function mend(raw) {
   return {
     recent: Array.isArray(r.recent) ? r.recent.filter(x => isObj(x) && typeof x.key === "string") : [],
     collapsed: strings(r.collapsed),
-    view: typeof r.view === "string" ? r.view : null,
-    size: typeof r.size === "string" ? r.size : null
+    view: typeof r.view === "string" ? r.view : null
   };
 }
 

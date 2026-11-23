@@ -1,6 +1,5 @@
 /**
- * What only this browser remembers: the scenes activated lately, the last view and card
- * size. Kept in localStorage under the world and the user, never in the world: switching the module
+ * What only this browser remembers: the scenes activated lately and the last view. Kept in localStorage under the world and the user, never in the world: switching the module
  * off leaves nothing behind but this browser's key. Every read and write is guarded, and a record of
  * the wrong shape is mended field by field; a private window or blocked storage just forgets.
  */
@@ -19,8 +18,7 @@ function mend(raw) {
   return {
     recent: Array.isArray(r.recent) ? r.recent.filter(x => isObj(x) && typeof x.key === "string") : [],
     collapsed: strings(r.collapsed),
-    view: typeof r.view === "string" ? r.view : null,
-    size: typeof r.size === "string" ? r.size : null
+    view: typeof r.view === "string" ? r.view : null
   };
 }
 

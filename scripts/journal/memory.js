@@ -1,6 +1,6 @@
 /**
  * What only this browser remembers: what was shown (by this GM, or to this player), what
- * this player has opened, the last view, type and card size. Kept in localStorage under the world
+ * this player has opened, the last view and type. Kept in localStorage under the world
  * and the user, never in the world: switching the module off leaves nothing behind but this
  * browser's key. Every read and write is guarded, and a record of the wrong shape is mended field
  * by field; a private window or blocked storage just forgets.
@@ -28,8 +28,7 @@ function mend(raw) {
     baseline: r.baseline === true,
     collapsed: strings(r.collapsed),
     view: typeof r.view === "string" ? r.view : null,
-    type: typeof r.type === "string" ? r.type : null,
-    size: typeof r.size === "string" ? r.size : null
+    type: typeof r.type === "string" ? r.type : null
   };
 }
 

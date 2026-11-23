@@ -13,11 +13,6 @@
         placeholder="{{localize 'fvtt-mod-cardcatalogue.scenes.search.placeholder'}}"
         aria-label="{{localize 'fvtt-mod-cardcatalogue.scenes.search.label'}}">
     </label>
-    <div class="cc-pills" role="group" aria-label="{{localize 'fvtt-mod-cardcatalogue.scenes.size.label'}}">
-      {{#each sizes}}
-      <button type="button" class="cc-pill {{#if on}}on{{/if}}" data-action="size" data-size="{{id}}" aria-label="{{aria}}" aria-pressed="{{#if on}}true{{else}}false{{/if}}">{{label}}</button>
-      {{/each}}
-    </div>
     <button type="button" class="cc-classic" data-action="classic" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.classic.hint'}}">
       <i class="fa-solid fa-list" inert></i> <span class="cc-classic-text">{{localize "fvtt-mod-cardcatalogue.scenes.classic.button"}}</span>
     </button>
@@ -67,7 +62,7 @@
         <button type="button" class="cc-x" data-action="dismissUndo" aria-label="{{localize 'fvtt-mod-cardcatalogue.scenes.activate.dismiss'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.activate.dismiss'}}"><i class="fa-solid fa-xmark" inert></i></button>
       </div>
       {{/if}}
-      <div class="cc-cards cc-size-{{size}}">
+      <div class="cc-cards">
         {{#each cards}}
         <article class="cc-card {{#if selected}}on{{/if}} {{#if active}}active{{/if}}" data-key="{{key}}" data-folder="{{folderId}}" draggable="true">
           <button type="button" class="cc-pick" data-action="pick" aria-label="{{name}}" aria-pressed="{{#if selected}}true{{else}}false{{/if}}">
@@ -76,7 +71,7 @@
               {{else}}<span class="cc-nothumb"><i class="fa-solid fa-map" inert></i></span>{{/if}}
               <span class="cc-badges">
                 {{#if active}}<span class="cc-badge active"><i class="fa-solid fa-bullseye" inert></i> {{localize "fvtt-mod-cardcatalogue.scenes.badge.active"}}</span>{{/if}}
-                {{#if viewed}}<span class="cc-badge here" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.badge.hereHint'}}"><i class="fa-solid fa-eye" inert></i><span class="cc-badge-text"> {{localize "fvtt-mod-cardcatalogue.scenes.badge.here"}}</span></span>{{/if}}
+                {{#if viewed}}<span class="cc-badge here" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.badge.hereHint'}}"><i class="fa-solid fa-eye" inert></i></span>{{/if}}
               </span>
               <span class="cc-icons">
                 {{#if nav}}<i class="fa-solid fa-compass" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.scenes.badge.nav'}}" aria-label="{{localize 'fvtt-mod-cardcatalogue.scenes.badge.nav'}}"></i>{{/if}}

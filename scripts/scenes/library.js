@@ -20,8 +20,6 @@ import { dragged, pickWith } from "../shell/pick.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
-const SIZES = ["s", "m", "l"];
-
 const isScene = doc => doc?.documentName === "Scene";
 
 const byName = (a, b) => a.localeCompare(b, game.i18n.lang, { sensitivity: "base", numeric: true });
@@ -79,7 +77,6 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     window: { title: `${MODULE_ID}.scenes.library.title`, icon: "fa-solid fa-map", resizable: true },
     position: { width: 1240, height: 820 },
     actions: {
-      size: ScenesWindow.#onSize,
       rail: ScenesWindow.#onRail,
       searchAll: ScenesWindow.#onSearchAll,
       pick: ScenesWindow.#onPick,
@@ -145,7 +142,6 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
   static #dragging = null;
 
   #view = "all";
-  #size = "m";
   #query = "";
   #selected = null;
   /** The scenes picked together (Ctrl or Shift), and where the next Shift run starts. */
@@ -165,7 +161,6 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
   constructor(options) {
     super(options);
     const prefs = memory.load();
-    this.#size = SIZES.includes(prefs.size) ? prefs.size : "m";
     this.#view = prefs.view ?? "all";
   }
 
@@ -215,9 +210,7 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     const loose = all.filter(c => !c.folders.length).length;
 
     context.cases = stripContext("scenes");
-    context.size = this.#size;
     context.query = this.#query;
-    context.sizes = SIZES.map(id => ({ id, label: t(`size.${id}`), aria: t(`size.${id}Aria`), on: this.#size === id }));
     context.views = VIEWS.map(id => ({ id, label: t(`view.${id}`), n: all.filter(c => inView(c, id)).length, on: view === id }));
     context.folders = collapseTree(tree, new Set(memory.load().collapsed)).map(f => ({ ...f, on: view === `f:${f.id}`, indent: f.depth }));
     // Unfiled stays a drop target while there are folders, even with nothing in it.
@@ -384,7 +377,7 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     if (f.name) el = root.querySelector(`[name="${CSS.escape(f.name)}"]`);
     else if (f.action) {
       const sel = [`[data-action="${CSS.escape(f.action)}"]`];
-      for (const k of ["view", "size"]) if (f.data[k]) sel.push(`[data-${k}="${CSS.escape(f.data[k])}"]`);
+      for (const k of ["view"]) if (f.data[k]) sel.push(`[data-${k}="${CSS.escape(f.data[k])}"]`);
       const scope = f.zone ? root.querySelector(f.zone) : f.key ? root.querySelector(`.cc-card[data-key="${CSS.escape(f.key)}"]`) : root;
       el = scope?.querySelector(sel.join("")) ?? (f.key && !f.zone ? scope?.querySelector('[data-action="pick"]') : null);
     }
@@ -499,12 +492,6 @@ export class ScenesWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     const res = await scenes.guarded(name, () => fn(scene));
     this.render();
     return res;
-  }
-
-  static #onSize(_event, target) {
-    this.#size = target.dataset.size;
-    memory.setPrefs({ size: this.#size });
-    this.render();
   }
 
   static #onRail(_event, target) {

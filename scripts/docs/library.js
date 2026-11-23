@@ -5,7 +5,7 @@
  * filters the drawn cards and never redraws. Each case gives a spec (its `case.js`): its
  * collection, its fields, how a document becomes a card, its one action and its chevron. The
  * window writes nothing itself: every write is a spec's action, each one the stock directory or
- * sheet makes. What only it needs (opened lately, the view, the size) lives in the browser.
+ * sheet makes. What only it needs (opened lately, the view) lives in the browser.
  *
  * An entry is a document by default: keyed by its UUID, its `img` its picture, filed by its `folder`.
  * A spec whose entries are not documents (the compendium case's packs) says how instead: `keyOf`,
@@ -26,8 +26,6 @@ import { byType, docEntry, inView, matchWhy, searchFields, typeCounts } from "./
 import { createRecord } from "./memory.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
-
-const SIZES = ["s", "m", "l"];
 
 const byName = (a, b) => a.localeCompare(b, game.i18n.lang, { sensitivity: "base", numeric: true });
 
@@ -85,11 +83,6 @@ export function makeCaseWindow(spec) {
       window: { title: `${MODULE_ID}.cases.${spec.id}`, icon: `fa-solid ${spec.icon}`, resizable: true },
       position: { width: 1180, height: 800 },
       actions: {
-        size(_ev, target) {
-          this.size = target.dataset.size;
-          record.setPrefs({ size: this.size });
-          this.render();
-        },
         rail(_ev, target) {
           this.view = target.dataset.view;
           this.sticky = null;
@@ -237,7 +230,6 @@ export function makeCaseWindow(spec) {
     static #dragging = null;
 
     view = "all";
-    size = "m";
     query = "";
     selected = null;
     /** The cards picked together (Ctrl or Shift), and where the next Shift run starts. */
@@ -255,7 +247,6 @@ export function makeCaseWindow(spec) {
     constructor(options) {
       super(options);
       const prefs = record.load();
-      this.size = SIZES.includes(prefs.size) ? prefs.size : "m";
       this.view = prefs.view ?? "all";
     }
 
@@ -302,12 +293,10 @@ export function makeCaseWindow(spec) {
       context.cases = stripContext(spec.id);
       context.isGM = gm;
       context.iconCards = !!spec.iconCards;
-      context.size = this.size;
       context.query = this.query;
       context.placeholder = t("search.placeholder");
       context.railLabel = t("rail.label");
       context.railKey = t("rail.key");
-      context.sizes = SIZES.map(id => ({ id, label: rootT(`size.${id}`), aria: rootT(`size.${id}Aria`), on: this.size === id }));
       context.views = fixed.map(id => ({ id, label: t(`view.${id}`), n: all.filter(c => inView(c, id)).length, on: view === id }));
       context.types = types.length > 1 && !spec.noTypes ? types.map(x => ({ id: `t:${x.type}`, label: spec.typeLabel(x.type, true), n: x.n, on: view === `t:${x.type}` })) : [];
       context.folders = collapseTree(tree, new Set(record.load().collapsed)).map(f => ({ ...f, on: view === `f:${f.id}`, indent: f.depth }));
@@ -339,6 +328,7 @@ export function makeCaseWindow(spec) {
         sub: card.sub || card.folder,
         badge: card.badge ?? null,
         badgeCls: card.badgeCls ?? "",
+        badgeIcon: card.badgeIcon ?? "fa-user",
         icons: card.icons ?? [],
         selected: this.picked.has(card.key) || this.selected === card.key,
         folderId: card.folders[0] ?? ""

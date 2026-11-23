@@ -12,15 +12,6 @@
       "on": "Classic Mode for {case}: its sidebar button opens Foundry's own directory on this client. Its Card Catalogue button brings the case back.",
       "back": "Card Catalogue"
     },
-    "size": {
-      "label": "Card size",
-      "s": "S",
-      "m": "M",
-      "l": "L",
-      "sAria": "Small cards",
-      "mAria": "Medium cards",
-      "lAria": "Large cards"
-    },
     "settings": {
       "journalEnabled": {
         "name": "Enabled for Journal?",
@@ -156,15 +147,6 @@
         "text": "Text",
         "pdf": "PDF",
         "video": "Video"
-      },
-      "size": {
-        "label": "Card size",
-        "s": "S",
-        "m": "M",
-        "l": "L",
-        "sAria": "Small cards",
-        "mAria": "Medium cards",
-        "lAria": "Large cards"
       },
       "classic": {
         "button": "Classic Mode",
@@ -346,15 +328,6 @@
       "classic": {
         "button": "Classic Mode",
         "hint": "Foundry's own Scenes directory, on this client. The Scenes tab then has a Card Catalogue button to come back."
-      },
-      "size": {
-        "label": "Card size",
-        "s": "S",
-        "m": "M",
-        "l": "L",
-        "sAria": "Small cards",
-        "mAria": "Medium cards",
-        "lAria": "Large cards"
       },
       "search": {
         "label": "Search scenes",

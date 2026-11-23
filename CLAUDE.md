@@ -31,7 +31,11 @@ restart, enabled; Scroll Case and Map Case disabled there, House Rules 1.4.0 dep
   to another journal and what names it repointed); the scenes'
   in `scenes/scenes.js` (`active`, `navigation`, `thumb`, `folder`); the actors' a token placed and the stock
   ownership dialog; the items' a copy on an actor and dnd5e's chat card; any card's `folder` from a drop on the rail.
-  Recently shown or opened, New, the view and the size live in localStorage per case, world and user.
+  Recently shown or opened, New and the view live in localStorage per case, world and user.
+- **The cards are one size, the small** (the user: "default everything to S. remove the M and L options. its just
+  too big"): no size pills on any case's bar; the grid is what S was (cards from 8.5rem, scenes' and packs' wide
+  cards from 12.5rem); a card's badge draws as its icon alone, its words in the tooltip (an actor's owners a person
+  icon); a size an older version stored is dropped on the record's next write.
 - **The cases are registered, the shell is shared** (`shell/cases.js`): each case registers its id, sidebar tab,
   icon, who sees it, how it opens, and `aside()` (the module it replaces is still active: Scroll Case for the
   journal, Map Case for scenes; the case stays out of the way so two windows never answer one button). The shell

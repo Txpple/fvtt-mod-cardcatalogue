@@ -325,21 +325,13 @@
   min-height: 0;
   overflow-y: auto;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(11.5rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
   /* max-content, or a card (overflow: hidden, so no minimum height) shrinks to nothing once the
      cards overflow the fixed-height grid. */
   grid-auto-rows: max-content;
   gap: 0.6rem;
   align-content: start;
   padding: 2px 4px 4px 2px;
-}
-
-.cc-cards.cc-size-s {
-  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
-}
-
-.cc-cards.cc-size-l {
-  grid-template-columns: repeat(auto-fill, minmax(16.5rem, 1fr));
 }
 
 .cc-card {
@@ -1028,7 +1020,7 @@
 }
 
 /* -------------------------------------------------- */
-/*  Focus, the keep switch, small cards, the hints     */
+/*  Focus, the keep switch, the hints                  */
 /* -------------------------------------------------- */
 
 .cc-row:focus-visible,
@@ -1056,10 +1048,6 @@
 
 .cc-tog.cc-switch.on i {
   color: var(--cc-green);
-}
-
-.cc-cards.cc-size-s .cc-badge .cc-badge-text {
-  display: none;
 }
 
 .cc-detail[hidden] {
@@ -1118,11 +1106,6 @@
 
 .cc-markall {
   margin-left: auto;
-}
-
-/* While the Show buttons cover the top of a card, its badge shrinks to its icon. */
-.cc-card:is(:hover, .on, :focus-within) .cc-badge .cc-badge-text {
-  display: none;
 }
 
 /* A text page's detail: the words, not an empty picture frame. */
@@ -1275,15 +1258,7 @@
 
 /* A scene's thumbnail is Foundry's 300 × 100 strip, so the cards are wide and shown whole. */
 .cardcatalogue-scenes-library .cc-cards {
-  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
-}
-
-.cardcatalogue-scenes-library .cc-cards.cc-size-s {
   grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
-}
-
-.cardcatalogue-scenes-library .cc-cards.cc-size-l {
-  grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
 }
 
 .cardcatalogue-scenes-library .cc-thumb {
@@ -1671,15 +1646,7 @@ button.cc-folder > .cc-caret {
 
 /* A pack's banner is Foundry's 290 × 70 strip, so the cards are wide and the banner shown whole. */
 .cardcatalogue-compendium-library .cc-cards {
-  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
-}
-
-.cardcatalogue-compendium-library .cc-cards.cc-size-s {
   grid-template-columns: repeat(auto-fill, minmax(12.5rem, 1fr));
-}
-
-.cardcatalogue-compendium-library .cc-cards.cc-size-l {
-  grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
 }
 
 .cardcatalogue-compendium-library .cc-thumb {

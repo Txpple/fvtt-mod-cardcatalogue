@@ -43,7 +43,6 @@ const isPage = doc => doc?.documentName === "JournalEntryPage";
 
 const ICONS = { image: "fa-image", video: "fa-film", pdf: "fa-file-pdf", text: "fa-file-lines" };
 const TYPES = ["all", "image", "text", "pdf", "video"];
-const SIZES = ["s", "m", "l"];
 const TEXT_MAX = 20000;
 
 /** A folder's path as the directory nests it. */
@@ -244,7 +243,6 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     position: { width: 1180, height: 800 },
     actions: {
       type: JournalWindow.#onType,
-      size: JournalWindow.#onSize,
       view: JournalWindow.#onView,
       searchAll: JournalWindow.#onSearchAll,
       pick: JournalWindow.#onPick,
@@ -315,7 +313,6 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
 
   #view = null;
   #type = "all";
-  #size = "m";
   #query = "";
   #selected = null;
   #opts = null;
@@ -339,7 +336,6 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     super(options);
     const prefs = memory.load();
     this.#type = TYPES.includes(prefs.type) ? prefs.type : "all";
-    this.#size = SIZES.includes(prefs.size) ? prefs.size : "m";
     this.#view = prefs.view;
   }
 
@@ -434,12 +430,10 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     const nPages = list.filter(c => !c.loose && fits(c)).length;
     context.isGM = gm;
     context.cases = stripContext("journal");
-    context.size = this.#size;
     context.query = this.#query;
     context.loading = gm && !!filesLoading;
     // A type with no page in view is no pill (All and the chosen one always are): the bar stays one line.
     context.types = TYPES.filter(id => id === "all" || typeCount[id] > 0 || this.#type === id).map(id => ({ id, label: t(`type.${id}`), n: typeCount[id], on: this.#type === id }));
-    context.sizes = SIZES.map(id => ({ id, label: t(`size.${id}`), aria: t(`size.${id}Aria`), on: this.#size === id }));
     context.views = viewIds.map(id => ({
       id,
       label: t(`view.${id}`),
@@ -687,7 +681,7 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
     if (f.name) el = root.querySelector(`[name="${CSS.escape(f.name)}"]`);
     else if (f.action) {
       const sel = [`[data-action="${CSS.escape(f.action)}"]`];
-      for (const k of ["view", "type", "size", "user"]) if (f.data[k]) sel.push(`[data-${k}="${CSS.escape(f.data[k])}"]`);
+      for (const k of ["view", "type", "user"]) if (f.data[k]) sel.push(`[data-${k}="${CSS.escape(f.data[k])}"]`);
       // The control's own place: the panel, the options, the head, or its card in the grid.
       const scope = f.zone ? root.querySelector(f.zone) : f.key ? root.querySelector(`.cc-card[data-key="${CSS.escape(f.key)}"]`) : root;
       el = scope?.querySelector(sel.join("")) ?? (f.key && !f.zone ? scope?.querySelector('[data-action="pick"]') : null);
@@ -863,12 +857,6 @@ export class JournalWindow extends HandlebarsApplicationMixin(ApplicationV2) {
   static #onType(_event, target) {
     this.#type = target.dataset.type;
     memory.setPrefs({ type: this.#type });
-    this.render();
-  }
-
-  static #onSize(_event, target) {
-    this.#size = target.dataset.size;
-    memory.setPrefs({ size: this.#size });
     this.render();
   }
 

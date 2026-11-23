@@ -18,11 +18,6 @@
       <button type="button" class="cc-pill {{#if on}}on{{/if}}" data-action="type" data-type="{{id}}" aria-pressed="{{#if on}}true{{else}}false{{/if}}">{{label}} <small>{{n}}</small></button>
       {{/each}}
     </div>
-    <div class="cc-pills" role="group" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.size.label'}}">
-      {{#each sizes}}
-      <button type="button" class="cc-pill {{#if on}}on{{/if}}" data-action="size" data-size="{{id}}" aria-label="{{aria}}" aria-pressed="{{#if on}}true{{else}}false{{/if}}">{{label}}</button>
-      {{/each}}
-    </div>
     <button type="button" class="cc-classic" data-action="classic" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.classic.hint'}}">
       <i class="fa-solid fa-book-open" inert></i> <span class="cc-classic-text">{{localize "fvtt-mod-cardcatalogue.journal.classic.button"}}</span>
     </button>
@@ -73,7 +68,7 @@
         <button type="button" class="cc-x" data-action="dismissReveal" aria-label="{{localize 'fvtt-mod-cardcatalogue.journal.show.dismiss'}}" data-tooltip="{{localize 'fvtt-mod-cardcatalogue.journal.show.dismiss'}}"><i class="fa-solid fa-xmark" inert></i></button>
       </div>
       {{/if}}
-      <div class="cc-cards cc-size-{{size}}">
+      <div class="cc-cards">
         {{#each cards}}
         <article class="cc-card {{#if selected}}on{{/if}} {{#if dim}}dim{{/if}} {{#if unseen}}unseen{{/if}}" data-key="{{key}}" draggable="true"
           {{#if loose}}data-loose="1"{{/if}} {{#if searchOnly}}data-search-only="1" hidden{{/if}} data-entry="{{entryId}}" data-category="{{category}}">
@@ -81,7 +76,7 @@
             <span class="cc-thumb">
               {{#if picture}}<img src="{{picture}}" alt="" loading="lazy" draggable="false">
               {{else}}<span class="cc-excerpt"><i class="fa-solid {{icon}}" inert></i><span>{{excerpt}}</span></span>{{/if}}
-              {{#if badge}}<span class="cc-badge {{badgeCls}}" data-tooltip="{{badge}}"><i class="fa-solid {{badgeIcon}}" inert></i><span class="cc-badge-text"> {{badge}}</span></span>{{/if}}
+              {{#if badge}}<span class="cc-badge {{badgeCls}}" data-tooltip="{{badge}}"><i class="fa-solid {{badgeIcon}}" inert></i></span>{{/if}}
               {{#if unseen}}<span class="cc-new">{{localize "fvtt-mod-cardcatalogue.journal.badge.new"}}</span>{{/if}}
             </span>
             <span class="cc-cb">
